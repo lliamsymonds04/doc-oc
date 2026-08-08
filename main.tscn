@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://b3un13prji6wu" path="res://assets/textures/dark_grid.png" id="1_h2yge"]
 [ext_resource type="PackedScene" uid="uid://cidasq88868wo" path="res://systems/player/player.tscn" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://bx1hb1phl5tnq" path="res://systems/player/player_controller.gd" id="3_h2yge"]
+[ext_resource type="PackedScene" path="res://systems/basic_arm.tscn" id="4_arm"]
 
 [sub_resource type="StandardMaterial3D" id="FloorMat"]
 albedo_texture = ExtResource("1_h2yge")
@@ -149,3 +150,6 @@ jump_velocity = 7.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=415060811]
 environment = SubResource("Environment_m2c1y")
+
+[node name="BasicArm2" parent="." instance=ExtResource("4_arm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0499259, 12.308789)
