@@ -57,5 +57,6 @@ mesh = SubResource("CapsuleMesh_m2c1y")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1461957, 0)
 spring_length = 5.0
 script = ExtResource("1_2anqx")
+sensitivity = 0.04
 
 [node name="Camera3D" type="Camera3D" parent="SpringArm3D" unique_id=1441241849]
