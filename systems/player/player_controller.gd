@@ -4,6 +4,8 @@ extends CharacterBody3D
 const SPEED = 5.0
 const JUMP_VELOCITY = 4.5
 
+@onready var spring_arm := $SpringArm3D
+
 
 func _physics_process(delta: float) -> void:
 	# Add the gravity.
@@ -17,7 +19,12 @@ func _physics_process(delta: float) -> void:
 	# Get the input direction and handle the movement/deceleration.
 	# As good practice, you should replace UI actions with custom gameplay actions.
 	var input_dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
-	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	var cam_yaw := spring_arm.rotation_degrees.y
+	var forward := Vector3(-sin(cam_yaw),0, -cos(cam_yaw))
+	var right := Vector3(cos(cam_yaw), 0, -sin(cam_yaw))
+
+	# var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	var direction := (forward * input_dir.x + right * input_dir.y).normalized()
 	if direction:
 		velocity.x = direction.x * SPEED
 		velocity.z = direction.z * SPEED
