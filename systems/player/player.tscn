@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://cidasq88868wo"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m2c1y"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pftr6"]
+albedo_color = Color(0.47058824, 1, 1, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_m2c1y"]
+
+[node name="CharacterBody3D" type="CharacterBody3D" unique_id=1831706131]
+
+[node name="Hitbox" type="CollisionShape3D" parent="." unique_id=1899741163]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.99949986, 0)
+shape = SubResource("CapsuleShape3D_m2c1y")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1008928997]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0040846, 0)
+material_override = SubResource("StandardMaterial3D_pftr6")
+mesh = SubResource("CapsuleMesh_m2c1y")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="." unique_id=889996896]
