@@ -21,7 +21,6 @@ func apply_pole(target: Vector3, root: Vector3, pole: Vector3) -> void:
 	if axis.length_squared() < 0.0001:
 		return
 	axis = axis.normalized()
-
 	var bend_point := joints[int((joints.size() - 1) * 0.5)]
 	var bend_vec := bend_point - root
 	bend_vec -= axis * bend_vec.dot(axis)
@@ -61,6 +60,7 @@ func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 
 	for _iter in range(max_iterations):
 		if joints[joints.size() - 1].distance_to(target) < tolerance:
+			apply_pole(target, root, pole)
 			return joints
 
 		joints[joints.size() - 1] = target

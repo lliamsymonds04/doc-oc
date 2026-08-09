@@ -10,7 +10,7 @@ class_name BasicArm
 @export var limb_length: float = 2.0
 @export var limb_radius: float = 0.15
 @export var joint_radius: float = 0.25
-@export var step_duration: float = 0.8
+@export var step_duration: float = 0.25
 @export var lift_height: float = 0.8
 
 const GROUNDED_DISTANCE_CHECK: float = 0.2
@@ -59,7 +59,7 @@ func start_step(to: Vector3) -> void:
 	step_progress = 0.0
 
 func advance_step(dt: float) -> void:
-	step_progress = minf((step_progress + dt)/step_duration, 1.0)
+	step_progress = minf(step_progress + dt/step_duration, 1.0)
 	var base := step_start.lerp(step_end, step_progress)
 	var height := lift_height * sin(step_progress * PI)
 	var step_pos = base + Vector3.UP * height
