@@ -24,8 +24,11 @@ shape = SubResource("CapsuleShape3D_m2c1y")
 [node name="Arm" type="Marker3D" parent="Hitbox" unique_id=634293142]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3531066, 0.18764907, 0.37650687)
 
-[node name="Target" type="Node3D" parent="Hitbox/Arm" unique_id=1807086582]
+[node name="Target" type="Marker3D" parent="Hitbox/Arm" unique_id=550686394]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, 0.6019857)
+
+[node name="Pole" type="Marker3D" parent="Hitbox/Arm" unique_id=1263360260]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.54553735, 0.7931467, 0.85597676)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1008928997]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0040846, 0)

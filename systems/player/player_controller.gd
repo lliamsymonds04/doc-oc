@@ -16,12 +16,18 @@ func _ready() -> void:
 			push_warning("%s is missing child 'target'" % mount.name)
 			continue
 
+		var pole := mount.get_node("Pole") as Node3D
+		if not pole:
+			push_warning("%s is missing child 'pole'" % mount.name)
+			continue
+
 		target.top_level = true
 
 		var arm := arm_scene.instantiate() as BasicArm
 		arm.target_node = target
 		arm.position = Vector3.ZERO
 		arm.target = target.position
+		arm.pole = pole
 		mount.add_child(arm)
 		arms.append(arm)
 

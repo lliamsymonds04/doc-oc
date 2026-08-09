@@ -14,6 +14,7 @@ class_name BasicArm
 
 var target: Vector3 = Vector3.ZERO
 var target_node: Node3D
+var pole: Node3D
 
 var solver: FabrikSolver
 var limb_meshes: Array[MeshInstance3D] = []
@@ -33,7 +34,7 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	var solved := solver.solve(target, Vector3.ZERO)
+	var solved := solver.solve(target, Vector3.ZERO, pole.position)
 	_update_visualizer(solved)
 
 func _build_visualizer() -> void:

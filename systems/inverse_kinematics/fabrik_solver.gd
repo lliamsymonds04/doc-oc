@@ -16,8 +16,33 @@ func _init(p_joints: PackedVector3Array):
 		lengths.append((p_joints[i + 1] - p_joints[i]).length())
 		total_length += lengths[i]
 
+func apply_pole(target: Vector3, root: Vector3, pole: Vector3) -> void:
+	var axis := (target - root).normalized()
 
-func solve(target: Vector3, root: Vector3) -> PackedVector3Array:
+	for i in range(1,joints.size() - 1):
+		var joint_vector := joints[i] - root
+		var pole_vector := pole - root
+
+		joint_vector -= axis * joint_vector.dot(axis)
+		pole_vector -= axis * pole_vector.dot(axis)
+
+		if joint_vector.length_squared() < 0.0001:
+			continue
+		if pole_vector.length_squared() < 0.0001:
+			continue
+
+
+		joint_vector = joint_vector.normalized()
+		pole_vector = pole_vector.normalized()
+
+		var angle := atan2(
+			axis.dot(joint_vector.cross(pole_vector)),
+			joint_vector.dot(pole_vector)
+		)
+
+		joints[i] = root + Basis(axis, angle) * (joints[i] - root)
+
+func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 	var dist_to_target = root.distance_to(target)
 
 	# Unreachable: stretch the chain straight toward the target.
@@ -41,11 +66,14 @@ func solve(target: Vector3, root: Vector3) -> PackedVector3Array:
 			var lam = lengths[i] / maxf(r, 0.0001)
 			joints[i] = joints[i + 1].lerp(joints[i], lam)
 
+
 		# Forward pass: root -> end
 		joints[0] = root
 		for i in range(joints.size() - 1):
 			var r = joints[i].distance_to(joints[i + 1])
 			var lam = lengths[i] / maxf(r, 0.0001)
 			joints[i + 1] = joints[i].lerp(joints[i + 1], lam)
+
+		apply_pole(target, root, pole)
 
 	return joints
