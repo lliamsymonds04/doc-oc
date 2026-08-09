@@ -15,6 +15,8 @@ class_name BasicArm
 var target: Vector3 = Vector3.ZERO
 var target_node: Node3D
 var pole: Node3D
+var anchor: Node3D
+
 
 var solver: FabrikSolver
 var limb_meshes: Array[MeshInstance3D] = []

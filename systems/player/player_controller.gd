@@ -5,6 +5,10 @@ extends CharacterBody3D
 @export var jump_velocity = 4.5
 @export var arm_mounts: Array[Node3D] = []
 
+@export_category("Raycast")
+@export var raycast_distance: float = 10.0
+@export var max_target_displacement: float = 5.0
+
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var arms: Array[BasicArm] = []
 
@@ -20,12 +24,18 @@ func _ready() -> void:
 			push_warning("%s is missing child 'pole'" % mount.name)
 			continue
 
+		var anchor = target.duplicate()
+		anchor.name = "anchor"
+		mount.add_child(anchor)
+
+
 		target.top_level = true
 
 		var arm := BasicArm.new()
 		arm.target_node = target
 		arm.position = Vector3.ZERO
 		arm.target = target.position
+		arm.anchor = anchor
 		arm.pole = pole
 		mount.add_child(arm)
 		arms.append(arm)
@@ -69,4 +79,28 @@ func _physics_process(delta: float) -> void:
 
 func update_arms(delta: float) -> void:
 	for arm in arms:
-		arm.target = arm.to_local(arm.target_node.global_position)
+		var target_pos := arm.target_node.global_position
+		var anchor_pos := arm.anchor.global_position
+		var desired: Vector3 = target_pos
+
+		var hit = _surface_hit(anchor_pos)
+		if hit is Vector3:
+			var hit_pos := hit as Vector3
+			var target_displacement := hit_pos - target_pos
+			if target_displacement.length() > max_target_displacement:
+				desired = hit_pos
+				arm.target_node.global_position = hit_pos
+
+		arm.target = arm.to_local(desired)
+
+
+func _surface_hit(from: Vector3) -> Variant:
+	var space := get_world_3d().direct_space_state
+	var ray_origin = from + Vector3.UP * raycast_distance
+	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_origin + Vector3.DOWN * raycast_distance * 2, ~2)
+
+	var result := space.intersect_ray(query)
+	if result.is_empty():
+		return null
+
+	return result["position"]
