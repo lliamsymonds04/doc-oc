@@ -15,7 +15,7 @@ extends CharacterBody3D
 
 @export_category("Raycast")
 @export var raycast_distance: float = 10.0
-@export var max_target_displacement: float = 3.0
+@export var max_target_displacement: float = 2.0
 
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var arms: Array[BasicArm] = []
@@ -37,7 +37,6 @@ func _ready() -> void:
 		var anchor = target.duplicate()
 		anchor.name = "anchor"
 		mount.add_child(anchor)
-
 
 		target.top_level = true
 
@@ -90,6 +89,7 @@ func _physics_process(dt: float) -> void:
 	move_and_slide()
 
 func _update_arms(dt: float) -> void:
+	var grounded_arms := _number_of_grounded_arms()
 	for arm in arms:
 		var target_pos := arm.target_node.global_position
 		var anchor_pos := arm.anchor.global_position
@@ -103,8 +103,9 @@ func _update_arms(dt: float) -> void:
 		if hit is Vector3:
 			var hit_pos := hit as Vector3
 			var target_displacement:= hit_pos - target_pos
-			if target_displacement.length() > max_target_displacement:
+			if target_displacement.length() > max_target_displacement and grounded_arms > 1:
 				arm.start_step(hit_pos)
+				grounded_arms -= 1
 
 		arm.target = arm.to_local(desired)
 
@@ -153,3 +154,10 @@ func _surface_hit(from: Vector3) -> Variant:
 		return null
 
 	return result["position"]
+
+func _number_of_grounded_arms() -> int:
+	var grounded_arms = 0
+	for arm in arms:
+		if arm.is_grounded():
+			grounded_arms += 1
+	return grounded_arms

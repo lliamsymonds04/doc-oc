@@ -44,6 +44,9 @@ func _ready() -> void:
 
 # public methods
 func is_grounded() -> bool:
+	if is_stepping:
+		return false
+
 	var end_effector := solver.get_end_effector()
 	var target_pos := to_local(target_node.global_position)
 	var distance := (end_effector - target_pos).length()
