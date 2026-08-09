@@ -1,6 +1,0 @@
-[gd_scene format=3 uid="uid://ct2d2gxanm174"]
-
-[ext_resource type="Script" uid="uid://cmsw5r4tppt3e" path="res://systems/inverse_kinematics/basic_arm.gd" id="1_basic"]
-
-[node name="BasicArm" type="Node3D" unique_id=2104027408]
-script = ExtResource("1_basic")

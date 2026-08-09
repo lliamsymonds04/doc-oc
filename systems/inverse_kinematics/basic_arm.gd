@@ -7,9 +7,11 @@ class_name BasicArm
 ## solve() re-anchors the root at the local origin.
 
 @export var num_limbs: int = 3
-@export var limb_length: float = 3.0
+@export var limb_length: float = 2.0
 @export var limb_radius: float = 0.15
 @export var joint_radius: float = 0.25
+@export var step_duration: float = 0.8
+@export var lift_height: float = 0.8
 
 const GROUNDED_DISTANCE_CHECK: float = 0.2
 
@@ -18,6 +20,11 @@ var target_node: Node3D
 var pole: Node3D
 var anchor: Node3D
 
+## state
+var is_stepping = false
+var step_start: Vector3
+var step_end: Vector3
+var step_progress: float = 0.0
 
 var solver: FabrikSolver
 var limb_meshes: Array[MeshInstance3D] = []
@@ -41,6 +48,23 @@ func is_grounded() -> bool:
 	var target_pos := to_local(target_node.global_position)
 	var distance := (end_effector - target_pos).length()
 	return distance <= GROUNDED_DISTANCE_CHECK
+
+func start_step(to: Vector3) -> void:
+	is_stepping = true
+	step_start = target_node.global_position
+	step_end = to
+	step_progress = 0.0
+
+func advance_step(dt: float) -> void:
+	step_progress = minf((step_progress + dt)/step_duration, 1.0)
+	var base := step_start.lerp(step_end, step_progress)
+	var height := lift_height * sin(step_progress * PI)
+	var step_pos = base + Vector3.UP * height
+	target_node.global_position = step_pos
+	target = to_local(step_pos)
+
+	if step_progress >= 1.0:
+		is_stepping = false
 
 
 #private methods

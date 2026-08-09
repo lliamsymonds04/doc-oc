@@ -85,23 +85,26 @@ func _physics_process(dt: float) -> void:
 		velocity.z = move_toward(velocity.z, 0, speed * dt)
 
 	_update_body_y_offset(dt)
-	_update_arms()
+	_update_arms(dt)
 
 	move_and_slide()
 
-func _update_arms() -> void:
+func _update_arms(dt: float) -> void:
 	for arm in arms:
 		var target_pos := arm.target_node.global_position
 		var anchor_pos := arm.anchor.global_position
 		var desired: Vector3 = target_pos
 
+		if arm.is_stepping:
+			arm.advance_step(dt)
+			continue
+
 		var hit = _surface_hit(anchor_pos)
 		if hit is Vector3:
 			var hit_pos := hit as Vector3
-			var target_displacement := hit_pos - target_pos
+			var target_displacement:= hit_pos - target_pos
 			if target_displacement.length() > max_target_displacement:
-				desired = hit_pos
-				arm.target_node.global_position = hit_pos
+				arm.start_step(hit_pos)
 
 		arm.target = arm.to_local(desired)
 
