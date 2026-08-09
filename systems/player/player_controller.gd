@@ -7,7 +7,7 @@ extends CharacterBody3D
 
 @export_category("Hover")
 @export var hover_speed = 3.0
-@export var min_y_offset = 2.0
+@export var min_y_offset = 2.5
 @export var max_y_offset = 4.0
 @export var min_height_change_look_threshold = 10.0
 @export var height_change_rate = 1.0
@@ -16,6 +16,7 @@ extends CharacterBody3D
 @export_category("Raycast")
 @export var raycast_distance: float = 10.0
 @export var max_target_displacement: float = 2.0
+@export var anchor_lead_time: float = 0.4
 
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var arms: Array[BasicArm] = []
@@ -94,6 +95,11 @@ func _update_arms(dt: float) -> void:
 		var target_pos := arm.target_node.global_position
 		var anchor_pos := arm.anchor.global_position
 		var desired: Vector3 = target_pos
+
+		# velocity anchor_lead_time
+		var velocity_xz := Vector3(velocity.x, 0, velocity.z)
+		velocity_xz *= anchor_lead_time
+		anchor_pos += velocity_xz
 
 		if arm.is_stepping:
 			arm.advance_step(dt)
