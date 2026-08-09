@@ -4,6 +4,7 @@ extends RefCounted
 var joints: PackedVector3Array
 var lengths: PackedFloat32Array
 var total_length: float
+var bend_hint := Vector3.ZERO
 var tolerance: float = 0.01
 var max_iterations: int = 10
 
@@ -16,35 +17,41 @@ func _init(p_joints: PackedVector3Array):
 		total_length += lengths[i]
 
 func apply_pole(target: Vector3, root: Vector3, pole: Vector3) -> void:
-	var axis := (target - root).normalized()
+	var axis := target - root
+	if axis.length_squared() < 0.0001:
+		return
+	axis = axis.normalized()
 
-	for i in range(1,joints.size() - 1):
-		var joint_vector := joints[i] - root
-		var pole_vector := pole - root
+	var bend_point := joints[int((joints.size() - 1) * 0.5)]
+	var bend_vec := bend_point - root
+	bend_vec -= axis * bend_vec.dot(axis)
 
-		joint_vector -= axis * joint_vector.dot(axis)
-		pole_vector -= axis * pole_vector.dot(axis)
+	if bend_vec.length_squared() < 0.0001:
+		if bend_hint.length_squared() < 0.0001:
+			return
+		bend_vec = bend_hint
+	bend_vec = bend_vec.normalized()
 
-		if joint_vector.length_squared() < 0.0001:
-			continue
-		if pole_vector.length_squared() < 0.0001:
-			continue
+	var pole_vec := pole - root
+	pole_vec -= axis * pole_vec.dot(axis)
+	if pole_vec.length_squared() < 0.0001:
+		return
+	pole_vec = pole_vec.normalized()
 
+	var angle := atan2(
+		axis.dot(bend_vec.cross(pole_vec)),
+		bend_vec.dot(pole_vec)
+	)
 
-		joint_vector = joint_vector.normalized()
-		pole_vector = pole_vector.normalized()
+	var rot := Basis(axis, angle)
+	for i in range(1, joints.size()):
+		joints[i] = root + rot * (joints[i] - root)
 
-		var angle := atan2(
-			axis.dot(joint_vector.cross(pole_vector)),
-			joint_vector.dot(pole_vector)
-		)
-
-		joints[i] = root + Basis(axis, angle) * (joints[i] - root)
+	bend_hint = pole_vec
 
 func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 	var dist_to_target = root.distance_to(target)
 
-	# Unreachable: stretch the chain straight toward the target.
 	if dist_to_target > total_length:
 		for i in range(joints.size() - 1):
 			var r = joints[i].distance_to(target)
@@ -52,21 +59,16 @@ func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 			joints[i + 1] = joints[i].lerp(target, lam)
 		return joints
 
-	# Reachable: alternate backward/forward passes until the end effector
-	# is within tolerance of the target or we run out of iterations.
 	for _iter in range(max_iterations):
 		if joints[joints.size() - 1].distance_to(target) < tolerance:
 			return joints
 
-		# Backward pass: end -> root
 		joints[joints.size() - 1] = target
 		for i in range(joints.size() - 2, -1, -1):
 			var r = joints[i].distance_to(joints[i + 1])
 			var lam = lengths[i] / maxf(r, 0.0001)
 			joints[i] = joints[i + 1].lerp(joints[i], lam)
 
-
-		# Forward pass: root -> end
 		joints[0] = root
 		for i in range(joints.size() - 1):
 			var r = joints[i].distance_to(joints[i + 1])

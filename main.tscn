@@ -99,9 +99,15 @@ size = Vector3(1.5, 1.5, 1.5)
 material = SubResource("BoxMat_coral")
 
 [node name="BoxRed" type="CSGBox3D" parent="." unique_id=145132707]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0.75, 10)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.870697, 0.47955322, 11.508942)
 use_collision = true
-size = Vector3(1.5, 1.5, 1.5)
+size = Vector3(16.420837, 0.95910645, 4.5178833)
+material = SubResource("BoxMat_red")
+
+[node name="BoxRed2" type="CSGBox3D" parent="." unique_id=298895347]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.870697, 0.81204224, 6.446308)
+use_collision = true
+size = Vector3(16.420837, 1.6240845, 5.967285)
 material = SubResource("BoxMat_red")
 
 [node name="BoxOrange" type="CSGBox3D" parent="." unique_id=145132708]

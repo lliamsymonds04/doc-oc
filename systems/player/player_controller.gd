@@ -3,10 +3,15 @@ extends CharacterBody3D
 
 @export var speed = 5.0
 @export var jump_velocity = 4.5
+@export var arm_mounts: Array[Node3D] = []
+
+@export_category("Hover")
 @export var hover_speed = 3.0
 @export var min_y_offset = 2.0
 @export var max_y_offset = 4.0
-@export var arm_mounts: Array[Node3D] = []
+@export var min_height_change_look_threshold = 10.0
+@export var height_change_rate = 1.0
+@export var neutral_pitch = -5.0
 
 @export_category("Raycast")
 @export var raycast_distance: float = 10.0
@@ -117,6 +122,13 @@ func _calculate_average_target_y() -> Variant:
 	return total_y / grounded_arms
 
 func _update_body_y_offset(dt:float) -> void:
+	#calculate camera pitch
+	var camera_pitch = spring_arm.rotation_degrees.x
+	var effective_pitch = camera_pitch - neutral_pitch
+	if abs(effective_pitch) > min_height_change_look_threshold:
+		var goal_y_offset = max_y_offset if effective_pitch > 0 else min_y_offset
+		body_y_offset = lerp(body_y_offset, goal_y_offset, dt * height_change_rate)
+
 	var average_y = _calculate_average_target_y()
 	if average_y == null:
 		return
