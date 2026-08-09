@@ -3,9 +3,27 @@ extends CharacterBody3D
 
 @export var speed = 5.0
 @export var jump_velocity = 4.5
+@export var arm_mounts: Array[Node3D] = []
+@export var arm_scene: PackedScene
 
 @onready var spring_arm: SpringArm3D = $SpringArm3D
+@onready var arms: Array[BasicArm] = []
 
+func _ready() -> void:
+	for mount in arm_mounts:
+		var target: Node3D = mount.get_node("Target") as Node3D
+		if not target:
+			push_warning("%s is missing child 'target'" % mount.name)
+			continue
+
+		target.top_level = true
+
+		var arm := arm_scene.instantiate() as BasicArm
+		arm.target_node = target
+		arm.position = Vector3.ZERO
+		arm.target = target.position
+		mount.add_child(arm)
+		arms.append(arm)
 
 func _physics_process(delta: float) -> void:
 	# Add the gravity.
@@ -36,3 +54,8 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0, speed * delta)
 
 	move_and_slide()
+	update_arms(delta)
+
+func update_arms(delta: float) -> void:
+	for arm in arms:
+		arm.target = arm.to_local(arm.target_node.global_position)

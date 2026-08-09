@@ -12,7 +12,8 @@ class_name BasicArm
 @export var joint_radius: float = 0.25
 @export var target_speed: float = 8.0
 
-@onready var target: Node3D = $Target
+var target: Vector3 = Vector3.ZERO
+var target_node: Node3D
 
 var solver: FabrikSolver
 var limb_meshes: Array[MeshInstance3D] = []
@@ -20,15 +21,10 @@ var joint_meshes: Array[MeshInstance3D] = []
 
 
 func _ready() -> void:
-	if target == null:
-		push_error("BasicArm: missing required child node 'Target' — attach basic_arm.tscn or add a Target child.")
-		set_process(false)
-		set_physics_process(false)
-		return
 	# Initial straight-line pose toward the target, in local space.
 	# joints[0] is the root, followed by one point per limb end.
 	var positions := PackedVector3Array([Vector3.ZERO])
-	var target_dir := target.position.normalized()
+	var target_dir := target.normalized()
 	for i in range(num_limbs):
 		positions.append(positions[i] + target_dir * limb_length)
 
@@ -37,29 +33,8 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	var solved := solver.solve(target.position, Vector3.ZERO)
+	var solved := solver.solve(target, Vector3.ZERO)
 	_update_visualizer(solved)
-
-
-func _process(delta: float) -> void:
-	# Prototype-only input: nudge the target with I/J/K/L (horizontal) and
-	# U/O (vertical) so the arm can be exercised without scene edits.
-	var move := Vector3.ZERO
-	if Input.is_physical_key_pressed(KEY_I):
-		move.z -= 1.0
-	if Input.is_physical_key_pressed(KEY_K):
-		move.z += 1.0
-	if Input.is_physical_key_pressed(KEY_J):
-		move.x -= 1.0
-	if Input.is_physical_key_pressed(KEY_L):
-		move.x += 1.0
-	if Input.is_physical_key_pressed(KEY_U):
-		move.y += 1.0
-	if Input.is_physical_key_pressed(KEY_O):
-		move.y -= 1.0
-	if move != Vector3.ZERO:
-		target.position += move.normalized() * target_speed * delta
-
 
 func _build_visualizer() -> void:
 	var limb_mat := StandardMaterial3D.new()
@@ -69,6 +44,9 @@ func _build_visualizer() -> void:
 	var joint_mat := StandardMaterial3D.new()
 	joint_mat.albedo_color = Color(1.0, 0.55, 0.12)
 	joint_mat.roughness = 0.45
+
+	var end_effector_mat := StandardMaterial3D.new()
+	end_effector_mat.albedo_color = Color(1.0, 1.0, 0.1)
 
 	var cylinder := CylinderMesh.new()
 	cylinder.top_radius = limb_radius
@@ -89,7 +67,10 @@ func _build_visualizer() -> void:
 	for i in range(num_limbs + 1):
 		var joint := MeshInstance3D.new()
 		joint.mesh = sphere
-		joint.material_override = joint_mat
+		if i == num_limbs:
+			joint.material_override = end_effector_mat
+		else:
+			joint.material_override = joint_mat
 		add_child(joint)
 		joint_meshes.append(joint)
 
@@ -98,13 +79,13 @@ func _update_visualizer(joints: PackedVector3Array) -> void:
 	for i in range(limb_meshes.size()):
 		var a := joints[i]
 		var b := joints[i + 1]
-		var len := a.distance_to(b)
+		var arm_len := a.distance_to(b)
 		var seg := limb_meshes[i]
-		if len < 0.0001:
+		if arm_len < 0.0001:
 			seg.scale = Vector3.ZERO
 			continue
 		seg.position = (a + b) * 0.5
-		seg.basis = _basis_aligned_to((b - a) / len)
+		seg.basis = _basis_aligned_to((b - a) / arm_len)
 
 	for i in range(joint_meshes.size()):
 		var joint := joint_meshes[i]

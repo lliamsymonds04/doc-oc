@@ -1,37 +1,8 @@
 [gd_scene format=3 uid="uid://cidasq88868wo"]
 
 [ext_resource type="Script" uid="uid://dbvqbt8rufsaa" path="res://systems/player/camera_controller.gd" id="1_2anqx"]
-
-[sub_resource type="GDScript" id="GDScript_m2c1y"]
-script/source = "extends CharacterBody3D
-
-
-const SPEED = 5.0
-const JUMP_VELOCITY = 4.5
-
-
-func _physics_process(delta: float) -> void:
-	# Add the gravity.
-	if not is_on_floor():
-		velocity += get_gravity() * delta
-
-	# Handle jump.
-	if Input.is_action_just_pressed(\"ui_accept\") and is_on_floor():
-		velocity.y = JUMP_VELOCITY
-
-	# Get the input direction and handle the movement/deceleration.
-	# As good practice, you should replace UI actions with custom gameplay actions.
-	var input_dir := Input.get_vector(\"ui_left\", \"ui_right\", \"ui_up\", \"ui_down\")
-	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-	if direction:
-		velocity.x = direction.x * SPEED
-		velocity.z = direction.z * SPEED
-	else:
-		velocity.x = move_toward(velocity.x, 0, SPEED)
-		velocity.z = move_toward(velocity.z, 0, SPEED)
-
-	move_and_slide()
-"
+[ext_resource type="Script" uid="uid://bx1hb1phl5tnq" path="res://systems/player/player_controller.gd" id="1_ktl23"]
+[ext_resource type="PackedScene" path="res://systems/inverse_kinematics/basic_arm.tscn" id="2_fqfg4"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m2c1y"]
 
@@ -40,9 +11,11 @@ albedo_color = Color(0.47058824, 1, 1, 1)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_m2c1y"]
 
-[node name="Player" type="CharacterBody3D" unique_id=1831706131]
+[node name="Player" type="CharacterBody3D" unique_id=1831706131 node_paths=PackedStringArray("arm_mounts")]
 collision_layer = 2
-script = SubResource("GDScript_m2c1y")
+script = ExtResource("1_ktl23")
+arm_mounts = [NodePath("Arm")]
+arm_scene = ExtResource("2_fqfg4")
 
 [node name="Hitbox" type="CollisionShape3D" parent="." unique_id=1899741163]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.99949986, 0)
@@ -60,3 +33,9 @@ script = ExtResource("1_2anqx")
 sensitivity = 0.04
 
 [node name="Camera3D" type="Camera3D" parent="SpringArm3D" unique_id=1441241849]
+
+[node name="Arm" type="Marker3D" parent="." unique_id=634293142]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3531066, 1.1871489, 0.37650687)
+
+[node name="Target" type="Node3D" parent="Arm" unique_id=1807086582]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, 0.6019857)
