@@ -4,7 +4,6 @@ extends CharacterBody3D
 @export var speed = 5.0
 @export var jump_velocity = 4.5
 @export var arm_mounts: Array[Node3D] = []
-@export var arm_scene: PackedScene
 
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var arms: Array[BasicArm] = []
@@ -23,7 +22,7 @@ func _ready() -> void:
 
 		target.top_level = true
 
-		var arm := arm_scene.instantiate() as BasicArm
+		var arm := BasicArm.new()
 		arm.target_node = target
 		arm.position = Vector3.ZERO
 		arm.target = target.position

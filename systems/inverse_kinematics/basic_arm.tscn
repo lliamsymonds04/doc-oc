@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://bffgwglmu00xr"]
+[gd_scene format=3 uid="uid://bkiuns16ri2yq"]
 
 [ext_resource type="Script" uid="uid://cmsw5r4tppt3e" path="res://systems/inverse_kinematics/basic_arm.gd" id="1_basic"]
 
