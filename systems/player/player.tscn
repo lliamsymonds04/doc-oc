@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dbvqbt8rufsaa" path="res://systems/player/camera_controller.gd" id="1_2anqx"]
 [ext_resource type="Script" uid="uid://bx1hb1phl5tnq" path="res://systems/player/player_controller.gd" id="1_ktl23"]
-[ext_resource type="PackedScene" path="res://systems/inverse_kinematics/basic_arm.tscn" id="2_fqfg4"]
+[ext_resource type="PackedScene" uid="uid://bffgwglmu00xr" path="res://systems/inverse_kinematics/basic_arm.tscn" id="2_fqfg4"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m2c1y"]
 
@@ -14,12 +14,18 @@ albedo_color = Color(0.47058824, 1, 1, 1)
 [node name="Player" type="CharacterBody3D" unique_id=1831706131 node_paths=PackedStringArray("arm_mounts")]
 collision_layer = 2
 script = ExtResource("1_ktl23")
-arm_mounts = [NodePath("Arm")]
+arm_mounts = [NodePath("Hitbox/Arm")]
 arm_scene = ExtResource("2_fqfg4")
 
 [node name="Hitbox" type="CollisionShape3D" parent="." unique_id=1899741163]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.99949986, 0)
 shape = SubResource("CapsuleShape3D_m2c1y")
+
+[node name="Arm" type="Marker3D" parent="Hitbox" unique_id=634293142]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3531066, 0.18764907, 0.37650687)
+
+[node name="Target" type="Node3D" parent="Hitbox/Arm" unique_id=1807086582]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, 0.6019857)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1008928997]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0040846, 0)
@@ -33,9 +39,3 @@ script = ExtResource("1_2anqx")
 sensitivity = 0.04
 
 [node name="Camera3D" type="Camera3D" parent="SpringArm3D" unique_id=1441241849]
-
-[node name="Arm" type="Marker3D" parent="." unique_id=634293142]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3531066, 1.1871489, 0.37650687)
-
-[node name="Target" type="Node3D" parent="Arm" unique_id=1807086582]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, 0.6019857)

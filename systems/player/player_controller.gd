@@ -26,6 +26,12 @@ func _ready() -> void:
 		arms.append(arm)
 
 func _physics_process(delta: float) -> void:
+	# Transfer the camera's horizontal rotation to the player. The spring arm is
+	# a child of the player, so clear its local yaw afterward to avoid compounding
+	# the rotation every frame. Its pitch remains independent for camera aiming.
+	rotation.y = spring_arm.global_rotation.y
+	spring_arm.rotation.y = 0.0
+
 	# Add the gravity.
 	if not is_on_floor():
 		velocity += get_gravity() * delta
@@ -38,7 +44,7 @@ func _physics_process(delta: float) -> void:
 	var input_dir := Input.get_vector("left", "right", "forward", "back")
 
 	# rotation.y is in radians, and sin()/cos() expect radians.
-	var cam_yaw := spring_arm.rotation.y
+	var cam_yaw := rotation.y
 	var forward := Vector3(-sin(cam_yaw), 0, -cos(cam_yaw))
 	var right := Vector3(cos(cam_yaw), 0, -sin(cam_yaw))
 
