@@ -10,7 +10,8 @@ class_name BasicArm
 @export var limb_length: float = 3.0
 @export var limb_radius: float = 0.15
 @export var joint_radius: float = 0.25
-@export var target_speed: float = 8.0
+
+const GROUNDED_DISTANCE_CHECK: float = 0.2
 
 var target: Vector3 = Vector3.ZERO
 var target_node: Node3D
@@ -34,7 +35,15 @@ func _ready() -> void:
 	solver = FabrikSolver.new(positions)
 	_build_visualizer()
 
+# public methods
+func is_grounded() -> bool:
+	var end_effector := solver.get_end_effector()
+	var target_pos := to_local(target_node.global_position)
+	var distance := (end_effector - target_pos).length()
+	return distance <= GROUNDED_DISTANCE_CHECK
 
+
+#private methods
 func _physics_process(_delta: float) -> void:
 	var solved := solver.solve(target, Vector3.ZERO, pole.position)
 	_update_visualizer(solved)

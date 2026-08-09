@@ -7,7 +7,6 @@ var total_length: float
 var tolerance: float = 0.01
 var max_iterations: int = 10
 
-
 func _init(p_joints: PackedVector3Array):
 	joints = p_joints
 	lengths = PackedFloat32Array()
@@ -77,3 +76,6 @@ func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 		apply_pole(target, root, pole)
 
 	return joints
+
+func get_end_effector() -> Vector3:
+	return joints[joints.size() - 1]

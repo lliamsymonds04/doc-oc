@@ -3,14 +3,19 @@ extends CharacterBody3D
 
 @export var speed = 5.0
 @export var jump_velocity = 4.5
+@export var hover_speed = 3.0
+@export var min_y_offset = 2.0
+@export var max_y_offset = 4.0
 @export var arm_mounts: Array[Node3D] = []
 
 @export_category("Raycast")
 @export var raycast_distance: float = 10.0
-@export var max_target_displacement: float = 5.0
+@export var max_target_displacement: float = 3.0
 
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var arms: Array[BasicArm] = []
+
+var body_y_offset = (min_y_offset + max_y_offset)/2.0
 
 func _ready() -> void:
 	for mount in arm_mounts:
@@ -40,7 +45,7 @@ func _ready() -> void:
 		mount.add_child(arm)
 		arms.append(arm)
 
-func _physics_process(delta: float) -> void:
+func _physics_process(dt: float) -> void:
 	# Transfer the camera's horizontal rotation to the player. The spring arm is
 	# a child of the player, so clear its local yaw afterward to avoid compounding
 	# the rotation every frame. Its pitch remains independent for camera aiming.
@@ -49,7 +54,7 @@ func _physics_process(delta: float) -> void:
 
 	# Add the gravity.
 	if not is_on_floor():
-		velocity += get_gravity() * delta
+		velocity += get_gravity() * dt
 
 	# Handle jump.
 	if Input.is_action_just_pressed("jump") and is_on_floor():
@@ -71,13 +76,15 @@ func _physics_process(delta: float) -> void:
 		velocity.x = direction.x * speed
 		velocity.z = direction.z * speed
 	else:
-		velocity.x = move_toward(velocity.x, 0, speed * delta)
-		velocity.z = move_toward(velocity.z, 0, speed * delta)
+		velocity.x = move_toward(velocity.x, 0, speed * dt)
+		velocity.z = move_toward(velocity.z, 0, speed * dt)
+
+	_update_body_y_offset(dt)
+	_update_arms()
 
 	move_and_slide()
-	update_arms(delta)
 
-func update_arms(delta: float) -> void:
+func _update_arms() -> void:
 	for arm in arms:
 		var target_pos := arm.target_node.global_position
 		var anchor_pos := arm.anchor.global_position
@@ -92,6 +99,33 @@ func update_arms(delta: float) -> void:
 				arm.target_node.global_position = hit_pos
 
 		arm.target = arm.to_local(desired)
+
+func _calculate_average_target_y() -> Variant:
+	var total_y = 0
+	var grounded_arms = 0
+
+	for arm in arms:
+		if not arm.is_grounded():
+			continue
+
+		total_y += arm.target_node.global_position.y
+		grounded_arms += 1
+
+	if grounded_arms == 0:
+		return null
+
+	return total_y / grounded_arms
+
+func _update_body_y_offset(dt:float) -> void:
+	var average_y = _calculate_average_target_y()
+	if average_y == null:
+		return
+
+	var goal_y = average_y + body_y_offset
+	var current_y = global_position.y
+	var height_error = goal_y - current_y
+	var target_y_vel = height_error * hover_speed
+	velocity.y = lerp(velocity.y, target_y_vel, dt*hover_speed)
 
 
 func _surface_hit(from: Vector3) -> Variant:
