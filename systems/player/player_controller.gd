@@ -109,9 +109,10 @@ func _update_arms(dt: float) -> void:
 		if hit is Vector3:
 			var hit_pos := hit as Vector3
 			var target_displacement:= hit_pos - target_pos
-			if target_displacement.length() > max_target_displacement and grounded_arms > 1:
-				arm.start_step(hit_pos)
-				grounded_arms -= 1
+			if target_displacement.length() > max_target_displacement:
+				if (arm.is_grounded() and grounded_arms >= 2) or arm.is_fully_extended():
+					arm.start_step(hit_pos)
+					grounded_arms -= 1
 
 		arm.target = arm.to_local(desired)
 
