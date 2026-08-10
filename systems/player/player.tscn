@@ -20,7 +20,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.99949986, 0)
 shape = SubResource("CapsuleShape3D_m2c1y")
 
 [node name="ArmRight" type="Marker3D" parent="Hitbox" unique_id=634293142]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3531066, 0.18764907, 0.37650687)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 0.1, 0.377)
 
 [node name="Target" type="Marker3D" parent="Hitbox/ArmRight" unique_id=550686394]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, 0.6019857)
@@ -29,7 +29,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, 0.6019
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.54553735, 0.7931467, 0.85597676)
 
 [node name="ArmLeft" type="Marker3D" parent="Hitbox" unique_id=1544114397]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 0.188, 0.377)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 0.1, 0.377)
 
 [node name="Target" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=1044979529]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.09, 0.602)

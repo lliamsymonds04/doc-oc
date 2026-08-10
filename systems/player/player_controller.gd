@@ -91,10 +91,13 @@ func _physics_process(dt: float) -> void:
 
 func _update_arms(dt: float) -> void:
 	var grounded_arms := _number_of_grounded_arms()
+	var best_arm: BasicArm = null
+	var furthest_distance := 0.0
+	var best_arm_hit_pos := Vector3.ZERO
+
 	for arm in arms:
 		var target_pos := arm.target_node.global_position
 		var anchor_pos := arm.anchor.global_position
-		var desired: Vector3 = target_pos
 
 		# velocity anchor_lead_time
 		var velocity_xz := Vector3(velocity.x, 0, velocity.z)
@@ -109,12 +112,18 @@ func _update_arms(dt: float) -> void:
 		if hit is Vector3:
 			var hit_pos := hit as Vector3
 			var target_displacement:= hit_pos - target_pos
-			if target_displacement.length() > max_target_displacement:
-				if (arm.is_grounded() and grounded_arms >= 2) or arm.is_fully_extended():
-					arm.start_step(hit_pos)
-					grounded_arms -= 1
+			var disp := target_displacement.length()
+			var may_step := (arm.is_grounded() and grounded_arms >= 2) or arm.is_fully_extended()
+			if disp > max_target_displacement and may_step:
+				if disp > furthest_distance:
+					furthest_distance = disp
+					best_arm = arm
+					best_arm_hit_pos = hit_pos
 
-		arm.target = arm.to_local(desired)
+		arm.target = arm.to_local(target_pos)
+
+	if best_arm != null:
+		best_arm.start_step(best_arm_hit_pos)
 
 func _calculate_average_target_y() -> Variant:
 	var total_y = 0
