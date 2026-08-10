@@ -42,6 +42,7 @@ func _ready() -> void:
 		target.top_level = true
 
 		var arm := BasicArm.new()
+		arm.name = "arm_%s" % mount.name
 		arm.target_node = target
 		arm.position = Vector3.ZERO
 		arm.target = target.position

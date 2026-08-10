@@ -22,6 +22,7 @@ albedo_color = Color(0.47058824, 1, 1, 1)
 collision_layer = 2
 script = ExtResource("1_ktl23")
 arm_mounts = [NodePath("Hitbox/ArmRight"), NodePath("Hitbox/ArmLeft")]
+max_target_displacement = 3.0
 
 [node name="Hitbox" type="CollisionShape3D" parent="." unique_id=1899741163]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.99949986, 0)
@@ -33,8 +34,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 0.1, 0.377)
 [node name="Target" type="Marker3D" parent="Hitbox/ArmRight" unique_id=550686394]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, 0.6019857)
 
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox/ArmRight/Target" unique_id=1450380065]
+mesh = SubResource("SphereMesh_m2c1y")
+
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmRight" unique_id=1263360260]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2590001, 1.263228, 2.2636716)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.253, 0.2, 0.577)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox/ArmRight/Pole" unique_id=102810832]
 mesh = SubResource("SphereMesh_m2c1y")
@@ -45,8 +49,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 0.1, 0.377)
 [node name="Target" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=1044979529]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.09, 0.602)
 
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox/ArmLeft/Target" unique_id=1058018564]
+mesh = SubResource("SphereMesh_m2c1y")
+
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=515761756]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.25863, 1.2566742, 2.2596457)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.253, 0.2, 0.577)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox/ArmLeft/Pole" unique_id=1295289999]
 mesh = SubResource("SphereMesh_m2c1y")

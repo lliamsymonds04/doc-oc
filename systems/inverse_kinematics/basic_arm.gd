@@ -1,11 +1,6 @@
 extends Node3D
 class_name BasicArm
 
-## Multi-segment arm solved with FABRIK toward a child Target node.
-## Visualizer renders joints as spheres and segments as cylinders.
-## All math is in local space: the solver is built from local positions,
-## solve() re-anchors the root at the local origin.
-
 @export var num_limbs: int = 3
 @export var limb_length: float = 2.0
 @export var limb_radius: float = 0.15
@@ -13,6 +8,7 @@ class_name BasicArm
 @export var step_duration: float = 0.25
 @export var lift_height: float = 0.8
 @export var joint_y_margin: float = 0.6
+@export var min_joint_angle: float = 20.0
 
 const GROUNDED_DISTANCE_CHECK: float = 0.2
 
@@ -42,9 +38,14 @@ func _ready() -> void:
 
 	solver = FabrikSolver.new(positions)
 	solver.floor_y_margin = joint_y_margin
+	solver.min_joint_angle = min_joint_angle
+
+	for i in range(num_limbs - 1):
+		solver.hinge_axes.append(Vector3.RIGHT)
+
 	_build_visualizer()
 
-# public methods
+## public methods
 func is_grounded() -> bool:
 	if is_stepping:
 		return false
@@ -78,7 +79,7 @@ func advance_step(dt: float) -> void:
 		is_stepping = false
 
 
-#private methods
+## private methods
 func _physics_process(_delta: float) -> void:
 	var solved := solver.solve(target, Vector3.ZERO, pole.position)
 	# var solved := solver.joints
