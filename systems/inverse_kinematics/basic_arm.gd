@@ -36,7 +36,7 @@ func _ready() -> void:
 	# Initial straight-line pose toward the target, in local space.
 	# joints[0] is the root, followed by one point per limb end.
 	var positions := PackedVector3Array([Vector3.ZERO])
-	var target_dir := target.normalized()
+	var target_dir := pole.position.normalized()
 	for i in range(num_limbs):
 		positions.append(positions[i] + target_dir * limb_length)
 
@@ -81,6 +81,7 @@ func advance_step(dt: float) -> void:
 #private methods
 func _physics_process(_delta: float) -> void:
 	var solved := solver.solve(target, Vector3.ZERO, pole.position)
+	# var solved := solver.joints
 	_update_visualizer(solved)
 
 func _build_visualizer() -> void:
