@@ -7,6 +7,7 @@ var total_length: float
 var bend_hint := Vector3.ZERO
 var tolerance: float = 0.01
 var max_iterations: int = 10
+var floor_y_margin: float = 0.0
 
 func _init(p_joints: PackedVector3Array):
 	joints = p_joints
@@ -48,6 +49,11 @@ func apply_pole(target: Vector3, root: Vector3, pole: Vector3) -> void:
 
 	bend_hint = pole_vec
 
+func _apply_floor(floor_y: float, margin: float) -> void:
+	for i in range(1, joints.size() - 1):
+		if joints[i].y < floor_y + margin:
+			joints[i].y = floor_y + margin
+
 func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 	var dist_to_target = root.distance_to(target)
 
@@ -61,6 +67,7 @@ func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 	for _iter in range(max_iterations):
 		if joints[joints.size() - 1].distance_to(target) < tolerance:
 			apply_pole(target, root, pole)
+			_apply_floor(target.y, floor_y_margin)
 			return joints
 
 		joints[joints.size() - 1] = target
@@ -76,6 +83,7 @@ func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 			joints[i + 1] = joints[i].lerp(joints[i + 1], lam)
 
 		apply_pole(target, root, pole)
+		_apply_floor(target.y, floor_y_margin)
 
 	return joints
 

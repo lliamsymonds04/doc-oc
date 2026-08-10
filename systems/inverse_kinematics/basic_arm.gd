@@ -12,6 +12,7 @@ class_name BasicArm
 @export var joint_radius: float = 0.25
 @export var step_duration: float = 0.25
 @export var lift_height: float = 0.8
+@export var joint_y_margin: float = 0.6
 
 const GROUNDED_DISTANCE_CHECK: float = 0.2
 
@@ -40,6 +41,7 @@ func _ready() -> void:
 		positions.append(positions[i] + target_dir * limb_length)
 
 	solver = FabrikSolver.new(positions)
+	solver.floor_y_margin = joint_y_margin
 	_build_visualizer()
 
 # public methods

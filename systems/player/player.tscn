@@ -6,6 +6,14 @@
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m2c1y"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pftr6"]
+albedo_color = Color(1, 0, 1, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_m2c1y"]
+material = SubResource("StandardMaterial3D_pftr6")
+radius = 0.1
+height = 0.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ktl23"]
 albedo_color = Color(0.47058824, 1, 1, 1)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_m2c1y"]
@@ -26,7 +34,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 0.1, 0.377)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, 0.6019857)
 
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmRight" unique_id=1263360260]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.54553735, 0.7931467, 0.85597676)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2590001, 1.263228, 2.2636716)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox/ArmRight/Pole" unique_id=102810832]
+mesh = SubResource("SphereMesh_m2c1y")
 
 [node name="ArmLeft" type="Marker3D" parent="Hitbox" unique_id=1544114397]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 0.1, 0.377)
@@ -35,16 +46,37 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 0.1, 0.377)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.09, 0.602)
 
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=515761756]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.25863, 1.2566742, 2.2596457)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox/ArmLeft/Pole" unique_id=1295289999]
+mesh = SubResource("SphereMesh_m2c1y")
+
+[node name="ArmTopRight" type="Marker3D" parent="Hitbox" unique_id=373168355]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 0.506, 0.377)
+
+[node name="Target" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=1012489981]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, -1.5805304)
+
+[node name="Pole" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=183985606]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.54553735, 0.7931467, 0.85597676)
+
+[node name="ArmTopLeft" type="Marker3D" parent="Hitbox" unique_id=1017648186]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 0.5156874, 0.377)
+
+[node name="Target" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=630538761]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.3213141, -1.7524953)
+
+[node name="Pole" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=144475676]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.546, 0.793, 0.856)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1008928997]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0040846, 0)
-material_override = SubResource("StandardMaterial3D_pftr6")
+material_override = SubResource("StandardMaterial3D_ktl23")
 mesh = SubResource("CapsuleMesh_m2c1y")
 
 [node name="SpringArm3D" type="SpringArm3D" parent="." unique_id=889996896]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1461957, 0)
-spring_length = 5.0
+spring_length = 7.0
 script = ExtResource("1_2anqx")
 sensitivity = 0.04
 
