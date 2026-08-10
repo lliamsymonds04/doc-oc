@@ -2,16 +2,9 @@
 
 [ext_resource type="Script" uid="uid://dbvqbt8rufsaa" path="res://systems/player/camera_controller.gd" id="1_2anqx"]
 [ext_resource type="Script" uid="uid://bx1hb1phl5tnq" path="res://systems/player/player_controller.gd" id="1_ktl23"]
+[ext_resource type="Script" uid="uid://bba0h6wxddaoe" path="res://systems/inverse_kinematics/arm_mount.gd" id="2_fqfg4"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m2c1y"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pftr6"]
-albedo_color = Color(1, 0, 1, 1)
-
-[sub_resource type="SphereMesh" id="SphereMesh_m2c1y"]
-material = SubResource("StandardMaterial3D_pftr6")
-radius = 0.1
-height = 0.2
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ktl23"]
 albedo_color = Color(0.47058824, 1, 1, 1)
@@ -21,60 +14,56 @@ albedo_color = Color(0.47058824, 1, 1, 1)
 [node name="Player" type="CharacterBody3D" unique_id=1831706131 node_paths=PackedStringArray("arm_mounts")]
 collision_layer = 2
 script = ExtResource("1_ktl23")
-arm_mounts = [NodePath("Hitbox/ArmRight"), NodePath("Hitbox/ArmLeft")]
+arm_mounts = [NodePath("Hitbox/ArmRight"), NodePath("Hitbox/ArmLeft"), NodePath("Hitbox/ArmTopRight"), NodePath("Hitbox/ArmTopLeft")]
 max_target_displacement = 3.0
 
 [node name="Hitbox" type="CollisionShape3D" parent="." unique_id=1899741163]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.99949986, 0)
 shape = SubResource("CapsuleShape3D_m2c1y")
 
-[node name="ArmRight" type="Marker3D" parent="Hitbox" unique_id=634293142]
+[node name="ArmRight" type="Node3D" parent="Hitbox" unique_id=714455465]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 0.1, 0.377)
+script = ExtResource("2_fqfg4")
+metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
 [node name="Target" type="Marker3D" parent="Hitbox/ArmRight" unique_id=550686394]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, 0.6019857)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox/ArmRight/Target" unique_id=1450380065]
-mesh = SubResource("SphereMesh_m2c1y")
-
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmRight" unique_id=1263360260]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.253, 0.2, 0.577)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox/ArmRight/Pole" unique_id=102810832]
-mesh = SubResource("SphereMesh_m2c1y")
-
-[node name="ArmLeft" type="Marker3D" parent="Hitbox" unique_id=1544114397]
+[node name="ArmLeft" type="Node3D" parent="Hitbox" unique_id=241021393]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 0.1, 0.377)
+script = ExtResource("2_fqfg4")
+metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
 [node name="Target" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=1044979529]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.09, 0.602)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox/ArmLeft/Target" unique_id=1058018564]
-mesh = SubResource("SphereMesh_m2c1y")
-
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=515761756]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.253, 0.2, 0.577)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox/ArmLeft/Pole" unique_id=1295289999]
-mesh = SubResource("SphereMesh_m2c1y")
-
-[node name="ArmTopRight" type="Marker3D" parent="Hitbox" unique_id=373168355]
+[node name="ArmTopRight" type="Node3D" parent="Hitbox" unique_id=2058179573]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 0.506, 0.377)
+script = ExtResource("2_fqfg4")
+metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
 [node name="Target" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=1012489981]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, -1.5805304)
 
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=183985606]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.54553735, 0.7931467, 0.85597676)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.336801, 0.7931466, -2.4890435)
 
-[node name="ArmTopLeft" type="Marker3D" parent="Hitbox" unique_id=1017648186]
+[node name="ArmTopLeft" type="Node3D" parent="Hitbox" unique_id=1899558695]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 0.5156874, 0.377)
+script = ExtResource("2_fqfg4")
+metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
 [node name="Target" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=630538761]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.3213141, -1.7524953)
 
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=144475676]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.546, 0.793, 0.856)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5615735, 0.793, -2.6115484)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1008928997]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0040846, 0)

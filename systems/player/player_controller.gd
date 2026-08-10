@@ -3,7 +3,7 @@ extends CharacterBody3D
 
 @export var speed = 5.0
 @export var jump_velocity = 4.5
-@export var arm_mounts: Array[Node3D] = []
+@export var arm_mounts: Array[ArmMount] = []
 
 @export_category("Hover")
 @export var hover_speed = 3.0
@@ -25,30 +25,7 @@ var body_y_offset = (min_y_offset + max_y_offset)/2.0
 
 func _ready() -> void:
 	for mount in arm_mounts:
-		var target: Node3D = mount.get_node("Target") as Node3D
-		if not target:
-			push_warning("%s is missing child 'target'" % mount.name)
-			continue
-
-		var pole := mount.get_node("Pole") as Node3D
-		if not pole:
-			push_warning("%s is missing child 'pole'" % mount.name)
-			continue
-
-		var anchor = target.duplicate()
-		anchor.name = "anchor"
-		mount.add_child(anchor)
-
-		target.top_level = true
-
-		var arm := BasicArm.new()
-		arm.name = "arm_%s" % mount.name
-		arm.target_node = target
-		arm.position = Vector3.ZERO
-		arm.target = target.position
-		arm.anchor = anchor
-		arm.pole = pole
-		mount.add_child(arm)
+		var arm = mount.init()
 		arms.append(arm)
 
 func _physics_process(dt: float) -> void:
