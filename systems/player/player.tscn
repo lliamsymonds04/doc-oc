@@ -43,10 +43,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.09, 0.602)
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=515761756]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.253, 0.2, 0.577)
 
-[node name="ArmTopRight" type="Node3D" parent="Hitbox" unique_id=2058179573 node_paths=PackedStringArray("idle_target")]
+[node name="ArmTopRight" type="Node3D" parent="Hitbox" unique_id=2058179573 node_paths=PackedStringArray("wall_target", "idle_target")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 0.506, 0.377)
 script = ExtResource("2_fqfg4")
 is_leg = false
+wall_target = NodePath("WallTarget")
 idle_target = NodePath("IdleTarget")
 idle_sway_x = 0.2
 idle_sway_y = 0.1
@@ -62,10 +63,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, 1.5599794, -2.9131
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=183985606]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.336801, 2.787157, -0.93121254)
 
-[node name="ArmTopLeft" type="Node3D" parent="Hitbox" unique_id=1899558695 node_paths=PackedStringArray("idle_target")]
+[node name="WallTarget" type="Node3D" parent="Hitbox/ArmTopRight" unique_id=696696143]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9002914, 1.5533633, -1.7995577)
+
+[node name="ArmTopLeft" type="Node3D" parent="Hitbox" unique_id=1899558695 node_paths=PackedStringArray("wall_target", "idle_target")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 0.5156874, 0.377)
 script = ExtResource("2_fqfg4")
 is_leg = false
+wall_target = NodePath("WallTarget")
 idle_target = NodePath("IdleTarget")
 idle_sway_x = 0.2
 idle_sway_y = 0.1
@@ -79,6 +84,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, 1.4203327, -3.1366746
 
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=144475676]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5615735, 2.7539291, -1.1966037)
+
+[node name="WallTarget" type="Node3D" parent="Hitbox/ArmTopLeft" unique_id=2115885880]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.553, -1.8)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1008928997]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0040846, 0)

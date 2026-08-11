@@ -17,6 +17,7 @@ extends CharacterBody3D
 @export var raycast_distance: float = 10.0
 @export var max_target_displacement: float = 2.0
 @export var anchor_lead_time: float = 0.4
+@export var wall_raycast_distance: float = 2.0
 
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var arms: Array[BasicArm] = []
@@ -73,6 +74,8 @@ func _update_arms(dt: float) -> void:
 	var furthest_distance := 0.0
 	var best_arm_hit_pos := Vector3.ZERO
 
+	var wall_detection_count := 0
+
 	for mount in arm_mounts:
 		var arm := mount.arm
 		if mount.is_leg:
@@ -88,7 +91,7 @@ func _update_arms(dt: float) -> void:
 				arm.advance_step(dt)
 				continue
 
-			var hit = _surface_hit(anchor_pos)
+			var hit = _surface_hit(anchor_pos, Vector3.DOWN, raycast_distance)
 			if hit is Vector3:
 				var hit_pos := hit as Vector3
 				var target_displacement:= hit_pos - target_pos
@@ -104,8 +107,20 @@ func _update_arms(dt: float) -> void:
 		elif mount.idle_target != null:
 			arm.target = mount.compute_idle_target()
 
+		# wall raycasts
+		if mount.wall_target != null:
+			var wall_target_pos := mount.wall_target.global_position
+			var cast_dir := -global_transform.basis.z
+			var hit = _surface_hit(wall_target_pos, cast_dir, wall_raycast_distance)
+
+			if hit != null:
+				wall_detection_count += 1
+
 	if best_arm != null:
 		best_arm.start_step(best_arm_hit_pos)
+
+	if wall_detection_count > 1:
+		print("wall time")
 
 func _calculate_average_target_y() -> Variant:
 	var total_y = 0
@@ -142,10 +157,10 @@ func _update_body_y_offset(dt:float) -> void:
 	velocity.y = lerp(velocity.y, target_y_vel, dt*hover_speed)
 
 
-func _surface_hit(from: Vector3) -> Variant:
+func _surface_hit(from: Vector3, direction: Vector3, distance: float) -> Variant:
 	var space := get_world_3d().direct_space_state
-	var ray_origin = from + Vector3.UP * raycast_distance
-	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_origin + Vector3.DOWN * raycast_distance * 2, ~2)
+	var ray_origin = from - direction * distance
+	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_origin + direction * distance * 2, ~2)
 
 	var result := space.intersect_ray(query)
 	if result.is_empty():

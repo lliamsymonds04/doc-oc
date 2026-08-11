@@ -2,6 +2,7 @@ extends Node3D
 class_name ArmMount
 
 @export var is_leg: bool = true
+@export var wall_target: Node3D
 
 @export_category("Idle targeting")
 @export var idle_target: Node3D
