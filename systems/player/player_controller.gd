@@ -73,32 +73,36 @@ func _update_arms(dt: float) -> void:
 	var furthest_distance := 0.0
 	var best_arm_hit_pos := Vector3.ZERO
 
-	for arm in arms:
-		var target_pos := arm.target_node.global_position
-		var anchor_pos := arm.anchor.global_position
+	for mount in arm_mounts:
+		var arm := mount.arm
+		if mount.is_leg:
+			var target_pos := arm.target_node.global_position
+			var anchor_pos := arm.anchor.global_position
 
-		# velocity anchor_lead_time
-		var velocity_xz := Vector3(velocity.x, 0, velocity.z)
-		velocity_xz *= anchor_lead_time
-		anchor_pos += velocity_xz
+			# velocity anchor_lead_time
+			var velocity_xz := Vector3(velocity.x, 0, velocity.z)
+			velocity_xz *= anchor_lead_time
+			anchor_pos += velocity_xz
 
-		if arm.is_stepping:
-			arm.advance_step(dt)
-			continue
+			if arm.is_stepping:
+				arm.advance_step(dt)
+				continue
 
-		var hit = _surface_hit(anchor_pos)
-		if hit is Vector3:
-			var hit_pos := hit as Vector3
-			var target_displacement:= hit_pos - target_pos
-			var disp := target_displacement.length()
-			var may_step := (arm.is_grounded() and grounded_arms >= 2) or arm.is_fully_extended()
-			if disp > max_target_displacement and may_step:
-				if disp > furthest_distance:
-					furthest_distance = disp
-					best_arm = arm
-					best_arm_hit_pos = hit_pos
+			var hit = _surface_hit(anchor_pos)
+			if hit is Vector3:
+				var hit_pos := hit as Vector3
+				var target_displacement:= hit_pos - target_pos
+				var disp := target_displacement.length()
+				var may_step := (arm.is_grounded() and grounded_arms >= 2) or arm.is_fully_extended()
+				if disp > max_target_displacement and may_step:
+					if disp > furthest_distance:
+						furthest_distance = disp
+						best_arm = arm
+						best_arm_hit_pos = hit_pos
 
-		arm.target = arm.to_local(target_pos)
+			arm.target = arm.to_local(target_pos)
+		elif mount.idle_target != null:
+			arm.target = arm.to_local(mount.idle_target.global_position)
 
 	if best_arm != null:
 		best_arm.start_step(best_arm_hit_pos)

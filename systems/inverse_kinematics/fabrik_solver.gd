@@ -28,7 +28,7 @@ func apply_pole(target: Vector3, root: Vector3, pole: Vector3) -> void:
 		return
 	axis = axis.normalized()
 
-	var bend_vec := joints[(joints.size() - 1) / 2] - root
+	var bend_vec := joints[(joints.size() - 1) / 2.0] - root
 	bend_vec -= axis * bend_vec.dot(axis)
 	if bend_vec.length_squared() < 0.0001:
 		bend_vec = bend_hint
@@ -119,9 +119,9 @@ func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 
 	return joints
 
-## Returns the point `len` away from `a` toward `b`.
-func _stretch(a: Vector3, b: Vector3, len: float) -> Vector3:
-	return a.lerp(b, len / maxf(a.distance_to(b), 0.0001))
+## Returns the point `length` away from `a` toward `b`.
+func _stretch(a: Vector3, b: Vector3, length: float) -> Vector3:
+	return a.lerp(b, length / maxf(a.distance_to(b), 0.0001))
 
 func get_end_effector() -> Vector3:
 	return joints[joints.size() - 1]

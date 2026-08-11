@@ -16,6 +16,7 @@ var target: Vector3 = Vector3.ZERO
 var target_node: Node3D
 var pole: Node3D
 var anchor: Node3D
+var is_leg: bool = false
 
 ## state
 var is_stepping = false
@@ -50,6 +51,9 @@ func is_grounded() -> bool:
 	if is_stepping:
 		return false
 
+	if not is_leg:
+		return false
+
 	var end_effector := solver.get_end_effector()
 	var target_pos := to_local(target_node.global_position)
 	var distance := (end_effector - target_pos).length()
@@ -82,7 +86,6 @@ func advance_step(dt: float) -> void:
 ## private methods
 func _physics_process(_delta: float) -> void:
 	var solved := solver.solve(target, Vector3.ZERO, pole.position)
-	# var solved := solver.joints
 	_update_visualizer(solved)
 
 func _build_visualizer() -> void:

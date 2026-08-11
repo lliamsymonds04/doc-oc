@@ -43,27 +43,37 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.09, 0.602)
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=515761756]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.253, 0.2, 0.577)
 
-[node name="ArmTopRight" type="Node3D" parent="Hitbox" unique_id=2058179573]
+[node name="ArmTopRight" type="Node3D" parent="Hitbox" unique_id=2058179573 node_paths=PackedStringArray("idle_target")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 0.506, 0.377)
 script = ExtResource("2_fqfg4")
+is_leg = false
+idle_target = NodePath("IdleTarget")
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
 [node name="Target" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=1012489981]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, -1.5805304)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, 2.8672657, -2.9131262)
+
+[node name="IdleTarget" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=1108706562]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, 1.5599794, -2.9131262)
 
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=183985606]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.336801, 0.7931466, -2.4890435)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.336801, 2.787157, -0.93121254)
 
-[node name="ArmTopLeft" type="Node3D" parent="Hitbox" unique_id=1899558695]
+[node name="ArmTopLeft" type="Node3D" parent="Hitbox" unique_id=1899558695 node_paths=PackedStringArray("idle_target")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 0.5156874, 0.377)
 script = ExtResource("2_fqfg4")
+is_leg = false
+idle_target = NodePath("IdleTarget")
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
 [node name="Target" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=630538761]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.3213141, -1.7524953)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, 2.9198666, -3.1366746)
+
+[node name="IdleTarget" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=1476587123]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, 1.4203327, -3.1366746)
 
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=144475676]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5615735, 0.793, -2.6115484)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5615735, 2.7539291, -1.1966037)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1008928997]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0040846, 0)
