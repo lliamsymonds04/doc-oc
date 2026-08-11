@@ -68,7 +68,7 @@ func _physics_process(dt: float) -> void:
 	move_and_slide()
 
 func _update_arms(dt: float) -> void:
-	var grounded_arms := _number_of_grounded_arms()
+	var grounded_legs := _number_of_grounded_legs()
 	var best_arm: BasicArm = null
 	var furthest_distance := 0.0
 	var best_arm_hit_pos := Vector3.ZERO
@@ -93,7 +93,7 @@ func _update_arms(dt: float) -> void:
 				var hit_pos := hit as Vector3
 				var target_displacement:= hit_pos - target_pos
 				var disp := target_displacement.length()
-				var may_step := (arm.is_grounded() and grounded_arms >= 2) or arm.is_fully_extended()
+				var may_step := (arm.is_grounded() and grounded_legs >= 2) or arm.is_fully_extended()
 				if disp > max_target_displacement and may_step:
 					if disp > furthest_distance:
 						furthest_distance = disp
@@ -102,26 +102,26 @@ func _update_arms(dt: float) -> void:
 
 			arm.target = arm.to_local(target_pos)
 		elif mount.idle_target != null:
-			arm.target = arm.to_local(mount.idle_target.global_position)
+			arm.target = mount.compute_idle_target()
 
 	if best_arm != null:
 		best_arm.start_step(best_arm_hit_pos)
 
 func _calculate_average_target_y() -> Variant:
 	var total_y = 0
-	var grounded_arms = 0
+	var grounded_legs = 0
 
 	for arm in arms:
 		if not arm.is_grounded():
 			continue
 
 		total_y += arm.target_node.global_position.y
-		grounded_arms += 1
+		grounded_legs += 1
 
-	if grounded_arms == 0:
+	if grounded_legs == 0:
 		return null
 
-	return total_y / grounded_arms
+	return total_y / grounded_legs
 
 func _update_body_y_offset(dt:float) -> void:
 	#calculate camera pitch
@@ -153,9 +153,9 @@ func _surface_hit(from: Vector3) -> Variant:
 
 	return result["position"]
 
-func _number_of_grounded_arms() -> int:
-	var grounded_arms = 0
+func _number_of_grounded_legs() -> int:
+	var grounded_legs = 0
 	for arm in arms:
 		if arm.is_grounded():
-			grounded_arms += 1
-	return grounded_arms
+			grounded_legs += 1
+	return grounded_legs

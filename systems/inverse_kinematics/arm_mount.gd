@@ -3,6 +3,8 @@ class_name ArmMount
 
 @export var is_leg: bool = true
 @export var idle_target: Node3D
+@export var idle_sway: float = 0.0
+@export var idle_sway_speed: float = 1.0
 
 @onready var pole: Node3D = $Pole
 @onready var target: Node3D = $Target
@@ -27,3 +29,9 @@ func init() -> BasicArm:
 	add_child(arm)
 
 	return arm
+
+func compute_idle_target() -> Vector3:
+	var idle_pos = to_local(idle_target.global_position)
+	if idle_sway != 0.0:
+		idle_pos += Vector3.RIGHT * sin(Time.get_ticks_msec() * idle_sway_speed * 0.001) * idle_sway
+	return idle_pos
