@@ -48,7 +48,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 0.506, 0.377)
 script = ExtResource("2_fqfg4")
 is_leg = false
 idle_target = NodePath("IdleTarget")
-idle_sway = -0.2
+idle_sway_x = 0.2
+idle_sway_y = 0.1
+sway_phase = 3.14159265358979
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
 [node name="Target" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=1012489981]
@@ -65,7 +67,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 0.5156874, 0.377)
 script = ExtResource("2_fqfg4")
 is_leg = false
 idle_target = NodePath("IdleTarget")
-idle_sway = 0.2
+idle_sway_x = 0.2
+idle_sway_y = 0.1
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
 [node name="Target" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=630538761]

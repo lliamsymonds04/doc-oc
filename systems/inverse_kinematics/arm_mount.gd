@@ -2,14 +2,24 @@ extends Node3D
 class_name ArmMount
 
 @export var is_leg: bool = true
+
+@export_category("Idle targeting")
 @export var idle_target: Node3D
-@export var idle_sway: float = 0.0
+@export var idle_sway_x: float = 0.0
+@export var idle_sway_y: float = 0.0
 @export var idle_sway_speed: float = 1.0
+@export var idle_sway_y_mult: float = 2.0
+@export_range(-3.1416, 3.1416) var sway_phase: float = 0.0
 
 @onready var pole: Node3D = $Pole
 @onready var target: Node3D = $Target
 
 var arm: BasicArm
+
+var _sway_time: float = 0.0
+
+func _process(delta: float) -> void:
+	_sway_time += delta
 
 func init() -> BasicArm:
 	var anchor = target.duplicate()
@@ -32,6 +42,9 @@ func init() -> BasicArm:
 
 func compute_idle_target() -> Vector3:
 	var idle_pos = to_local(idle_target.global_position)
-	if idle_sway != 0.0:
-		idle_pos += Vector3.RIGHT * sin(Time.get_ticks_msec() * idle_sway_speed * 0.001) * idle_sway
+	var t := _sway_time * idle_sway_speed
+	if idle_sway_x != 0.0:
+		idle_pos += Vector3.RIGHT * sin(t + sway_phase) * idle_sway_x
+	if idle_sway_y != 0.0:
+		idle_pos += Vector3.UP * sin(t * idle_sway_y_mult + sway_phase) * idle_sway_y
 	return idle_pos
