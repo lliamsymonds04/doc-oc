@@ -15,14 +15,10 @@ class_name ArmMount
 @onready var pole: Node3D = $Pole
 @onready var target: Node3D = $Target
 
+var raycast_config: ArmRaycastConfig
 var arm: BasicArm
 var step_target: Variant
 var _sway_time: float = 0.0
-
-## temp vars until config is solidifed
-var anchor_lead_time: float = 0.4
-var raycast_distance: float = 10.0
-var max_target_displacement: float = 3.0
 
 func _process(delta: float) -> void:
 	_sway_time += delta
@@ -68,15 +64,15 @@ func update_step(velocity: Vector3, dt: float) -> void:
 
 		# velocity anchor_lead_time
 		var velocity_xz := Vector3(velocity.x, 0, velocity.z)
-		velocity_xz *= anchor_lead_time
+		velocity_xz *= raycast_config.anchor_lead_time
 		anchor_pos += velocity_xz
 
-		var hit = get_surface_hit(anchor_pos, Vector3.DOWN, raycast_distance)
+		var hit = get_surface_hit(anchor_pos, Vector3.DOWN, raycast_config.step_raycast_distance)
 		if hit is Vector3:
 			var hit_pos := hit as Vector3
 			var target_displacement:= hit_pos - target_pos
 			var disp := target_displacement.length()
-			if disp > max_target_displacement:
+			if disp > raycast_config.max_target_displacement:
 				step_target = hit_pos
 
 		arm.target = arm.to_local(target_pos)

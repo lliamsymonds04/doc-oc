@@ -3,6 +3,11 @@
 [ext_resource type="Script" uid="uid://dbvqbt8rufsaa" path="res://systems/player/camera_controller.gd" id="1_2anqx"]
 [ext_resource type="Script" uid="uid://bx1hb1phl5tnq" path="res://systems/player/player_controller.gd" id="1_ktl23"]
 [ext_resource type="Script" uid="uid://bba0h6wxddaoe" path="res://systems/inverse_kinematics/arm_mount.gd" id="2_fqfg4"]
+[ext_resource type="Script" uid="uid://ci0k2wv8n3bhd" path="res://systems/inverse_kinematics/arm_raycast_config.gd" id="2_q27vv"]
+
+[sub_resource type="Resource" id="Resource_dwurs"]
+script = ExtResource("2_q27vv")
+metadata/_custom_type_script = "uid://ci0k2wv8n3bhd"
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m2c1y"]
 
@@ -15,7 +20,7 @@ albedo_color = Color(0.47058824, 1, 1, 1)
 collision_layer = 2
 script = ExtResource("1_ktl23")
 arm_mounts = [NodePath("Hitbox/ArmRight"), NodePath("Hitbox/ArmLeft"), NodePath("Hitbox/ArmTopRight"), NodePath("Hitbox/ArmTopLeft")]
-max_target_displacement = 3.0
+raycast_config = SubResource("Resource_dwurs")
 
 [node name="Hitbox" type="CollisionShape3D" parent="." unique_id=1899741163]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.99949986, 0)

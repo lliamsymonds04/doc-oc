@@ -4,6 +4,7 @@ extends CharacterBody3D
 @export var speed = 5.0
 @export var jump_velocity = 4.5
 @export var arm_mounts: Array[ArmMount] = []
+@export var raycast_config: ArmRaycastConfig
 
 @export_category("Hover")
 @export var hover_speed = 3.0
@@ -13,12 +14,6 @@ extends CharacterBody3D
 @export var height_change_rate = 1.0
 @export var neutral_pitch = -5.0
 
-@export_category("Raycast")
-@export var raycast_distance: float = 10.0
-@export var max_target_displacement: float = 2.0
-@export var anchor_lead_time: float = 0.4
-@export var wall_raycast_distance: float = 2.0
-
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var arms: Array[BasicArm] = []
 
@@ -26,6 +21,7 @@ var body_y_offset = (min_y_offset + max_y_offset)/2.0
 
 func _ready() -> void:
 	for mount in arm_mounts:
+		mount.raycast_config = raycast_config
 		var arm = mount.init()
 		arms.append(arm)
 
@@ -89,7 +85,7 @@ func _update_arms(dt: float) -> void:
 		if mount.wall_target != null and mount.arm.is_stepping == false:
 			var wall_target_pos := mount.wall_target.global_position
 			var cast_dir := -global_transform.basis.z
-			var hit = mount.get_surface_hit(wall_target_pos, cast_dir, wall_raycast_distance)
+			var hit = mount.get_surface_hit(wall_target_pos, cast_dir, mount.raycast_config.wall_raycast_distance)
 
 			if hit != null:
 				wall_detection_count += 1
