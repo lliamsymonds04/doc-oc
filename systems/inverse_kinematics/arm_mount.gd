@@ -128,3 +128,6 @@ func _get_surface_hit(from: Vector3, direction: Vector3, distance: float) -> Var
 		"position": result["position"],
 		"normal": result["normal"],
 	}
+
+func set_apply_floor(should_apply: bool) -> void:
+	arm.solver.should_apply_floor = should_apply

@@ -12,6 +12,7 @@ var min_joint_angle: float = 0.0
 
 ## Hinge axis per interior joint, in the previous segment's local frame
 var hinge_axes: Array[Vector3] = []
+var should_apply_floor: bool = true
 
 func _init(p_joints: PackedVector3Array):
 	joints = p_joints
@@ -110,7 +111,8 @@ func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 		for i in range(joints.size() - 1):
 			joints[i + 1] = _stretch(joints[i], joints[i + 1], lengths[i])
 
-		_apply_floor(target.y, floor_y_margin)
+		if should_apply_floor:
+			_apply_floor(target.y, floor_y_margin)
 		apply_pole(target, root, pole)
 		apply_hinge_constraints(pole)
 

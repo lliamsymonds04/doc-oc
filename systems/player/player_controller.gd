@@ -134,6 +134,7 @@ func try_mount_wall() -> void:
 			if mount.is_leg or mount.arm.is_stepping:
 				continue
 
+			mount.set_apply_floor(false)
 			var hit = wall_hits[mount]
 			if hit != null:
 				var hit_pos = hit as Vector3
