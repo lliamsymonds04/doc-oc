@@ -2,7 +2,6 @@ extends Node3D
 class_name ArmMount
 
 @export var is_leg: bool = true
-@export var wall_target: Node3D
 
 @export_category("Idle targeting")
 @export var idle_target: Node3D
@@ -14,6 +13,7 @@ class_name ArmMount
 
 @onready var pole: Node3D = $Pole
 @onready var target: Node3D = $Target
+@onready var wall_target: Node3D = $WallTarget
 
 var raycast_config: ArmRaycastConfig
 var arm: BasicArm
@@ -67,7 +67,7 @@ func update_step(velocity: Vector3, dt: float) -> void:
 		velocity_xz *= raycast_config.anchor_lead_time
 		anchor_pos += velocity_xz
 
-		var hit = get_surface_hit(anchor_pos, Vector3.DOWN, raycast_config.step_raycast_distance)
+		var hit = _get_surface_hit(anchor_pos, Vector3.DOWN, raycast_config.step_raycast_distance)
 		if hit is Vector3:
 			var hit_pos := hit as Vector3
 			var target_displacement:= hit_pos - target_pos
@@ -87,14 +87,23 @@ func get_step_distance() -> float:
 		return INF
 	return (step_target - arm.anchor.global_position).length()
 
-func get_wall_hit_pos() -> Variant:
+func get_wall_hit_pos(buffer: float = 0.0) -> Variant:
 	var wall_target_pos := wall_target.global_position
 	var cast_dir := -global_transform.basis.z
-	var hit = get_surface_hit(wall_target_pos, cast_dir, raycast_config.wall_raycast_distance)
+	var hit = _get_surface_hit(wall_target_pos, cast_dir, raycast_config.wall_raycast_distance + buffer)
 
 	return hit
 
-func get_surface_hit(from: Vector3, direction: Vector3, distance: float) -> Variant:
+func update_wall_climb() -> void:
+	var hit = get_wall_hit_pos()
+	if hit is Vector3:
+		var hit_pos = hit as Vector3
+		arm.target = arm.to_local(hit_pos)
+		var distance := (hit_pos - arm.anchor.global_position).length()
+		if distance > raycast_config.max_wall_climb_distance:
+			step_target = hit_pos
+
+func _get_surface_hit(from: Vector3, direction: Vector3, distance: float) -> Variant:
 	var space := get_world_3d().direct_space_state
 	var ray_origin = from - direction * distance
 	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_origin + direction * distance * 2, ~2)

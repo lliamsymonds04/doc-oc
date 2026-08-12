@@ -64,6 +64,7 @@ func _physics_process(dt: float) -> void:
 		_update_arms(dt)
 	elif state == PlayerState.WALL_CLIMB:
 		velocity = Vector3.ZERO
+		update_wall_arms(dt)
 
 
 	move_and_slide()
@@ -86,7 +87,7 @@ func _update_arms(dt: float) -> void:
 				best_arm_hit_pos = mount.step_target
 
 		# wall raycasts
-		if mount.wall_target != null and mount.arm.is_stepping == false:
+		if not mount.is_leg and mount.wall_target != null and mount.arm.is_stepping == false:
 			var hit = mount.get_wall_hit_pos()
 
 			if hit != null:
@@ -97,6 +98,20 @@ func _update_arms(dt: float) -> void:
 
 	if wall_detection_count > 1:
 		_set_state(PlayerState.WALL_CLIMB)
+		for mount in arm_mounts:
+			if mount.is_leg or mount.arm.is_stepping:
+				continue
+			var hit = mount.get_wall_hit_pos(0.5)
+			if hit != null:
+				var hit_pos = hit as Vector3
+				# mount.arm.target = mount.to_local(hit_pos)
+				mount.arm.start_step(hit_pos)
+				print(mount.name)
+
+func update_wall_arms(dt: float) -> void:
+	for mount in arm_mounts:
+		if mount.arm.is_stepping:
+			mount.arm.advance_step(dt)
 
 func _calculate_average_target_y() -> Variant:
 	var total_y = 0

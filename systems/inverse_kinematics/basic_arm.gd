@@ -67,7 +67,8 @@ func is_fully_extended() -> bool:
 
 func start_step(to: Vector3) -> void:
 	is_stepping = true
-	step_start = target_node.global_position
+	# step_start = target_node.global_position
+	step_start = to_global(solver.get_end_effector())
 	step_end = to
 	step_progress = 0.0
 
