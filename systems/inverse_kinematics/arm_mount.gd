@@ -16,8 +16,13 @@ class_name ArmMount
 @onready var target: Node3D = $Target
 
 var arm: BasicArm
-
+var step_target: Variant
 var _sway_time: float = 0.0
+
+## temp vars until config is solidifed
+var anchor_lead_time: float = 0.4
+var raycast_distance: float = 10.0
+var max_target_displacement: float = 3.0
 
 func _process(delta: float) -> void:
 	_sway_time += delta
@@ -49,3 +54,50 @@ func compute_idle_target() -> Vector3:
 	if idle_sway_y != 0.0:
 		idle_pos += Vector3.UP * sin(t * idle_sway_y_mult + sway_phase) * idle_sway_y
 	return idle_pos
+
+func update_step(velocity: Vector3, dt: float) -> void:
+	step_target = null
+
+	if arm.is_stepping:
+		arm.advance_step(dt)
+		return
+
+	if is_leg:
+		var target_pos := arm.target_node.global_position
+		var anchor_pos := arm.anchor.global_position
+
+		# velocity anchor_lead_time
+		var velocity_xz := Vector3(velocity.x, 0, velocity.z)
+		velocity_xz *= anchor_lead_time
+		anchor_pos += velocity_xz
+
+		var hit = get_surface_hit(anchor_pos, Vector3.DOWN, raycast_distance)
+		if hit is Vector3:
+			var hit_pos := hit as Vector3
+			var target_displacement:= hit_pos - target_pos
+			var disp := target_displacement.length()
+			if disp > max_target_displacement:
+				step_target = hit_pos
+
+		arm.target = arm.to_local(target_pos)
+	elif idle_target != null:
+		arm.target = compute_idle_target()
+
+func can_step(grounded_legs: int) -> bool:
+	return step_target != null and ((arm.is_grounded() and grounded_legs >= 2) or arm.is_fully_extended())
+
+func get_step_distance() -> float:
+	if step_target == null:
+		return INF
+	return (step_target - arm.anchor.global_position).length()
+
+func get_surface_hit(from: Vector3, direction: Vector3, distance: float) -> Variant:
+	var space := get_world_3d().direct_space_state
+	var ray_origin = from - direction * distance
+	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_origin + direction * distance * 2, ~2)
+
+	var result := space.intersect_ray(query)
+	if result.is_empty():
+		return null
+
+	return result["position"]

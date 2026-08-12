@@ -77,41 +77,19 @@ func _update_arms(dt: float) -> void:
 	var wall_detection_count := 0
 
 	for mount in arm_mounts:
-		var arm := mount.arm
-		if mount.is_leg:
-			var target_pos := arm.target_node.global_position
-			var anchor_pos := arm.anchor.global_position
-
-			# velocity anchor_lead_time
-			var velocity_xz := Vector3(velocity.x, 0, velocity.z)
-			velocity_xz *= anchor_lead_time
-			anchor_pos += velocity_xz
-
-			if arm.is_stepping:
-				arm.advance_step(dt)
-				continue
-
-			var hit = _surface_hit(anchor_pos, Vector3.DOWN, raycast_distance)
-			if hit is Vector3:
-				var hit_pos := hit as Vector3
-				var target_displacement:= hit_pos - target_pos
-				var disp := target_displacement.length()
-				var may_step := (arm.is_grounded() and grounded_legs >= 2) or arm.is_fully_extended()
-				if disp > max_target_displacement and may_step:
-					if disp > furthest_distance:
-						furthest_distance = disp
-						best_arm = arm
-						best_arm_hit_pos = hit_pos
-
-			arm.target = arm.to_local(target_pos)
-		elif mount.idle_target != null:
-			arm.target = mount.compute_idle_target()
+		mount.update_step(velocity, dt)
+		if mount.can_step(grounded_legs):
+			var dist = mount.get_step_distance()
+			if dist > furthest_distance:
+				furthest_distance = dist
+				best_arm = mount.arm
+				best_arm_hit_pos = mount.step_target
 
 		# wall raycasts
-		if mount.wall_target != null:
+		if mount.wall_target != null and mount.arm.is_stepping == false:
 			var wall_target_pos := mount.wall_target.global_position
 			var cast_dir := -global_transform.basis.z
-			var hit = _surface_hit(wall_target_pos, cast_dir, wall_raycast_distance)
+			var hit = mount.get_surface_hit(wall_target_pos, cast_dir, wall_raycast_distance)
 
 			if hit != null:
 				wall_detection_count += 1
@@ -155,18 +133,6 @@ func _update_body_y_offset(dt:float) -> void:
 	var height_error = goal_y - current_y
 	var target_y_vel = height_error * hover_speed
 	velocity.y = lerp(velocity.y, target_y_vel, dt*hover_speed)
-
-
-func _surface_hit(from: Vector3, direction: Vector3, distance: float) -> Variant:
-	var space := get_world_3d().direct_space_state
-	var ray_origin = from - direction * distance
-	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_origin + direction * distance * 2, ~2)
-
-	var result := space.intersect_ray(query)
-	if result.is_empty():
-		return null
-
-	return result["position"]
 
 func _number_of_grounded_legs() -> int:
 	var grounded_legs = 0
