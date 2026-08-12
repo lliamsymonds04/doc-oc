@@ -63,8 +63,6 @@ func _physics_process(dt: float) -> void:
 		_update_body_y_offset(dt)
 		_update_arms(dt)
 	elif state == PlayerState.WALL_CLIMB:
-		velocity = Vector3.ZERO
-		update_wall_arms(dt)
 
 		var valid_normals := 0
 		var average_normal := Vector3.ZERO
@@ -77,20 +75,20 @@ func _physics_process(dt: float) -> void:
 		if valid_normals > 0:
 			average_normal /= valid_normals
 
-			#cross the normal with the right vector to get the up vector
 			var up_vector := (Vector3.UP - average_normal * average_normal.dot(Vector3.UP)).normalized()
 			var right_vector := up_vector.cross(average_normal)
 
 			var direction := up_vector * -input_dir.y + right_vector * input_dir.x
 			if direction.length_squared() > 0.0:
-				direction = direction.normalized()
-				velocity.x = direction.x * speed
-				velocity.z = direction.z * speed
-				velocity.y = direction.y * speed
+				velocity = direction.normalized() * speed
 			else:
 				velocity.x = move_toward(velocity.x, 0, speed * dt)
 				velocity.z = move_toward(velocity.z, 0, speed * dt)
 				velocity.y = move_toward(velocity.y, 0, speed * dt)
+		else:
+			velocity = Vector3.ZERO
+
+		update_wall_arms(dt)
 
 	move_and_slide()
 
@@ -203,5 +201,9 @@ func _number_of_grounded_legs() -> int:
 	var grounded_legs = 0
 	for arm in arms:
 		if arm.is_grounded():
+			if not arm.is_leg:
+				continue
+
 			grounded_legs += 1
+
 	return grounded_legs
