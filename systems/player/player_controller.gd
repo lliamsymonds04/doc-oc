@@ -17,6 +17,9 @@ extends CharacterBody3D
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var arms: Array[BasicArm] = []
 
+enum PlayerState { GROUNDED, WALL_CLIMB }
+var state: PlayerState = PlayerState.GROUNDED
+
 var body_y_offset = (min_y_offset + max_y_offset)/2.0
 
 func _ready() -> void:
@@ -25,42 +28,43 @@ func _ready() -> void:
 		var arm = mount.init()
 		arms.append(arm)
 
+func _set_state(new_state: PlayerState) -> void:
+	if new_state == self.state:
+		return
+	state = new_state
+
 func _physics_process(dt: float) -> void:
-	# Transfer the camera's horizontal rotation to the player. The spring arm is
-	# a child of the player, so clear its local yaw afterward to avoid compounding
-	# the rotation every frame. Its pitch remains independent for camera aiming.
-	rotation.y = spring_arm.global_rotation.y
-	spring_arm.rotation.y = 0.0
-
-	# Add the gravity.
-	if not is_on_floor():
-		velocity += get_gravity() * dt
-
-	# Handle jump.
-	if Input.is_action_just_pressed("jump") and is_on_floor():
-		velocity.y = jump_velocity
-
-	# Get the input direction and handle the movement/deceleration.
 	var input_dir := Input.get_vector("left", "right", "forward", "back")
 
-	# rotation.y is in radians, and sin()/cos() expect radians.
-	var cam_yaw := rotation.y
-	var forward := Vector3(-sin(cam_yaw), 0, -cos(cam_yaw))
-	var right := Vector3(cos(cam_yaw), 0, -sin(cam_yaw))
+	if state == PlayerState.GROUNDED:
+		rotation.y = spring_arm.global_rotation.y
+		spring_arm.rotation.y = 0.0
 
-	# input_dir.y is -1 when pressing forward (W), so negate it to move along
-	# the camera's forward vector. Normalizing keeps diagonal speed consistent.
-	var direction := forward * -input_dir.y + right * input_dir.x
-	if direction.length_squared() > 0.0:
-		direction = direction.normalized()
-		velocity.x = direction.x * speed
-		velocity.z = direction.z * speed
-	else:
-		velocity.x = move_toward(velocity.x, 0, speed * dt)
-		velocity.z = move_toward(velocity.z, 0, speed * dt)
+		# Add the gravity.
+		if not is_on_floor():
+			velocity += get_gravity() * dt
 
-	_update_body_y_offset(dt)
-	_update_arms(dt)
+
+		var cam_yaw := rotation.y
+		var forward := Vector3(-sin(cam_yaw), 0, -cos(cam_yaw))
+		var right := Vector3(cos(cam_yaw), 0, -sin(cam_yaw))
+
+		# input_dir.y is -1 when pressing forward (W), so negate it to move along
+		# the camera's forward vector. Normalizing keeps diagonal speed consistent.
+		var direction := forward * -input_dir.y + right * input_dir.x
+		if direction.length_squared() > 0.0:
+			direction = direction.normalized()
+			velocity.x = direction.x * speed
+			velocity.z = direction.z * speed
+		else:
+			velocity.x = move_toward(velocity.x, 0, speed * dt)
+			velocity.z = move_toward(velocity.z, 0, speed * dt)
+
+		_update_body_y_offset(dt)
+		_update_arms(dt)
+	elif state == PlayerState.WALL_CLIMB:
+		velocity = Vector3.ZERO
+
 
 	move_and_slide()
 
@@ -83,9 +87,7 @@ func _update_arms(dt: float) -> void:
 
 		# wall raycasts
 		if mount.wall_target != null and mount.arm.is_stepping == false:
-			var wall_target_pos := mount.wall_target.global_position
-			var cast_dir := -global_transform.basis.z
-			var hit = mount.get_surface_hit(wall_target_pos, cast_dir, mount.raycast_config.wall_raycast_distance)
+			var hit = mount.get_wall_hit_pos()
 
 			if hit != null:
 				wall_detection_count += 1
@@ -94,7 +96,7 @@ func _update_arms(dt: float) -> void:
 		best_arm.start_step(best_arm_hit_pos)
 
 	if wall_detection_count > 1:
-		print("wall time")
+		_set_state(PlayerState.WALL_CLIMB)
 
 func _calculate_average_target_y() -> Variant:
 	var total_y = 0

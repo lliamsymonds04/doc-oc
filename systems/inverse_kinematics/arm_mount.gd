@@ -87,6 +87,13 @@ func get_step_distance() -> float:
 		return INF
 	return (step_target - arm.anchor.global_position).length()
 
+func get_wall_hit_pos() -> Variant:
+	var wall_target_pos := wall_target.global_position
+	var cast_dir := -global_transform.basis.z
+	var hit = get_surface_hit(wall_target_pos, cast_dir, raycast_config.wall_raycast_distance)
+
+	return hit
+
 func get_surface_hit(from: Vector3, direction: Vector3, distance: float) -> Variant:
 	var space := get_world_3d().direct_space_state
 	var ray_origin = from - direction * distance
