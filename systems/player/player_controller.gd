@@ -66,6 +66,32 @@ func _physics_process(dt: float) -> void:
 		velocity = Vector3.ZERO
 		update_wall_arms(dt)
 
+		var valid_normals := 0
+		var average_normal := Vector3.ZERO
+		for mount in arm_mounts:
+			if mount.wall_surface_normal != Vector3.ZERO:
+				average_normal += mount.wall_surface_normal
+				valid_normals += 1
+
+
+		if valid_normals > 0:
+			average_normal /= valid_normals
+
+			#cross the normal with the right vector to get the up vector
+			var up_vector := (Vector3.UP - average_normal * average_normal.dot(Vector3.UP)).normalized()
+			var right_vector := up_vector.cross(average_normal)
+
+			var direction := up_vector * -input_dir.y + right_vector * input_dir.x
+			if direction.length_squared() > 0.0:
+				direction = direction.normalized()
+				velocity.x = direction.x * speed
+				velocity.z = direction.z * speed
+				velocity.y = direction.y * speed
+			else:
+				velocity.x = move_toward(velocity.x, 0, speed * dt)
+				velocity.z = move_toward(velocity.z, 0, speed * dt)
+				velocity.y = move_toward(velocity.y, 0, speed * dt)
+
 	move_and_slide()
 
 func _update_arms(dt: float) -> void:
@@ -126,12 +152,12 @@ func update_wall_arms(dt: float) -> void:
 			mount.arm.advance_step(dt)
 			continue
 
-		mount.update_wall_climb()
+		mount.update_wall_climb(velocity)
 		if mount.step_target != null:
 			var current_pos = mount.target.global_position
 
 			var dist = (current_pos - mount.step_target).length()
-			if dist > furthest_distance and dist != 0:
+			if dist > furthest_distance and dist >= mount.raycast_config.max_target_displacement:
 				furthest_distance = dist
 				best_arm = mount.arm
 				best_arm_hit_pos = mount.step_target

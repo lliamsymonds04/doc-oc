@@ -39,3 +39,5 @@ default.
 - Avoid unnecessary rewrites, abstractions, and unrelated improvements.
 - Do not claim a fix was applied unless the user explicitly requested edits and
   the files were actually changed.
+
+- dont create test scripts unless i ask you to.
