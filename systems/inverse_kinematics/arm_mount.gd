@@ -18,6 +18,7 @@ class_name ArmMount
 var raycast_config: ArmRaycastConfig
 var arm: BasicArm
 var step_target: Variant
+var wall_surface_normal: Vector3 = Vector3.ZERO
 var _sway_time: float = 0.0
 
 func _process(delta: float) -> void:
@@ -68,8 +69,8 @@ func update_step(velocity: Vector3, dt: float) -> void:
 		anchor_pos += velocity_xz
 
 		var hit = _get_surface_hit(anchor_pos, Vector3.DOWN, raycast_config.step_raycast_distance)
-		if hit is Vector3:
-			var hit_pos := hit as Vector3
+		if hit != null:
+			var hit_pos: Vector3 = hit.position
 			var target_displacement:= hit_pos - target_pos
 			var disp := target_displacement.length()
 			if disp > raycast_config.max_target_displacement:
@@ -87,18 +88,23 @@ func get_step_distance() -> float:
 		return INF
 	return (step_target - arm.anchor.global_position).length()
 
-func get_wall_hit_pos(buffer: float = 0.0) -> Variant:
+func get_wall_hit_pos() -> Variant:
 	var wall_target_pos := wall_target.global_position
 	var cast_dir := -global_transform.basis.z
-	var hit = _get_surface_hit(wall_target_pos, cast_dir, raycast_config.wall_raycast_distance + buffer)
+	var hit = _get_surface_hit(wall_target_pos, cast_dir, raycast_config.wall_raycast_distance)
 
-	return hit
+	if hit == null:
+		wall_surface_normal = Vector3.ZERO
+		return null
+
+	wall_surface_normal = hit.normal
+	return hit.position
 
 func update_wall_climb() -> void:
 	var hit = get_wall_hit_pos()
 	step_target = null
-	if hit is Vector3:
-		var hit_pos = hit as Vector3
+	if hit != null:
+		var hit_pos: Vector3 = hit
 		arm.target = arm.to_local(hit_pos)
 		var distance := (hit_pos - wall_target.global_position).length()
 		if distance > raycast_config.max_target_displacement:
@@ -113,4 +119,7 @@ func _get_surface_hit(from: Vector3, direction: Vector3, distance: float) -> Var
 	if result.is_empty():
 		return null
 
-	return result["position"]
+	return {
+		"position": result["position"],
+		"normal": result["normal"],
+	}
