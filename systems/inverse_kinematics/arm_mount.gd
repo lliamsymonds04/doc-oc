@@ -96,11 +96,12 @@ func get_wall_hit_pos(buffer: float = 0.0) -> Variant:
 
 func update_wall_climb() -> void:
 	var hit = get_wall_hit_pos()
+	step_target = null
 	if hit is Vector3:
 		var hit_pos = hit as Vector3
 		arm.target = arm.to_local(hit_pos)
-		var distance := (hit_pos - arm.anchor.global_position).length()
-		if distance > raycast_config.max_wall_climb_distance:
+		var distance := (hit_pos - wall_target.global_position).length()
+		if distance > raycast_config.max_target_displacement:
 			step_target = hit_pos
 
 func _get_surface_hit(from: Vector3, direction: Vector3, distance: float) -> Variant:

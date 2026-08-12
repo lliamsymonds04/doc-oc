@@ -101,17 +101,34 @@ func _update_arms(dt: float) -> void:
 		for mount in arm_mounts:
 			if mount.is_leg or mount.arm.is_stepping:
 				continue
-			var hit = mount.get_wall_hit_pos(0.5)
+			var hit = mount.get_wall_hit_pos()
 			if hit != null:
 				var hit_pos = hit as Vector3
-				# mount.arm.target = mount.to_local(hit_pos)
 				mount.arm.start_step(hit_pos)
-				print(mount.name)
 
 func update_wall_arms(dt: float) -> void:
+	var best_arm: BasicArm = null
+	var furthest_distance := 0.0
+	var best_arm_hit_pos := Vector3.ZERO
+
 	for mount in arm_mounts:
 		if mount.arm.is_stepping:
 			mount.arm.advance_step(dt)
+			continue
+
+		# var hit = mount.get_wall_hit_pos()
+		mount.update_wall_climb()
+		if mount.step_target != null:
+			var current_pos = mount.target.global_position
+
+			var dist = (current_pos - mount.step_target).length()
+			if dist > furthest_distance and dist != 0:
+				furthest_distance = dist
+				best_arm = mount.arm
+				best_arm_hit_pos = mount.step_target
+
+	if best_arm != null:
+		best_arm.start_step(best_arm_hit_pos)
 
 func _calculate_average_target_y() -> Variant:
 	var total_y = 0
