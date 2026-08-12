@@ -2,6 +2,8 @@ extends Node3D
 class_name ArmMount
 
 @export var is_leg: bool = true
+@export var vertical_mount: ArmMount
+@export var horizontal_mount: ArmMount
 
 @export_category("Idle targeting")
 @export var idle_target: Node3D
@@ -28,6 +30,10 @@ func init() -> BasicArm:
 	var anchor = target.duplicate()
 	anchor.name = "anchor"
 	add_child(anchor)
+
+	if vertical_mount == null or horizontal_mount == null:
+		push_error("vertical and horizontal mount must be set")
+		return null
 
 	target.top_level = true
 
@@ -80,8 +86,8 @@ func update_step(velocity: Vector3, dt: float) -> void:
 	elif idle_target != null:
 		arm.target = compute_idle_target()
 
-func can_step(grounded_legs: int) -> bool:
-	return step_target != null and ((arm.is_grounded() and grounded_legs >= 2) or arm.is_fully_extended())
+func can_step() -> bool:
+	return step_target != null and ((arm.is_grounded() and horizontal_mount.arm.is_grounded()) or arm.is_fully_extended())
 
 func get_step_distance() -> float:
 	if step_target == null:

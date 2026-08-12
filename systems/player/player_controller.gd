@@ -93,14 +93,13 @@ func _physics_process(dt: float) -> void:
 	move_and_slide()
 
 func _update_arms(dt: float) -> void:
-	var grounded_legs := _number_of_grounded_legs()
 	var best_arm: BasicArm = null
 	var furthest_distance := 0.0
 	var best_arm_hit_pos := Vector3.ZERO
 
 	for mount in arm_mounts:
 		mount.update_step(velocity, dt)
-		if mount.can_step(grounded_legs):
+		if mount.can_step():
 			var dist = mount.get_step_distance()
 			if dist > furthest_distance:
 				furthest_distance = dist
@@ -142,7 +141,7 @@ func try_mount_wall() -> void:
 
 
 func update_wall_arms(dt: float) -> void:
-	var best_arm: BasicArm = null
+	var best_mount: ArmMount = null
 	var furthest_distance := 0.0
 	var best_arm_hit_pos := Vector3.ZERO
 
@@ -152,17 +151,18 @@ func update_wall_arms(dt: float) -> void:
 			continue
 
 		mount.update_wall_climb(velocity)
-		if mount.step_target != null:
+		var diagonal_grounded = mount.vertical_mount.arm.is_grounded() and mount.horizontal_mount.arm.is_grounded()
+		if mount.step_target != null and diagonal_grounded:
 			var current_pos = mount.target.global_position
 
 			var dist = (current_pos - mount.step_target).length()
 			if dist > furthest_distance and dist >= mount.raycast_config.max_target_displacement:
 				furthest_distance = dist
-				best_arm = mount.arm
+				best_mount = mount
 				best_arm_hit_pos = mount.step_target
 
-	if best_arm != null:
-		best_arm.start_step(best_arm_hit_pos)
+	if best_mount != null:
+		best_mount.arm.start_step(best_arm_hit_pos)
 
 func _calculate_average_target_y() -> Variant:
 	var total_y = 0
@@ -197,14 +197,3 @@ func _update_body_y_offset(dt:float) -> void:
 	var height_error = goal_y - current_y
 	var target_y_vel = height_error * hover_speed
 	velocity.y = lerp(velocity.y, target_y_vel, dt*hover_speed)
-
-func _number_of_grounded_legs() -> int:
-	var grounded_legs = 0
-	for arm in arms:
-		if arm.is_grounded():
-			if not arm.is_leg:
-				continue
-
-			grounded_legs += 1
-
-	return grounded_legs
