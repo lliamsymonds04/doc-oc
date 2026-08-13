@@ -67,8 +67,8 @@ func update_step(velocity: Vector3, dt: float) -> void:
 		return
 
 	if is_leg:
-		var target_pos := arm.target_node.global_position
-		var anchor_pos := arm.anchor.global_position
+		var target_pos := target.global_position
+		var anchor_pos := anchor.global_position
 
 		# velocity anchor_lead_time
 		var velocity_xz := Vector3(velocity.x, 0, velocity.z)

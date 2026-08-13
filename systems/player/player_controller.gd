@@ -116,9 +116,13 @@ func _physics_process(dt: float) -> void:
 
 		update_wall_arms(dt)
 
-		var ledge_result = _detect_ledge(average_normal)
-		if ledge_result != null:
-			_dismount_to_ledge(ledge_result)
+		# wall discmount logic
+		if input_dir.y < 0:
+			var ledge_result = _detect_ledge(average_normal)
+			if ledge_result != null:
+				_dismount_to_ledge(ledge_result)
+		elif input_dir.y > 0:
+			_check_floor_from_wall()
 
 	move_and_slide()
 
@@ -159,7 +163,6 @@ func try_mount_wall() -> void:
 
 	if wall_detection_count > 1:
 		_set_state(PlayerState.WALL_CLIMB)
-		wall_climb_debounce = wall_climb_debounce_time
 		for mount in arm_mounts:
 			if mount.is_leg or mount.arm.is_stepping:
 				continue
@@ -215,14 +218,9 @@ func _detect_ledge(wall_normal: Vector3) -> Variant:
 	return result
 
 func _dismount_to_ledge(ledge_result: Dictionary) -> void:
-	if state != PlayerState.WALL_CLIMB:
-		return
-
 	_set_state(PlayerState.GROUNDED)
 
-	for mount in arm_mounts:
-		mount.wall_surface_normal = Vector3.ZERO
-		mount.set_apply_floor(true)
+	_leave_wall_state()
 
 	var ledge_pos := ledge_result["position"] as Vector3
 	var right := global_transform.basis.x
@@ -230,8 +228,6 @@ func _dismount_to_ledge(ledge_result: Dictionary) -> void:
 
 	for mount in arm_mounts:
 		if not mount.is_leg:
-			if mount.idle_target:
-				mount.arm.start_step(mount.to_global(mount.compute_idle_target()), 0.2)
 			continue
 
 		var foot_pos := ledge_pos + right * mount.anchor.position.x
@@ -245,6 +241,35 @@ func _dismount_to_ledge(ledge_result: Dictionary) -> void:
 			mount.arm.start_step(foot_pos)
 
 		step_count += 1
+
+func _check_floor_from_wall() -> void:
+	var mount_hits = {}
+	for mount in arm_mounts:
+		if not mount.is_leg:
+			continue
+
+		var anchor_pos := mount.anchor.global_position
+
+		var hit = mount._get_surface_hit(anchor_pos, Vector3.DOWN, raycast_config.step_raycast_distance)
+		if hit != null:
+			mount_hits[mount] = hit
+
+	if mount_hits.size() == 2:
+		_set_state(PlayerState.GROUNDED)
+		_leave_wall_state()
+		for mount in mount_hits.keys():
+			mount.arm.start_step(mount_hits[mount]["position"] as Vector3)
+
+func _leave_wall_state() -> void:
+	wall_climb_debounce = wall_climb_debounce_time
+
+	for mount in arm_mounts:
+		mount.wall_surface_normal = Vector3.ZERO
+		mount.set_apply_floor(true)
+
+		if not mount.is_leg:
+			if mount.idle_target:
+				mount.arm.start_step(mount.to_global(mount.compute_idle_target()))
 
 func _calculate_average_target_y() -> Variant:
 	var total_y = 0
