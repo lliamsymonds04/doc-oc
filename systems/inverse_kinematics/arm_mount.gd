@@ -99,18 +99,13 @@ func get_wall_hit_pos() -> Variant:
 	var cast_dir := -global_transform.basis.z
 	var hit = _get_surface_hit(wall_target_pos, cast_dir, raycast_config.wall_raycast_distance)
 
-	if hit == null:
-		wall_surface_normal = Vector3.ZERO
-		return null
+	return hit
 
-	wall_surface_normal = hit.normal
-	return hit.position
-
-func update_wall_climb(velocity: Vector3) -> void:
+func update_wall_climb(velocity: Vector3) -> Variant:
 	var hit = get_wall_hit_pos()
 	step_target = null
 	if hit != null:
-		var hit_pos: Vector3 = hit
+		var hit_pos: Vector3 = hit.position
 		hit_pos += raycast_config.anchor_lead_time * velocity
 
 		var target_pos := arm.target_node.global_position
@@ -120,6 +115,10 @@ func update_wall_climb(velocity: Vector3) -> void:
 			step_target = hit_pos
 
 		arm.target = arm.to_local(target_pos)
+	else:
+		wall_surface_normal = Vector3.ZERO
+
+	return hit
 
 func _get_surface_hit(from: Vector3, direction: Vector3, distance: float) -> Variant:
 	var space := get_world_3d().direct_space_state

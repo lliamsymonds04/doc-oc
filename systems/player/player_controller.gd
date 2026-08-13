@@ -136,33 +136,35 @@ func try_mount_wall() -> void:
 			mount.set_apply_floor(false)
 			var hit = wall_hits[mount]
 			if hit != null:
-				var hit_pos = hit as Vector3
-				mount.arm.start_step(hit_pos)
+				mount.arm.start_step(hit.position)
+				mount.wall_surface_normal = hit.normal
 
 
 func update_wall_arms(dt: float) -> void:
 	var best_mount: ArmMount = null
 	var furthest_distance := 0.0
-	var best_arm_hit_pos := Vector3.ZERO
+	var best_hit = null
 
 	for mount in arm_mounts:
 		if mount.arm.is_stepping:
 			mount.arm.advance_step(dt)
 			continue
 
-		mount.update_wall_climb(velocity)
+		var hit = mount.update_wall_climb(velocity)
 		var diagonal_grounded = mount.vertical_mount.arm.is_grounded() and mount.horizontal_mount.arm.is_grounded()
-		if mount.step_target != null and diagonal_grounded:
+		var can_step = diagonal_grounded or mount.arm.is_fully_extended()
+		if mount.step_target != null and can_step:
 			var current_pos = mount.target.global_position
 
 			var dist = (current_pos - mount.step_target).length()
 			if dist > furthest_distance and dist >= mount.raycast_config.max_target_displacement:
 				furthest_distance = dist
 				best_mount = mount
-				best_arm_hit_pos = mount.step_target
+				best_hit = hit
 
 	if best_mount != null:
-		best_mount.arm.start_step(best_arm_hit_pos)
+		best_mount.arm.start_step(best_mount.step_target)
+		best_mount.wall_surface_normal = best_hit.normal
 
 func _calculate_average_target_y() -> Variant:
 	var total_y = 0
