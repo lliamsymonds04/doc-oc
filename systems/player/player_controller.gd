@@ -14,6 +14,10 @@ extends CharacterBody3D
 @export var height_change_rate = 1.0
 @export var neutral_pitch = -5.0
 
+@export_category("Wall Climb")
+@export var wall_offset: float = 1.0
+@export var wall_raycast_dist: float = 5.0
+
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var arms: Array[BasicArm] = []
 
@@ -87,6 +91,20 @@ func _physics_process(dt: float) -> void:
 				velocity.y = move_toward(velocity.y, 0, speed * dt)
 		else:
 			velocity = Vector3.ZERO
+
+		# wall offset logic
+		var space := get_world_3d().direct_space_state
+		var query := PhysicsRayQueryParameters3D.create(position, position + -average_normal * wall_offset * wall_raycast_dist, ~2)
+
+		var result := space.intersect_ray(query)
+		if not result.is_empty():
+			var hit_pos := result["position"] as Vector3
+			var distance_from_wall := (hit_pos - position).length()
+			var distance_error := distance_from_wall - wall_offset
+
+			var target_normal_vel: Vector3 = -average_normal * distance_error * hover_speed
+			var normal_comp := average_normal * velocity.dot(average_normal)
+			velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * hover_speed)
 
 		update_wall_arms(dt)
 
