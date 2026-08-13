@@ -19,12 +19,14 @@ extends CharacterBody3D
 @export var wall_raycast_dist: float = 5.0
 @export var ledge_ray_offset: float = 3.0
 @export var ledge_ray_length: float = 5.0
+@export var wall_climb_debounce_time: float = 0.5
 
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var arms: Array[BasicArm] = []
 
 enum PlayerState { GROUNDED, WALL_CLIMB }
 var state: PlayerState = PlayerState.GROUNDED
+var wall_climb_debounce: float = 0.0
 
 var body_y_offset = (min_y_offset + max_y_offset)/2.0
 
@@ -68,6 +70,10 @@ func _physics_process(dt: float) -> void:
 
 		_update_body_y_offset(dt)
 		_update_arms(dt)
+
+		if wall_climb_debounce > 0.0:
+			wall_climb_debounce -= dt
+
 	elif state == PlayerState.WALL_CLIMB:
 
 		var valid_normals := 0
@@ -136,7 +142,7 @@ func _update_arms(dt: float) -> void:
 	try_mount_wall()
 
 func try_mount_wall() -> void:
-	if state != PlayerState.GROUNDED:
+	if state != PlayerState.GROUNDED or wall_climb_debounce > 0.0:
 		return
 
 	var wall_detection_count = 0
@@ -153,6 +159,7 @@ func try_mount_wall() -> void:
 
 	if wall_detection_count > 1:
 		_set_state(PlayerState.WALL_CLIMB)
+		wall_climb_debounce = wall_climb_debounce_time
 		for mount in arm_mounts:
 			if mount.is_leg or mount.arm.is_stepping:
 				continue
