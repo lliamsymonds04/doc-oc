@@ -17,6 +17,8 @@ extends CharacterBody3D
 @export_category("Wall Climb")
 @export var wall_offset: float = 1.0
 @export var wall_raycast_dist: float = 5.0
+@export var ledge_ray_offset: float = 2.5
+@export var ledge_ray_length: float = 5.0
 
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var arms: Array[BasicArm] = []
@@ -108,6 +110,10 @@ func _physics_process(dt: float) -> void:
 
 		update_wall_arms(dt)
 
+		var ledge_result = _detect_ledge(average_normal)
+		if ledge_result != null:
+			print("ledge found")
+
 	move_and_slide()
 
 func _update_arms(dt: float) -> void:
@@ -183,6 +189,23 @@ func update_wall_arms(dt: float) -> void:
 	if best_mount != null:
 		best_mount.arm.start_step(best_mount.step_target)
 		best_mount.wall_surface_normal = best_hit.normal
+
+func _detect_ledge(wall_normal: Vector3) -> Variant:
+	if wall_normal == Vector3.ZERO:
+		return null
+
+	var space := get_world_3d().direct_space_state
+	var start := position + Vector3.UP * ledge_ray_offset
+	var end := start - wall_normal * ledge_ray_length + Vector3.DOWN * ledge_ray_offset * 0.5
+	var query := PhysicsRayQueryParameters3D.create(start, end, ~2)
+	var result := space.intersect_ray(query)
+	if result.is_empty():
+		return null
+
+	if (result["normal"] as Vector3).y < 0.5:
+		return null
+
+	return result
 
 func _calculate_average_target_y() -> Variant:
 	var total_y = 0
