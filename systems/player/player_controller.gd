@@ -145,7 +145,7 @@ func try_mount_wall() -> void:
 	for mount in arm_mounts:
 		# wall raycasts
 		if not mount.is_leg and mount.wall_target != null and mount.arm.is_stepping == false:
-			var hit = mount.get_wall_hit_pos()
+			var hit = mount.get_wall_hit_pos(Vector3.ZERO)
 			wall_hits[mount] = hit
 
 			if hit != null:
