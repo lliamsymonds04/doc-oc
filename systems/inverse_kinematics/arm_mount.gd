@@ -20,6 +20,7 @@ class_name ArmMount
 var raycast_config: ArmRaycastConfig
 var arm: BasicArm
 var step_target: Variant
+var anchor: Node3D
 var wall_surface_normal: Vector3 = Vector3.ZERO
 var _sway_time: float = 0.0
 
@@ -27,7 +28,7 @@ func _process(delta: float) -> void:
 	_sway_time += delta
 
 func init() -> BasicArm:
-	var anchor = target.duplicate()
+	anchor = target.duplicate()
 	anchor.name = "anchor"
 	add_child(anchor)
 

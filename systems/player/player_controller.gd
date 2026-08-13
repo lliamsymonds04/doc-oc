@@ -17,7 +17,7 @@ extends CharacterBody3D
 @export_category("Wall Climb")
 @export var wall_offset: float = 1.0
 @export var wall_raycast_dist: float = 5.0
-@export var ledge_ray_offset: float = 2.5
+@export var ledge_ray_offset: float = 3.0
 @export var ledge_ray_length: float = 5.0
 
 @onready var spring_arm: SpringArm3D = $SpringArm3D
@@ -112,7 +112,7 @@ func _physics_process(dt: float) -> void:
 
 		var ledge_result = _detect_ledge(average_normal)
 		if ledge_result != null:
-			print("ledge found")
+			_dismount_to_ledge(ledge_result)
 
 	move_and_slide()
 
@@ -206,6 +206,30 @@ func _detect_ledge(wall_normal: Vector3) -> Variant:
 		return null
 
 	return result
+
+func _dismount_to_ledge(ledge_result: Dictionary) -> void:
+	if state != PlayerState.WALL_CLIMB:
+		return
+
+	_set_state(PlayerState.GROUNDED)
+
+	for mount in arm_mounts:
+		mount.wall_surface_normal = Vector3.ZERO
+		mount.set_apply_floor(true)
+
+	var ledge_pos := ledge_result["position"] as Vector3
+	var right := global_transform.basis.x
+
+	for mount in arm_mounts:
+		if not mount.is_leg:
+			continue
+
+		var foot_pos := ledge_pos + right * mount.anchor.position.x
+		var surface = mount._get_surface_hit(foot_pos, Vector3.DOWN, raycast_config.step_raycast_distance)
+		if surface != null:
+			foot_pos = (surface["position"] as Vector3)
+
+		mount.arm.start_step(foot_pos)
 
 func _calculate_average_target_y() -> Variant:
 	var total_y = 0
