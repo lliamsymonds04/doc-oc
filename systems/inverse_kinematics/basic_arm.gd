@@ -62,15 +62,19 @@ func is_fully_extended() -> bool:
 	var distance := (mount_pos - target_pos).length()
 	return distance > solver.total_length
 
-func start_step(to: Vector3) -> void:
+func start_step(to: Vector3, delay := 0.0) -> void:
 	is_stepping = true
-	# step_start = target_node.global_position
 	step_start = to_global(solver.get_end_effector())
 	step_end = to
-	step_progress = 0.0
+	step_progress = -maxf(delay, 0.0) / step_duration
 
 func advance_step(dt: float) -> void:
-	step_progress = minf(step_progress + dt/step_duration, 1.0)
+	step_progress += dt / step_duration
+	if step_progress < 0.0:
+		target = to_local(step_start)
+		return  # waiting out the stagger delay; foot holds its start position
+
+	step_progress = minf(step_progress, 1.0)
 	var base := step_start.lerp(step_end, step_progress)
 	var height := lift_height * sin(step_progress * PI)
 	var step_pos = base + Vector3.UP * height

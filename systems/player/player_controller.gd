@@ -219,9 +219,12 @@ func _dismount_to_ledge(ledge_result: Dictionary) -> void:
 
 	var ledge_pos := ledge_result["position"] as Vector3
 	var right := global_transform.basis.x
+	var step_count := 0
 
 	for mount in arm_mounts:
 		if not mount.is_leg:
+			if mount.idle_target:
+				mount.arm.start_step(mount.to_global(mount.compute_idle_target()), 0.2)
 			continue
 
 		var foot_pos := ledge_pos + right * mount.anchor.position.x
@@ -229,7 +232,12 @@ func _dismount_to_ledge(ledge_result: Dictionary) -> void:
 		if surface != null:
 			foot_pos = (surface["position"] as Vector3)
 
-		mount.arm.start_step(foot_pos)
+		if step_count > 0:
+			mount.arm.start_step(foot_pos, 0.2 * step_count)
+		else:
+			mount.arm.start_step(foot_pos)
+
+		step_count += 1
 
 func _calculate_average_target_y() -> Variant:
 	var total_y = 0
