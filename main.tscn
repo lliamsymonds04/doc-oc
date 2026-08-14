@@ -162,13 +162,16 @@ jump_velocity = 7.0
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=415060811]
 environment = SubResource("Environment_m2c1y")
 
+[node name="CSGCombiner3D" type="CSGCombiner3D" parent="." unique_id=428718861]
+
 [node name="ClimbingWall" type="CSGBox3D" parent="." unique_id=1669438976]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 10, 15)
 use_collision = true
 size = Vector3(10, 20, 10)
 material = SubResource("StandardMaterial3D_m2c1y")
 
-[node name="CSGBox3D" type="CSGBox3D" parent="ClimbingWall" unique_id=1586569878]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 6.5, -2.5)
-operation = 2
-size = Vector3(8, 8, 16)
+[node name="ClimbingWall2" type="CSGBox3D" parent="." unique_id=1301503845]
+transform = Transform3D(0.9659258, 0, 0.25881904, 0, 1, 0, -0.25881904, 0, 0.9659258, 16, 10, 23)
+use_collision = true
+size = Vector3(10, 20, 10)
+material = SubResource("StandardMaterial3D_m2c1y")
