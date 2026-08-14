@@ -46,9 +46,9 @@ func physics_update(dt: float) -> void:
 			var distance_from_wall := (hit_pos - p.position).length()
 			var distance_error := distance_from_wall - p.wall_offset
 
-			var target_normal_vel: Vector3 = -average_normal * distance_error * p.hover_speed
+			var target_normal_vel: Vector3 = -average_normal * distance_error * p.wall_offset_correction_rate
 			var normal_comp := average_normal * p.velocity.dot(average_normal)
-			p.velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * p.hover_speed)
+			p.velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * p.wall_offset_correction_rate)
 	else:
 		p.velocity = Vector3.ZERO
 	update_wall_arms(dt)
@@ -112,6 +112,8 @@ func _dismount_to_ledge(ledge_result: Dictionary) -> void:
 	var p := player
 
 	p.set_state(p.StateID.GROUNDED)
+
+	p.velocity += Vector3.UP * p.mount_velocity_impulse
 
 	var ledge_pos := ledge_result["position"] as Vector3
 	var right := p.global_transform.basis.x

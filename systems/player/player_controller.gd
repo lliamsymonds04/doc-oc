@@ -22,6 +22,8 @@ class_name PlayerController
 @export var ledge_ray_offset: float = 3.0
 @export var ledge_ray_length: float = 5.0
 @export var wall_climb_debounce_time: float = 0.5
+@export var mount_velocity_impulse: float = 5.0
+@export var wall_offset_correction_rate: float = 10.0
 
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var arms: Array[BasicArm] = []
