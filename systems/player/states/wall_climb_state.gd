@@ -18,7 +18,6 @@ func physics_update(dt: float) -> void:
 			average_normal += mount.wall_surface_normal
 			valid_normals += 1
 
-
 	if valid_normals > 0:
 		average_normal /= valid_normals
 
@@ -32,23 +31,26 @@ func physics_update(dt: float) -> void:
 			p.velocity.x = move_toward(p.velocity.x, 0, p.speed * dt)
 			p.velocity.z = move_toward(p.velocity.z, 0, p.speed * dt)
 			p.velocity.y = move_toward(p.velocity.y, 0, p.speed * dt)
+
+		var goal_direction = -average_normal
+		var goal_yaw := atan2(-goal_direction.x, -goal_direction.z)
+		p.rotation.y = lerp_angle(p.rotation.y, goal_yaw, dt * p.turn_speed)
+
+		# wall offset logic
+		var space := p.get_world_3d().direct_space_state
+		var query := PhysicsRayQueryParameters3D.create(p.position, p.position + -average_normal * p.wall_offset * p.wall_raycast_dist, ~2)
+
+		var result := space.intersect_ray(query)
+		if not result.is_empty():
+			var hit_pos := result["position"] as Vector3
+			var distance_from_wall := (hit_pos - p.position).length()
+			var distance_error := distance_from_wall - p.wall_offset
+
+			var target_normal_vel: Vector3 = -average_normal * distance_error * p.hover_speed
+			var normal_comp := average_normal * p.velocity.dot(average_normal)
+			p.velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * p.hover_speed)
 	else:
 		p.velocity = Vector3.ZERO
-
-	# wall offset logic
-	var space := p.get_world_3d().direct_space_state
-	var query := PhysicsRayQueryParameters3D.create(p.position, p.position + -average_normal * p.wall_offset * p.wall_raycast_dist, ~2)
-
-	var result := space.intersect_ray(query)
-	if not result.is_empty():
-		var hit_pos := result["position"] as Vector3
-		var distance_from_wall := (hit_pos - p.position).length()
-		var distance_error := distance_from_wall - p.wall_offset
-
-		var target_normal_vel: Vector3 = -average_normal * distance_error * p.hover_speed
-		var normal_comp := average_normal * p.velocity.dot(average_normal)
-		p.velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * p.hover_speed)
-
 	update_wall_arms(dt)
 
 	# wall discmount logic
@@ -95,7 +97,7 @@ func _detect_ledge(wall_normal: Vector3) -> Variant:
 
 	var space := p.get_world_3d().direct_space_state
 	var start := p.position + Vector3.UP * p.ledge_ray_offset
-	var end := start - wall_normal * p.ledge_ray_length + Vector3.DOWN * p.ledge_ray_offset * 0.5
+	var end := start - wall_normal * p.ledge_ray_length + Vector3.DOWN * p.ledge_ray_offset
 	var query := PhysicsRayQueryParameters3D.create(start, end, ~2)
 	var result := space.intersect_ray(query)
 	if result.is_empty():

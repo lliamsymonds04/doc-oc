@@ -21,17 +21,13 @@ func physics_update(dt: float) -> void:
 	p.rotation.y = p.spring_arm.global_rotation.y
 	p.spring_arm.rotation.y = 0.0
 
-	# Add the gravity.
 	if not p.is_on_floor():
 		p.velocity += p.get_gravity() * dt
-
 
 	var cam_yaw := p.rotation.y
 	var forward := Vector3(-sin(cam_yaw), 0, -cos(cam_yaw))
 	var right := Vector3(cos(cam_yaw), 0, -sin(cam_yaw))
 
-	# input_dir.y is -1 when pressing forward (W), so negate it to move along
-	# the camera's forward vector. Normalizing keeps diagonal speed consistent.
 	var direction := forward * -input_dir.y + right * input_dir.x
 	if direction.length_squared() > 0.0:
 		direction = direction.normalized()
