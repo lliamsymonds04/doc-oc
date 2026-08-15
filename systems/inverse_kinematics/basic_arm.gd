@@ -22,6 +22,7 @@ var is_leg: bool = false
 var is_stepping = false
 var step_start: Vector3
 var step_end: Vector3
+var step_normal: Vector3 = Vector3.UP
 var step_progress: float = 0.0
 
 var solver: FabrikSolver
@@ -62,11 +63,12 @@ func is_fully_extended() -> bool:
 	var distance := (mount_pos - target_pos).length()
 	return distance > solver.total_length
 
-func start_step(to: Vector3, delay := 0.0) -> void:
+func start_step(to: Vector3, delay := 0.0, surface_normal := Vector3.UP) -> void:
 	is_stepping = true
 	step_start = to_global(solver.get_end_effector())
 	step_end = to
 	step_progress = -maxf(delay, 0.0) / step_duration
+	step_normal = surface_normal
 
 func advance_step(dt: float) -> void:
 	step_progress += dt / step_duration
@@ -77,7 +79,7 @@ func advance_step(dt: float) -> void:
 	step_progress = minf(step_progress, 1.0)
 	var base := step_start.lerp(step_end, step_progress)
 	var height := lift_height * sin(step_progress * PI)
-	var step_pos = base + Vector3.UP * height
+	var step_pos = base + step_normal * height
 	target_node.global_position = step_pos
 	target = to_local(step_pos)
 

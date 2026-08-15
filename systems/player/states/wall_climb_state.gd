@@ -86,7 +86,7 @@ func update_wall_arms(dt: float) -> void:
 				best_hit = hit
 
 	if best_mount != null:
-		best_mount.arm.start_step(best_mount.step_target)
+		best_mount.arm.start_step(best_mount.step_target, 0.0, best_hit.normal)
 		best_mount.wall_surface_normal = best_hit.normal
 
 func _detect_ledge(wall_normal: Vector3) -> Variant:
