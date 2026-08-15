@@ -7,9 +7,17 @@
 
 [sub_resource type="Resource" id="Resource_dwurs"]
 script = ExtResource("2_q27vv")
+wall_raycast_distance = 3.5
 metadata/_custom_type_script = "uid://ci0k2wv8n3bhd"
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m2c1y"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pftr6"]
+albedo_color = Color(1, 0, 1, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_m2c1y"]
+radius = 0.1
+height = 0.2
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ktl23"]
 albedo_color = Color(0.47058824, 1, 1, 1)
@@ -26,10 +34,9 @@ raycast_config = SubResource("Resource_dwurs")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.99949986, 0)
 shape = SubResource("CapsuleShape3D_m2c1y")
 
-[node name="ArmRight" type="Node3D" parent="Hitbox" unique_id=714455465 node_paths=PackedStringArray("diagonal_mount", "vertical_mount", "horizontal_mount")]
+[node name="ArmRight" type="Node3D" parent="Hitbox" unique_id=714455465 node_paths=PackedStringArray("vertical_mount", "horizontal_mount")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 0.1, 0.377)
 script = ExtResource("2_fqfg4")
-diagonal_mount = NodePath("../ArmTopLeft")
 vertical_mount = NodePath("../ArmTopRight")
 horizontal_mount = NodePath("../ArmLeft")
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
@@ -41,12 +48,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, 0.6019
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.253, 0.2, 0.577)
 
 [node name="WallTarget" type="Node3D" parent="Hitbox/ArmRight" unique_id=1227139099]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2539694, 0, -2.0396647)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.254, 0, 0)
 
-[node name="ArmLeft" type="Node3D" parent="Hitbox" unique_id=241021393 node_paths=PackedStringArray("diagonal_mount", "vertical_mount", "horizontal_mount")]
+[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmRight/WallTarget" unique_id=1864961534]
+material_override = SubResource("StandardMaterial3D_pftr6")
+mesh = SubResource("SphereMesh_m2c1y")
+
+[node name="ArmLeft" type="Node3D" parent="Hitbox" unique_id=241021393 node_paths=PackedStringArray("vertical_mount", "horizontal_mount")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 0.1, 0.377)
 script = ExtResource("2_fqfg4")
-diagonal_mount = NodePath("../ArmTopRight")
 vertical_mount = NodePath("../ArmTopLeft")
 horizontal_mount = NodePath("../ArmRight")
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
@@ -58,13 +68,16 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.09, 0.602)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.253, 0.2, 0.577)
 
 [node name="WallTarget" type="Node3D" parent="Hitbox/ArmLeft" unique_id=964169628]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2830708, 0, -2.0396647)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.283, 0, 0)
 
-[node name="ArmTopRight" type="Node3D" parent="Hitbox" unique_id=2058179573 node_paths=PackedStringArray("diagonal_mount", "vertical_mount", "horizontal_mount", "idle_target")]
+[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmLeft/WallTarget" unique_id=1384942331]
+material_override = SubResource("StandardMaterial3D_pftr6")
+mesh = SubResource("SphereMesh_m2c1y")
+
+[node name="ArmTopRight" type="Node3D" parent="Hitbox" unique_id=2058179573 node_paths=PackedStringArray("vertical_mount", "horizontal_mount", "idle_target")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 0.506, 0.377)
 script = ExtResource("2_fqfg4")
 is_leg = false
-diagonal_mount = NodePath("../ArmLeft")
 vertical_mount = NodePath("../ArmRight")
 horizontal_mount = NodePath("../ArmTopLeft")
 idle_target = NodePath("IdleTarget")
@@ -83,13 +96,16 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, 1.5599794, -2.9131
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.336801, 2.787157, -0.93121254)
 
 [node name="WallTarget" type="Node3D" parent="Hitbox/ArmTopRight" unique_id=696696143]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9002914, 1.5533633, -1.7995577)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 1.553, 0)
 
-[node name="ArmTopLeft" type="Node3D" parent="Hitbox" unique_id=1899558695 node_paths=PackedStringArray("diagonal_mount", "vertical_mount", "horizontal_mount", "idle_target")]
+[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmTopRight/WallTarget" unique_id=1285604622]
+material_override = SubResource("StandardMaterial3D_pftr6")
+mesh = SubResource("SphereMesh_m2c1y")
+
+[node name="ArmTopLeft" type="Node3D" parent="Hitbox" unique_id=1899558695 node_paths=PackedStringArray("vertical_mount", "horizontal_mount", "idle_target")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 0.5156874, 0.377)
 script = ExtResource("2_fqfg4")
 is_leg = false
-diagonal_mount = NodePath("../ArmRight")
 vertical_mount = NodePath("../ArmLeft")
 horizontal_mount = NodePath("../ArmTopRight")
 idle_target = NodePath("IdleTarget")
@@ -107,9 +123,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, 1.4203327, -3.1366746
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5615735, 2.7539291, -1.1966037)
 
 [node name="WallTarget" type="Node3D" parent="Hitbox/ArmTopLeft" unique_id=2115885880]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.553, -1.8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.553, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1008928997]
+[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmTopLeft/WallTarget" unique_id=1488078873]
+material_override = SubResource("StandardMaterial3D_pftr6")
+mesh = SubResource("SphereMesh_m2c1y")
+
+[node name="Bean" type="MeshInstance3D" parent="." unique_id=1008928997]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0040846, 0)
 material_override = SubResource("StandardMaterial3D_ktl23")
 mesh = SubResource("CapsuleMesh_m2c1y")

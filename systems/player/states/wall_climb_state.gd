@@ -1,6 +1,8 @@
 extends PlayerState
 class_name WallClimbState
 
+var average_normal: Vector3 = Vector3.ZERO
+
 func exit() -> void:
 	var p := player
 
@@ -12,7 +14,7 @@ func physics_update(dt: float) -> void:
 	var p := player
 
 	var valid_normals := 0
-	var average_normal := Vector3.ZERO
+	average_normal = Vector3.ZERO
 	for mount in p.arm_mounts:
 		if mount.wall_surface_normal != Vector3.ZERO:
 			average_normal += mount.wall_surface_normal
@@ -76,14 +78,40 @@ func update_wall_arms(dt: float) -> void:
 		var hit = mount.update_wall_climb(p.velocity)
 		var diagonal_grounded = mount.vertical_mount.arm.is_grounded() and mount.horizontal_mount.arm.is_grounded()
 		var can_step = diagonal_grounded or mount.arm.is_fully_extended()
-		if mount.step_target != null and can_step:
-			var current_pos = mount.target.global_position
+		if can_step:
+			if mount.step_target != null:
+				var current_pos = mount.target.global_position
 
-			var dist = (current_pos - mount.step_target).length()
-			if dist > furthest_distance and dist >= mount.raycast_config.max_target_displacement:
-				furthest_distance = dist
-				best_mount = mount
-				best_hit = hit
+				var dist = (current_pos - mount.step_target).length()
+				if dist > furthest_distance and dist >= mount.raycast_config.max_target_displacement:
+					furthest_distance = dist
+					best_mount = mount
+					best_hit = hit
+			else:
+				if hit != null or input_dir.x == 0:
+					continue   # forward probe found a wall, or not strafing
+
+				var wall_target_pos := mount.wall_target.global_position
+				var up_vector := (Vector3.UP - average_normal * average_normal.dot(Vector3.UP)).normalized()
+				var right_vector := up_vector.cross(average_normal)
+				var ray_origin := wall_target_pos - average_normal * p.raycast_config.wall_cornering_raycast_distance
+				var ray_direction := -(right_vector * input_dir.x).normalized()
+
+
+				var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_origin + ray_direction * 3.0, ~2)
+				var space := p.get_world_3d().direct_space_state
+				var result := space.intersect_ray(query)
+				if not result.is_empty():
+					var hit_pos: Vector3 = result["position"]
+
+					mount.step_target = hit_pos
+					var current_pos = mount.target.global_position
+					var dist = (current_pos - mount.step_target).length()
+					if dist > furthest_distance and dist >= 0.5:
+						furthest_distance = dist
+						best_mount = mount
+						best_hit = result
+
 
 	if best_mount != null:
 		best_mount.arm.start_step(best_mount.step_target, 0.0, best_hit.normal)
