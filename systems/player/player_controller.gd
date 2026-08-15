@@ -4,7 +4,7 @@ class_name PlayerController
 
 @export var speed = 5.0
 @export var jump_velocity = 4.5
-@export var turn_speed = 5.0
+@export var turn_speed = 10.0
 @export var arm_mounts: Array[ArmMount] = []
 @export var raycast_config: ArmRaycastConfig
 

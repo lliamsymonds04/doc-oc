@@ -70,6 +70,11 @@ func update_wall_arms(dt: float) -> void:
 	var furthest_distance := 0.0
 	var best_hit = null
 
+	var up_vector := (Vector3.UP - average_normal * average_normal.dot(Vector3.UP)).normalized()
+	var right_vector := up_vector.cross(average_normal)
+
+	var space := p.get_world_3d().direct_space_state
+
 	for mount in p.arm_mounts:
 		if mount.arm.is_stepping:
 			mount.arm.advance_step(dt)
@@ -79,6 +84,27 @@ func update_wall_arms(dt: float) -> void:
 		var diagonal_grounded = mount.vertical_mount.arm.is_grounded() and mount.horizontal_mount.arm.is_grounded()
 		var can_step = diagonal_grounded or mount.arm.is_fully_extended()
 		if can_step:
+			# cast sideways inside to turn the corner
+			var wall_target_pos := mount.wall_target.global_position
+			var side_dir := (right_vector * input_dir.x).normalized()
+			var is_on_strafe_side := (wall_target_pos - p.global_position).dot(side_dir) > 0
+			if is_on_strafe_side:
+				var side_query := PhysicsRayQueryParameters3D.create(wall_target_pos, wall_target_pos + side_dir * 5.0, ~2)
+
+				var side_result := space.intersect_ray(side_query)
+				if not side_result.is_empty():
+					var side_hit_pos: Vector3 = side_result["position"]
+
+					mount.step_target = side_hit_pos
+					var current_pos = mount.target.global_position
+					var dist = (current_pos - mount.step_target).length()
+					if dist > furthest_distance and dist >= 0.5:
+						furthest_distance = dist
+						best_mount = mount
+						best_hit = side_result
+
+						continue
+
 			if mount.step_target != null:
 				var current_pos = mount.target.global_position
 
@@ -87,19 +113,16 @@ func update_wall_arms(dt: float) -> void:
 					furthest_distance = dist
 					best_mount = mount
 					best_hit = hit
-			else:
+			elif is_on_strafe_side:
+				# go around corners of walls
 				if hit != null or input_dir.x == 0:
 					continue   # forward probe found a wall, or not strafing
 
-				var wall_target_pos := mount.wall_target.global_position
-				var up_vector := (Vector3.UP - average_normal * average_normal.dot(Vector3.UP)).normalized()
-				var right_vector := up_vector.cross(average_normal)
 				var ray_origin := wall_target_pos - average_normal * p.raycast_config.wall_cornering_raycast_distance
-				var ray_direction := -(right_vector * input_dir.x).normalized()
+				var ray_end := ray_origin + -side_dir * 3.0
 
 
-				var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_origin + ray_direction * 3.0, ~2)
-				var space := p.get_world_3d().direct_space_state
+				var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end, ~2)
 				var result := space.intersect_ray(query)
 				if not result.is_empty():
 					var hit_pos: Vector3 = result["position"]
