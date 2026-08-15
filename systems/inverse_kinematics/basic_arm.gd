@@ -7,7 +7,7 @@ class_name BasicArm
 @export var joint_radius: float = 0.25
 @export var step_duration: float = 0.25
 @export var lift_height: float = 0.8
-@export var joint_y_margin: float = 0.6
+@export var floor_margin: float = 0.6
 @export var min_joint_angle: float = 20.0
 
 const GROUNDED_DISTANCE_CHECK: float = 0.2
@@ -39,7 +39,7 @@ func _ready() -> void:
 		positions.append(positions[i] + target_dir * limb_length)
 
 	solver = FabrikSolver.new(positions)
-	solver.floor_y_margin = joint_y_margin
+	solver.floor_margin = floor_margin
 	solver.min_joint_angle = min_joint_angle
 
 	for i in range(num_limbs - 1):
@@ -69,6 +69,7 @@ func start_step(to: Vector3, delay := 0.0, surface_normal := Vector3.UP) -> void
 	step_end = to
 	step_progress = -maxf(delay, 0.0) / step_duration
 	step_normal = surface_normal
+	solver.floor_normal = _to_local_dir(surface_normal)
 
 func advance_step(dt: float) -> void:
 	step_progress += dt / step_duration
@@ -91,6 +92,10 @@ func advance_step(dt: float) -> void:
 func _physics_process(_delta: float) -> void:
 	var solved := solver.solve(target, Vector3.ZERO, pole.position)
 	_update_visualizer(solved)
+
+## Converts a world-space direction into the solver's local space.
+func _to_local_dir(world_dir: Vector3) -> Vector3:
+	return (global_transform.basis.inverse() * world_dir).normalized()
 
 func _build_visualizer() -> void:
 	var limb_mat := StandardMaterial3D.new()

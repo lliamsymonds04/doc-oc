@@ -17,7 +17,7 @@ class_name PlayerController
 @export var neutral_pitch = -5.0
 
 @export_category("Wall Climb")
-@export var wall_offset: float = 1.0
+@export var wall_offset: float = 2.0
 @export var wall_raycast_dist: float = 5.0
 @export var ledge_ray_offset: float = 3.0
 @export var ledge_ray_length: float = 5.0

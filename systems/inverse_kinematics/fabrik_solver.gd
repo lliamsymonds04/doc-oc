@@ -7,8 +7,11 @@ var total_length: float
 var bend_hint := Vector3.ZERO
 var tolerance: float = 0.01
 var max_iterations: int = 10
-var floor_y_margin: float = 0.0
 var min_joint_angle: float = 0.0
+
+## Floor plane normal in the solver's local joint space.
+var floor_normal: Vector3 = Vector3.UP
+var floor_margin: float = 0.0
 
 ## Hinge axis per interior joint, in the previous segment's local frame
 var hinge_axes: Array[Vector3] = []
@@ -54,17 +57,21 @@ func apply_pole(target: Vector3, root: Vector3, pole: Vector3) -> void:
 
 ## Nudges interior joints off the root-target line toward the pole.
 func _seed_bend_toward_pole(root: Vector3, axis: Vector3, pole_dir: Vector3) -> void:
-	var seed := 0.01
+	var bend_seed := 0.01
 	for i in range(1, joints.size() - 1):
 		var offset: Vector3 = joints[i] - root
 		var along := axis * offset.dot(axis)
-		joints[i] = root + along + pole_dir * seed
+		joints[i] = root + along + pole_dir * bend_seed
 
 
-func _apply_floor(floor_y: float, margin: float) -> void:
+func _apply_floor(floor_origin: Vector3) -> void:
+	if floor_margin == 0.0:
+		return
+
 	for i in range(1, joints.size() - 1):
-		if joints[i].y < floor_y + margin:
-			joints[i].y = floor_y + margin
+		var signed_dist := joints[i].dot(floor_normal) - floor_origin.dot(floor_normal)
+		if signed_dist < floor_margin:
+			joints[i] += floor_normal * (floor_margin - signed_dist)
 
 
 ## Global hinge for a C-curve with apexes toward the pole.
@@ -204,7 +211,7 @@ func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 				_clamp_outgoing(i, global_hinge, max_dev)
 
 		if should_apply_floor:
-			_apply_floor(target.y, floor_y_margin)
+			_apply_floor(target)
 
 		apply_pole(target, root, pole)
 

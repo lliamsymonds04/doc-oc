@@ -12,8 +12,8 @@ func enter() -> void:
 
 func exit() -> void:
 	var p := player
-	for mount in p.arm_mounts:
-		mount.set_apply_floor(false)
+	# for mount in p.arm_mounts:
+	# 	mount.set_apply_floor(false)
 
 func physics_update(dt: float) -> void:
 	var p := player
