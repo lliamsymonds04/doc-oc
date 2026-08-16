@@ -2,6 +2,10 @@ extends PlayerState
 class_name WallClimbState
 
 var average_normal: Vector3 = Vector3.ZERO
+var mount_normal_change_debounces: Dictionary = {}
+
+const MOUNT_NORMAL_CHANGE_DEBOUNCE_TIME: float = 0.6
+const NORMAL_SIMILARITY_THRESHOLD: float = 0.7
 
 func exit() -> void:
 	var p := player
@@ -9,6 +13,13 @@ func exit() -> void:
 	p.wall_climb_debounce = p.wall_climb_debounce_time
 	for mount in p.arm_mounts:
 		mount.wall_surface_normal = Vector3.ZERO
+		mount_normal_change_debounces[mount] = 0
+
+func _init(p: PlayerController) -> void:
+	super._init(p)
+	mount_normal_change_debounces = {}
+	for mount in p.arm_mounts:
+		mount_normal_change_debounces[mount] = 0
 
 func physics_update(dt: float) -> void:
 	var p := player
@@ -16,6 +27,9 @@ func physics_update(dt: float) -> void:
 	var valid_normals := 0
 	average_normal = Vector3.ZERO
 	for mount in p.arm_mounts:
+		if mount_normal_change_debounces[mount] > 0:
+			mount_normal_change_debounces[mount] -= dt
+
 		if mount.wall_surface_normal != Vector3.ZERO:
 			average_normal += mount.wall_surface_normal
 			valid_normals += 1
@@ -39,21 +53,17 @@ func physics_update(dt: float) -> void:
 		p.rotation.y = lerp_angle(p.rotation.y, goal_yaw, dt * p.turn_speed)
 
 		# wall offset logic
-		var correction := Vector3.ZERO
-		var leg_count := 0
-		for mount in p.arm_mounts:
-			var n := mount.wall_surface_normal
-			if n == Vector3.ZERO or absf(n.dot(Vector3.UP)) > 0.5:
-				continue  # no known surface, or not a wall surface
-			var d: float = (p.position - mount.arm.target_node.global_position).dot(n)  # signed dist body→wall plane
-			correction += (p.wall_offset - d) * n
-			leg_count += 1
+		var space := p.get_world_3d().direct_space_state
+		var query := PhysicsRayQueryParameters3D.create(p.position, p.position + -average_normal * p.wall_offset * p.wall_raycast_dist, ~2)
 
-		if leg_count > 0:
-			correction /= leg_count
-			var target_normal_vel: Vector3 = correction * p.wall_offset_correction_rate
-			var axis := correction.normalized()
-			var normal_comp := axis * p.velocity.dot(axis)
+		var result := space.intersect_ray(query)
+		if not result.is_empty():
+			var hit_pos := result["position"] as Vector3
+			var distance_from_wall := (hit_pos - p.position).length()
+			var distance_error := distance_from_wall - p.wall_offset
+
+			var target_normal_vel: Vector3 = -average_normal * distance_error * p.wall_offset_correction_rate
+			var normal_comp := average_normal * p.velocity.dot(average_normal)
 			p.velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * p.wall_offset_correction_rate)
 
 	else:
@@ -95,7 +105,8 @@ func update_wall_arms(dt: float) -> void:
 			var side_dir := (right_vector * input_dir.x).normalized()
 			var is_on_strafe_side := (wall_target_pos - p.global_position).dot(side_dir) > 0
 			if is_on_strafe_side:
-				var side_query := PhysicsRayQueryParameters3D.create(wall_target_pos, wall_target_pos + side_dir * p.raycast_config.wall_inside_cornering_raycast_distance, ~2)
+				var ray_end = wall_target_pos + side_dir * p.raycast_config.wall_inside_cornering_raycast_distance
+				var side_query := PhysicsRayQueryParameters3D.create(wall_target_pos, ray_end, ~2)
 
 				var side_result := space.intersect_ray(side_query)
 				if not side_result.is_empty():
@@ -127,8 +138,7 @@ func update_wall_arms(dt: float) -> void:
 				# outside wall cornering
 				var ray_origin := wall_target_pos - average_normal * p.raycast_config.wall_raycast_distance
 				ray_origin += side_dir * 1.0 # offset the origin to be horizontally ahead of the body
-				var ray_end := ray_origin + -side_dir * 3.0
-
+				var ray_end := ray_origin + -side_dir * p.raycast_config.wall_outside_ray_lead
 
 				var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end, ~2)
 				var result := space.intersect_ray(query)
@@ -145,6 +155,15 @@ func update_wall_arms(dt: float) -> void:
 
 
 	if best_mount != null:
+		var is_corner_step: bool = best_hit.normal.dot(average_normal) < NORMAL_SIMILARITY_THRESHOLD
+
+		var normal_change: bool = best_mount.wall_surface_normal.dot(best_hit.normal) < NORMAL_SIMILARITY_THRESHOLD
+		if normal_change and mount_normal_change_debounces[best_mount] > 0:
+			return
+
+		if is_corner_step:
+			mount_normal_change_debounces[best_mount] = MOUNT_NORMAL_CHANGE_DEBOUNCE_TIME
+
 		best_mount.arm.start_step(best_mount.step_target, 0.0, best_hit.normal)
 		best_mount.wall_surface_normal = best_hit.normal
 
