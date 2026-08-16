@@ -2,7 +2,9 @@ extends Node3D
 class_name ArmMount
 
 @export var is_leg: bool = true
+# the mount above this
 @export var vertical_mount: ArmMount
+# the mount to the side of this
 @export var horizontal_mount: ArmMount
 
 @export_category("Idle targeting")

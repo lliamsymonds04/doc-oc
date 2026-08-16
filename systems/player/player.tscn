@@ -48,7 +48,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, 0.6019
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.253, 0.2, 0.577)
 
 [node name="WallTarget" type="Node3D" parent="Hitbox/ArmRight" unique_id=1227139099]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.254, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.254, -0.5, 0)
 
 [node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmRight/WallTarget" unique_id=1864961534]
 material_override = SubResource("StandardMaterial3D_pftr6")
@@ -68,7 +68,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.09, 0.602)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.253, 0.2, 0.577)
 
 [node name="WallTarget" type="Node3D" parent="Hitbox/ArmLeft" unique_id=964169628]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.283, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.283, -0.5, 0)
 
 [node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmLeft/WallTarget" unique_id=1384942331]
 material_override = SubResource("StandardMaterial3D_pftr6")

@@ -81,7 +81,8 @@ func update_wall_arms(dt: float) -> void:
 			continue
 
 		var hit = mount.update_wall_climb(p.velocity)
-		var diagonal_grounded = mount.vertical_mount.arm.is_grounded() and mount.horizontal_mount.arm.is_grounded()
+		var horizontal_grounded = mount.horizontal_mount.arm.is_grounded()
+		var diagonal_grounded = mount.vertical_mount.arm.is_grounded() and horizontal_grounded
 		var can_step = diagonal_grounded or mount.arm.is_fully_extended()
 		if can_step:
 			# cast sideways inside to turn the corner
@@ -114,11 +115,9 @@ func update_wall_arms(dt: float) -> void:
 					best_mount = mount
 					best_hit = hit
 			elif is_on_strafe_side:
-				# go around corners of walls
-				if hit != null or input_dir.x == 0:
-					continue   # forward probe found a wall, or not strafing
-
+				# outside wall cornering
 				var ray_origin := wall_target_pos - average_normal * p.raycast_config.wall_cornering_raycast_distance
+				ray_origin += side_dir * 1.0 # offset the origin to be horizontally ahead of the body
 				var ray_end := ray_origin + -side_dir * 3.0
 
 
