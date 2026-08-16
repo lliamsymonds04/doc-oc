@@ -39,18 +39,23 @@ func physics_update(dt: float) -> void:
 		p.rotation.y = lerp_angle(p.rotation.y, goal_yaw, dt * p.turn_speed)
 
 		# wall offset logic
-		var space := p.get_world_3d().direct_space_state
-		var query := PhysicsRayQueryParameters3D.create(p.position, p.position + -average_normal * p.wall_offset * p.wall_raycast_dist, ~2)
+		var correction := Vector3.ZERO
+		var leg_count := 0
+		for mount in p.arm_mounts:
+			var n := mount.wall_surface_normal
+			if n == Vector3.ZERO or absf(n.dot(Vector3.UP)) > 0.5:
+				continue  # no known surface, or not a wall surface
+			var d: float = (p.position - mount.arm.target_node.global_position).dot(n)  # signed dist body→wall plane
+			correction += (p.wall_offset - d) * n
+			leg_count += 1
 
-		var result := space.intersect_ray(query)
-		if not result.is_empty():
-			var hit_pos := result["position"] as Vector3
-			var distance_from_wall := (hit_pos - p.position).length()
-			var distance_error := distance_from_wall - p.wall_offset
-
-			var target_normal_vel: Vector3 = -average_normal * distance_error * p.wall_offset_correction_rate
-			var normal_comp := average_normal * p.velocity.dot(average_normal)
+		if leg_count > 0:
+			correction /= leg_count
+			var target_normal_vel: Vector3 = correction * p.wall_offset_correction_rate
+			var axis := correction.normalized()
+			var normal_comp := axis * p.velocity.dot(axis)
 			p.velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * p.wall_offset_correction_rate)
+
 	else:
 		p.velocity = Vector3.ZERO
 	update_wall_arms(dt)
@@ -90,21 +95,25 @@ func update_wall_arms(dt: float) -> void:
 			var side_dir := (right_vector * input_dir.x).normalized()
 			var is_on_strafe_side := (wall_target_pos - p.global_position).dot(side_dir) > 0
 			if is_on_strafe_side:
-				var side_query := PhysicsRayQueryParameters3D.create(wall_target_pos, wall_target_pos + side_dir * 5.0, ~2)
+				var side_query := PhysicsRayQueryParameters3D.create(wall_target_pos, wall_target_pos + side_dir * p.raycast_config.wall_inside_cornering_raycast_distance, ~2)
 
 				var side_result := space.intersect_ray(side_query)
 				if not side_result.is_empty():
 					var side_hit_pos: Vector3 = side_result["position"]
+					var new_normal: Vector3 = side_result["normal"]
+					var current_normal: Vector3 = mount.wall_surface_normal
 
-					mount.step_target = side_hit_pos
-					var current_pos = mount.target.global_position
-					var dist = (current_pos - mount.step_target).length()
-					if dist > furthest_distance and dist >= 0.5:
-						furthest_distance = dist
-						best_mount = mount
-						best_hit = side_result
+					# check the normal is from a different surface angle
+					if new_normal.dot(current_normal) < 0.3:
+						mount.step_target = side_hit_pos
+						var current_pos = mount.target.global_position
+						var dist = (current_pos - mount.step_target).length()
+						if dist > furthest_distance and dist >= 0.5:
+							furthest_distance = dist
+							best_mount = mount
+							best_hit = side_result
 
-						continue
+							continue
 
 			if mount.step_target != null:
 				var current_pos = mount.target.global_position
@@ -116,7 +125,7 @@ func update_wall_arms(dt: float) -> void:
 					best_hit = hit
 			elif is_on_strafe_side:
 				# outside wall cornering
-				var ray_origin := wall_target_pos - average_normal * p.raycast_config.wall_cornering_raycast_distance
+				var ray_origin := wall_target_pos - average_normal * p.raycast_config.wall_raycast_distance
 				ray_origin += side_dir * 1.0 # offset the origin to be horizontally ahead of the body
 				var ray_end := ray_origin + -side_dir * 3.0
 

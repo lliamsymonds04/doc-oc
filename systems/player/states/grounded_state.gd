@@ -10,11 +10,6 @@ func enter() -> void:
 			if mount.idle_target:
 				mount.arm.start_step(mount.to_global(mount.compute_idle_target()))
 
-func exit() -> void:
-	var p := player
-	# for mount in p.arm_mounts:
-	# 	mount.set_apply_floor(false)
-
 func physics_update(dt: float) -> void:
 	var p := player
 
