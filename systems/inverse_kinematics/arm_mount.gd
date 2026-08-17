@@ -20,6 +20,7 @@ class_name ArmMount
 @onready var wall_target: Node3D = $WallTarget
 
 var raycast_config: ArmRaycastConfig
+var _cast_sphere: SphereShape3D
 var arm: BasicArm
 var step_target: Variant
 var anchor: Node3D
@@ -49,6 +50,9 @@ func init() -> BasicArm:
 	arm.anchor = anchor
 	arm.pole = pole
 	add_child(arm)
+
+	_cast_sphere = SphereShape3D.new()
+	_cast_sphere.radius = raycast_config.shape_cast_radius
 
 	return arm
 
@@ -89,9 +93,6 @@ func update_step(velocity: Vector3, dt: float) -> void:
 	elif idle_target != null:
 		arm.target = compute_idle_target()
 
-func can_step() -> bool:
-	return step_target != null and ((arm.is_grounded() and horizontal_mount.arm.is_grounded()) or arm.is_fully_extended())
-
 func get_step_distance() -> float:
 	if step_target == null:
 		return INF
@@ -121,17 +122,7 @@ func update_wall_climb(velocity: Vector3) -> Variant:
 
 func _get_surface_hit(from: Vector3, direction: Vector3, distance: float) -> Variant:
 	var space := get_world_3d().direct_space_state
-	var ray_origin = from - direction * distance
-	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_origin + direction * distance * 2, ~2)
-
-	var result := space.intersect_ray(query)
-	if result.is_empty():
-		return null
-
-	return {
-		"position": result["position"],
-		"normal": result["normal"],
-	}
+	return RaycastUtil.shape_cast(space, _cast_sphere, from, direction * distance, ~2)
 
 func set_apply_floor(should_apply: bool) -> void:
 	arm.solver.should_apply_floor = should_apply

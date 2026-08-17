@@ -48,7 +48,9 @@ func _update_arms(dt: float) -> void:
 
 	for mount in p.arm_mounts:
 		mount.update_step(p.velocity, dt)
-		if mount.can_step():
+		var can_step: bool = mount.step_target != null and ((mount.arm.is_grounded()
+			and mount.horizontal_mount.arm.is_grounded()) or mount.arm.is_fully_extended())
+		if can_step:
 			var dist = mount.get_step_distance()
 			if dist > furthest_distance:
 				furthest_distance = dist
