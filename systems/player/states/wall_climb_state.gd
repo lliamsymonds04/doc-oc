@@ -105,11 +105,12 @@ func update_wall_arms(dt: float) -> void:
 			var side_dir := (right_vector * input_dir.x).normalized()
 			var is_on_strafe_side := (wall_target_pos - p.global_position).dot(side_dir) > 0
 			if is_on_strafe_side:
-				var ray_end = wall_target_pos + side_dir * p.raycast_config.wall_inside_cornering_raycast_distance
-				var side_query := PhysicsRayQueryParameters3D.create(wall_target_pos, ray_end, ~2)
+				var ray_end: Vector3 = wall_target_pos + side_dir * p.raycast_config.wall_inside_cornering_raycast_distance
+				var mount_pos := mount.global_position
+				var motion := ray_end - mount_pos
+				var side_result = mount.get_surface_hit(mount_pos, motion.normalized(), motion.length())
 
-				var side_result := space.intersect_ray(side_query)
-				if not side_result.is_empty():
+				if side_result:
 					var side_hit_pos: Vector3 = side_result["position"]
 					var new_normal: Vector3 = side_result["normal"]
 					var current_normal: Vector3 = mount.wall_surface_normal
@@ -202,7 +203,7 @@ func _dismount_to_ledge(ledge_result: Dictionary) -> void:
 			continue
 
 		var foot_pos := ledge_pos + right * mount.anchor.position.x
-		var surface = mount._get_surface_hit(foot_pos, Vector3.DOWN, p.raycast_config.step_raycast_distance)
+		var surface = mount.get_surface_hit(foot_pos, Vector3.DOWN, p.raycast_config.step_raycast_distance)
 		if surface != null:
 			foot_pos = (surface["position"] as Vector3)
 
@@ -223,7 +224,7 @@ func _check_floor_from_wall() -> void:
 
 		var anchor_pos := mount.anchor.global_position
 
-		var hit = mount._get_surface_hit(anchor_pos, Vector3.DOWN, p.raycast_config.step_raycast_distance)
+		var hit = mount.get_surface_hit(anchor_pos, Vector3.DOWN, p.raycast_config.step_raycast_distance)
 		if hit != null:
 			mount_hits[mount] = hit
 
