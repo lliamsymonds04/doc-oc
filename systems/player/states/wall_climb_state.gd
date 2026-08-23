@@ -4,10 +4,14 @@ class_name WallClimbState
 var average_normal: Vector3 = Vector3.ZERO
 var mount_normal_change_debounces: Dictionary = {}
 
-const MOUNT_NORMAL_CHANGE_DEBOUNCE_TIME: float = 0.6
+const MOUNT_NORMAL_CHANGE_DEBOUNCE_TIME: float = 1.6
 const NORMAL_SIMILARITY_THRESHOLD: float = 0.7
 
-const CORNERING_TIMER_DURATION: float = 0.5
+const CORNERING_TIMER_DURATION: float = 1.5
+enum CorneringType {
+	INSIDE,
+	OUTSIDE,
+}
 
 var is_cornering: bool = false
 var cornering_timer: float = 0.0
@@ -76,8 +80,6 @@ func physics_update(dt: float) -> void:
 				p.velocity.y = move_toward(p.velocity.y, 0, p.speed * dt)
 
 			var goal_direction = -average_normal
-			var goal_yaw := atan2(-goal_direction.x, -goal_direction.z)
-			p.rotation.y = lerp_angle(p.rotation.y, goal_yaw, dt * p.turn_speed)
 
 			# wall offset logic
 			var space := p.get_world_3d().direct_space_state
@@ -87,6 +89,10 @@ func physics_update(dt: float) -> void:
 			if not result.is_empty():
 				# check the surface normal is facing the player
 				var surface_normal := result["normal"] as Vector3
+				var angle := rad_to_deg(acos(surface_normal.dot(average_normal)))
+
+				if angle >= 15.0:
+					goal_direction = -surface_normal
 
 				if surface_normal.dot(average_normal) >= cos(deg_to_rad(70)):
 					var hit_pos := result["position"] as Vector3
@@ -96,6 +102,9 @@ func physics_update(dt: float) -> void:
 					var target_normal_vel: Vector3 = -average_normal * distance_error * p.wall_offset_correction_rate
 					var normal_comp := average_normal * p.velocity.dot(average_normal)
 					p.velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * p.wall_offset_correction_rate)
+
+			var goal_yaw := atan2(-goal_direction.x, -goal_direction.z)
+			p.rotation.y = lerp_angle(p.rotation.y, goal_yaw, dt * p.turn_speed)
 
 	else:
 		p.velocity = Vector3.ZERO
