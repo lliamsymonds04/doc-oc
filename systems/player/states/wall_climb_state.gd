@@ -146,6 +146,12 @@ func update_wall_arms(dt: float) -> void:
 				if not result.is_empty():
 					var hit_pos: Vector3 = result["position"]
 
+					# check if the hit pos is visible by the wall target
+					var visible_query := PhysicsRayQueryParameters3D.create(wall_target_pos, hit_pos, ~2)
+					var visible := space.intersect_ray(visible_query).is_empty()
+					if not visible:
+						continue
+
 					mount.step_target = hit_pos
 					var current_pos = mount.target.global_position
 					var dist = (current_pos - mount.step_target).length()
