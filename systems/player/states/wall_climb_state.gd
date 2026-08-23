@@ -7,6 +7,13 @@ var mount_normal_change_debounces: Dictionary = {}
 const MOUNT_NORMAL_CHANGE_DEBOUNCE_TIME: float = 0.6
 const NORMAL_SIMILARITY_THRESHOLD: float = 0.7
 
+const CORNERING_TIMER_DURATION: float = 0.5
+
+var is_cornering: bool = false
+var cornering_timer: float = 0.0
+var cornering_target_normal: Vector3 = Vector3.ZERO
+var cornering_target_pos: Vector3 = Vector3.ZERO
+
 func exit() -> void:
 	var p := player
 
@@ -37,41 +44,62 @@ func physics_update(dt: float) -> void:
 	if valid_normals > 0:
 		average_normal = average_normal.normalized()
 
-		var up_vector := (Vector3.UP - average_normal * average_normal.dot(Vector3.UP)).normalized()
-		var right_vector := up_vector.cross(average_normal)
+		if is_cornering:
+			cornering_timer -= dt
+			if cornering_timer <= 0:
+				is_cornering = false
 
-		var direction := up_vector * -input_dir.y + right_vector * input_dir.x
-		if direction.length_squared() > 0.0:
-			p.velocity = direction.normalized() * p.speed
+			var remaining := maxf(cornering_timer, dt)
+			var weight := dt / remaining
+
+			# lerp the y rotation to the cornering target
+			var goal_yaw := atan2(-cornering_target_normal.x, -cornering_target_normal.z)
+			p.rotation.y = lerp_angle(p.rotation.y, goal_yaw, weight)
+
+			# move the player towards the cornering target
+			var direction := cornering_target_pos - p.position
+			if direction.length_squared() > 0.0:
+				p.velocity = direction / remaining
+			else:
+				p.velocity = Vector3.ZERO
+
 		else:
-			p.velocity.x = move_toward(p.velocity.x, 0, p.speed * dt)
-			p.velocity.z = move_toward(p.velocity.z, 0, p.speed * dt)
-			p.velocity.y = move_toward(p.velocity.y, 0, p.speed * dt)
+			var up_vector := (Vector3.UP - average_normal * average_normal.dot(Vector3.UP)).normalized()
+			var right_vector := up_vector.cross(average_normal)
 
-		var goal_direction = -average_normal
-		var goal_yaw := atan2(-goal_direction.x, -goal_direction.z)
-		p.rotation.y = lerp_angle(p.rotation.y, goal_yaw, dt * p.turn_speed)
+			var direction := up_vector * -input_dir.y + right_vector * input_dir.x
+			if direction.length_squared() > 0.0:
+				p.velocity = direction.normalized() * p.speed
+			else:
+				p.velocity.x = move_toward(p.velocity.x, 0, p.speed * dt)
+				p.velocity.z = move_toward(p.velocity.z, 0, p.speed * dt)
+				p.velocity.y = move_toward(p.velocity.y, 0, p.speed * dt)
 
-		# wall offset logic
-		var space := p.get_world_3d().direct_space_state
-		var query := PhysicsRayQueryParameters3D.create(p.position, p.position + -average_normal * p.wall_offset * p.wall_raycast_dist, ~2)
+			var goal_direction = -average_normal
+			var goal_yaw := atan2(-goal_direction.x, -goal_direction.z)
+			p.rotation.y = lerp_angle(p.rotation.y, goal_yaw, dt * p.turn_speed)
 
-		var result := space.intersect_ray(query)
-		if not result.is_empty():
-			# check the surface normal is facing the player
-			var surface_normal := result["normal"] as Vector3
+			# wall offset logic
+			var space := p.get_world_3d().direct_space_state
+			var query := PhysicsRayQueryParameters3D.create(p.position, p.position + -average_normal * p.wall_offset * p.wall_raycast_dist, ~2)
 
-			if surface_normal.dot(average_normal) >= cos(deg_to_rad(70)):
-				var hit_pos := result["position"] as Vector3
-				var distance_from_wall := (hit_pos - p.position).length()
-				var distance_error := distance_from_wall - p.wall_offset
+			var result := space.intersect_ray(query)
+			if not result.is_empty():
+				# check the surface normal is facing the player
+				var surface_normal := result["normal"] as Vector3
 
-				var target_normal_vel: Vector3 = -average_normal * distance_error * p.wall_offset_correction_rate
-				var normal_comp := average_normal * p.velocity.dot(average_normal)
-				p.velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * p.wall_offset_correction_rate)
+				if surface_normal.dot(average_normal) >= cos(deg_to_rad(70)):
+					var hit_pos := result["position"] as Vector3
+					var distance_from_wall := (hit_pos - p.position).length()
+					var distance_error := distance_from_wall - p.wall_offset
+
+					var target_normal_vel: Vector3 = -average_normal * distance_error * p.wall_offset_correction_rate
+					var normal_comp := average_normal * p.velocity.dot(average_normal)
+					p.velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * p.wall_offset_correction_rate)
 
 	else:
 		p.velocity = Vector3.ZERO
+
 	update_wall_arms(dt)
 
 	# wall discmount logic
@@ -174,6 +202,12 @@ func update_wall_arms(dt: float) -> void:
 
 		if is_corner_step:
 			mount_normal_change_debounces[best_mount] = MOUNT_NORMAL_CHANGE_DEBOUNCE_TIME
+			if not is_cornering:
+				is_cornering = true
+				cornering_timer = CORNERING_TIMER_DURATION
+				cornering_target_normal = -best_hit.normal
+				cornering_target_pos = best_mount.step_target + best_hit.normal * p.wall_offset
+				cornering_target_pos.y = p.position.y
 
 		best_mount.arm.start_step(best_mount.step_target, 0.0, best_hit.normal)
 		best_mount.wall_surface_normal = best_hit.normal
