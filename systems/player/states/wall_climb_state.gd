@@ -35,7 +35,7 @@ func physics_update(dt: float) -> void:
 			valid_normals += 1
 
 	if valid_normals > 0:
-		average_normal /= valid_normals
+		average_normal = average_normal.normalized()
 
 		var up_vector := (Vector3.UP - average_normal * average_normal.dot(Vector3.UP)).normalized()
 		var right_vector := up_vector.cross(average_normal)
@@ -58,13 +58,17 @@ func physics_update(dt: float) -> void:
 
 		var result := space.intersect_ray(query)
 		if not result.is_empty():
-			var hit_pos := result["position"] as Vector3
-			var distance_from_wall := (hit_pos - p.position).length()
-			var distance_error := distance_from_wall - p.wall_offset
+			# check the surface normal is facing the player
+			var surface_normal := result["normal"] as Vector3
 
-			var target_normal_vel: Vector3 = -average_normal * distance_error * p.wall_offset_correction_rate
-			var normal_comp := average_normal * p.velocity.dot(average_normal)
-			p.velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * p.wall_offset_correction_rate)
+			if surface_normal.dot(average_normal) >= cos(deg_to_rad(70)):
+				var hit_pos := result["position"] as Vector3
+				var distance_from_wall := (hit_pos - p.position).length()
+				var distance_error := distance_from_wall - p.wall_offset
+
+				var target_normal_vel: Vector3 = -average_normal * distance_error * p.wall_offset_correction_rate
+				var normal_comp := average_normal * p.velocity.dot(average_normal)
+				p.velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * p.wall_offset_correction_rate)
 
 	else:
 		p.velocity = Vector3.ZERO
