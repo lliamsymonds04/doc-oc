@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://b3un13prji6wu" path="res://assets/textures/dark_grid.png" id="1_h2yge"]
 [ext_resource type="PackedScene" uid="uid://cidasq88868wo" path="res://systems/player/player.tscn" id="1_ig7tw"]
 [ext_resource type="Texture2D" uid="uid://80w2bs0a2buc" path="res://assets/textures/purple_grid.png" id="3_h2yge"]
+[ext_resource type="Script" uid="uid://h2wujriypiq43" path="res://systems/util/debug_ray_drawer.gd" id="9_dbg"]
 
 [sub_resource type="StandardMaterial3D" id="FloorMat"]
 albedo_texture = ExtResource("1_h2yge")
@@ -159,3 +160,6 @@ transform = Transform3D(1.0000001, 0, 0, 0, 1, 0, 0, 0, 1.0000001, 5.8325634, 8.
 use_collision = true
 size = Vector3(10, 20, 10)
 material = SubResource("StandardMaterial3D_m2c1y")
+
+[node name="DebugRayDrawer" type="Node3D" parent="." unique_id=821449203]
+script = ExtResource("9_dbg")
