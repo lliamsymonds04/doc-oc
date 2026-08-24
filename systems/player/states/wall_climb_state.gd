@@ -152,7 +152,9 @@ func update_wall_arms(dt: float) -> void:
 			var wall_probe_pos := mount.wall_probe.global_position
 			var side_dir := (right_vector * input_dir.x).normalized()
 			var is_on_strafe_side := (wall_probe_pos - p.global_position).dot(side_dir) > 0
-			if is_on_strafe_side:
+			var can_corner = mount_normal_change_debounces[mount] <= 0
+
+			if is_on_strafe_side and can_corner:
 				var ray_end: Vector3 = wall_probe_pos + side_dir * p.raycast_config.wall_inside_cornering_raycast_distance
 				var mount_pos := mount.global_position
 				var motion := ray_end - mount_pos
@@ -184,39 +186,32 @@ func update_wall_arms(dt: float) -> void:
 					furthest_distance = dist
 					best_mount = mount
 					best_hit = hit
-			elif is_on_strafe_side:
+			elif is_on_strafe_side and can_corner:
 				# outside wall cornering
-				var ray_origin := wall_probe_pos - average_normal * p.raycast_config.wall_raycast_distance
-				ray_origin += side_dir * 1.0 # offset the origin to be horizontally ahead of the body
-				var ray_end := ray_origin + -side_dir * p.raycast_config.wall_outside_ray_lead
+				var d := 1.0
+				var ray_origin := wall_probe_pos + side_dir * d
+				var motion := -side_dir * (d + 1.5) - average_normal * 3.0
 
 				# check if we we are casting the ray from is actually visible
 				var visible_query := PhysicsRayQueryParameters3D.create(mount.global_position, ray_origin, ~2)
 				var visible := space.intersect_ray(visible_query).is_empty()
-				if not visible:
-					continue
 
-				var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end, ~2)
-				var result := space.intersect_ray(query)
-				if not result.is_empty():
-					var hit_pos: Vector3 = result["position"]
+				var side_result = mount.get_surface_hit(ray_origin, motion.normalized(), motion.length())
+				if visible and side_result:
+					var hit_pos: Vector3 = side_result["position"]
+					var hit_normal: Vector3 = side_result["normal"]
 
-					mount.step_target = hit_pos
-					var current_pos = mount.target_world
-					var dist = (current_pos - mount.step_target).length()
-					if dist > furthest_distance and dist >= 0.5:
-						furthest_distance = dist
-						best_mount = mount
-						best_hit = result
-						cornering_mode = CorneringType.OUTSIDE
+					if hit_normal.dot(side_dir) > 0.4:
+						mount.step_target = hit_pos
+						var current_pos = mount.target_world
+						var dist = (current_pos - mount.step_target).length()
+						if dist > furthest_distance and dist >= 0.5:
+							furthest_distance = dist
+							best_mount = mount
+							best_hit = side_result
+							cornering_mode = CorneringType.OUTSIDE
 
 	if best_mount != null:
-		# var is_corner_step: bool = best_hit.normal.dot(average_normal) < NORMAL_SIMILARITY_THRESHOLD
-
-		var normal_change: bool = best_mount.wall_surface_normal.dot(best_hit.normal) < NORMAL_SIMILARITY_THRESHOLD
-		if normal_change and mount_normal_change_debounces[best_mount] > 0:
-			return
-
 		if cornering_mode != CorneringType.NONE:
 			var debounce_time = CORNERING_DURATIONS[cornering_mode]
 			mount_normal_change_debounces[best_mount] = debounce_time
