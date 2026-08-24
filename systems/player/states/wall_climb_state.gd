@@ -140,6 +140,7 @@ func update_wall_arms(dt: float) -> void:
 	for mount in p.arm_mounts:
 		if mount.arm.is_stepping:
 			mount.arm.advance_step(dt)
+			mount.target_world = mount.arm.target_world
 			continue
 
 		var hit = mount.update_wall_climb(p.velocity)
@@ -148,11 +149,11 @@ func update_wall_arms(dt: float) -> void:
 		var can_step = diagonal_grounded or mount.arm.is_fully_extended()
 		if can_step:
 			# cast sideways inside to turn the corner
-			var wall_target_pos := mount.wall_target.global_position
+			var wall_probe_pos := mount.wall_probe.global_position
 			var side_dir := (right_vector * input_dir.x).normalized()
-			var is_on_strafe_side := (wall_target_pos - p.global_position).dot(side_dir) > 0
+			var is_on_strafe_side := (wall_probe_pos - p.global_position).dot(side_dir) > 0
 			if is_on_strafe_side:
-				var ray_end: Vector3 = wall_target_pos + side_dir * p.raycast_config.wall_inside_cornering_raycast_distance
+				var ray_end: Vector3 = wall_probe_pos + side_dir * p.raycast_config.wall_inside_cornering_raycast_distance
 				var mount_pos := mount.global_position
 				var motion := ray_end - mount_pos
 				var side_result = mount.get_surface_hit(mount_pos, motion.normalized(), motion.length())
@@ -165,7 +166,7 @@ func update_wall_arms(dt: float) -> void:
 					# check the normal is from a different surface angle
 					if new_normal.dot(current_normal) < 0.3:
 						mount.step_target = side_hit_pos
-						var current_pos = mount.target.global_position
+						var current_pos = mount.target_world
 						var dist = (current_pos - mount.step_target).length()
 						if dist > furthest_distance and dist >= 0.5:
 							furthest_distance = dist
@@ -176,7 +177,7 @@ func update_wall_arms(dt: float) -> void:
 							continue
 
 			if mount.step_target != null:
-				var current_pos = mount.target.global_position
+				var current_pos = mount.target_world
 
 				var dist = (current_pos - mount.step_target).length()
 				if dist > furthest_distance and dist >= mount.raycast_config.max_target_displacement:
@@ -185,7 +186,7 @@ func update_wall_arms(dt: float) -> void:
 					best_hit = hit
 			elif is_on_strafe_side:
 				# outside wall cornering
-				var ray_origin := wall_target_pos - average_normal * p.raycast_config.wall_raycast_distance
+				var ray_origin := wall_probe_pos - average_normal * p.raycast_config.wall_raycast_distance
 				ray_origin += side_dir * 1.0 # offset the origin to be horizontally ahead of the body
 				var ray_end := ray_origin + -side_dir * p.raycast_config.wall_outside_ray_lead
 
@@ -201,7 +202,7 @@ func update_wall_arms(dt: float) -> void:
 					var hit_pos: Vector3 = result["position"]
 
 					mount.step_target = hit_pos
-					var current_pos = mount.target.global_position
+					var current_pos = mount.target_world
 					var dist = (current_pos - mount.step_target).length()
 					if dist > furthest_distance and dist >= 0.5:
 						furthest_distance = dist
@@ -263,7 +264,7 @@ func _dismount_to_ledge(ledge_result: Dictionary) -> void:
 		if not mount.is_leg:
 			continue
 
-		var foot_pos := ledge_pos + right * mount.anchor.position.x
+		var foot_pos := ledge_pos + right * mount.ground_probe.position.x
 		var surface = mount.get_surface_hit(foot_pos, Vector3.DOWN, p.raycast_config.step_raycast_distance)
 		if surface != null:
 			foot_pos = (surface["position"] as Vector3)
@@ -283,7 +284,7 @@ func _check_floor_from_wall() -> void:
 		if not mount.is_leg:
 			continue
 
-		var anchor_pos := mount.anchor.global_position
+		var anchor_pos := mount.ground_probe.global_position
 
 		var hit = mount.get_surface_hit(anchor_pos, Vector3.DOWN, p.raycast_config.step_raycast_distance)
 		if hit != null:

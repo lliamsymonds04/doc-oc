@@ -72,7 +72,7 @@ func _calculate_average_target_y() -> Variant:
 		if not arm.is_grounded():
 			continue
 
-		total_y += arm.target_node.global_position.y
+		total_y += arm.target_world.y
 		grounded_legs += 1
 
 	if grounded_legs == 0:
@@ -111,7 +111,7 @@ func try_mount_wall() -> void:
 
 	for mount in p.arm_mounts:
 		# wall raycasts
-		if not mount.is_leg and mount.wall_target != null and mount.arm.is_stepping == false:
+		if not mount.is_leg and mount.wall_probe != null and mount.arm.is_stepping == false:
 			var hit = mount.get_wall_hit_pos(Vector3.ZERO)
 			wall_hits[mount] = hit
 

@@ -13,9 +13,8 @@ class_name BasicArm
 const GROUNDED_DISTANCE_CHECK: float = 0.2
 
 var target: Vector3 = Vector3.ZERO
-var target_node: Node3D
+var target_world: Vector3 = Vector3.ZERO
 var pole: Node3D
-var anchor: Node3D
 var is_leg: bool = false
 
 ## state
@@ -53,13 +52,13 @@ func is_grounded() -> bool:
 		return false
 
 	var end_effector := solver.get_end_effector()
-	var target_pos := to_local(target_node.global_position)
+	var target_pos := to_local(target_world)
 	var distance := (end_effector - target_pos).length()
 	return distance <= GROUNDED_DISTANCE_CHECK
 
 func is_fully_extended() -> bool:
 	var mount_pos := solver.joints[0]
-	var target_pos := to_local(target_node.global_position)
+	var target_pos := to_local(target_world)
 	var distance := (mount_pos - target_pos).length()
 	return distance > solver.total_length
 
@@ -75,13 +74,14 @@ func advance_step(dt: float) -> void:
 	step_progress += dt / step_duration
 	if step_progress < 0.0:
 		target = to_local(step_start)
+		target_world = step_start
 		return  # waiting out the stagger delay; foot holds its start position
 
 	step_progress = minf(step_progress, 1.0)
 	var base := step_start.lerp(step_end, step_progress)
 	var height := lift_height * sin(step_progress * PI)
 	var step_pos = base + step_normal * height
-	target_node.global_position = step_pos
+	target_world = step_pos
 	target = to_local(step_pos)
 
 	if step_progress >= 1.0:

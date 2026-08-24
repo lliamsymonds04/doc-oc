@@ -41,16 +41,16 @@ vertical_mount = NodePath("../ArmTopRight")
 horizontal_mount = NodePath("../ArmLeft")
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
-[node name="Target" type="Marker3D" parent="Hitbox/ArmRight" unique_id=550686394]
+[node name="GroundProbe" type="Marker3D" parent="Hitbox/ArmRight" unique_id=550686394]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, 0.6019857)
 
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmRight" unique_id=1263360260]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.253, 0.2, 0.577)
 
-[node name="WallTarget" type="Node3D" parent="Hitbox/ArmRight" unique_id=1227139099]
+[node name="WallProbe" type="Node3D" parent="Hitbox/ArmRight" unique_id=1227139099]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.254, -0.5, 0)
 
-[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmRight/WallTarget" unique_id=1864961534]
+[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmRight/WallProbe" unique_id=1864961534]
 material_override = SubResource("StandardMaterial3D_pftr6")
 mesh = SubResource("SphereMesh_m2c1y")
 
@@ -61,16 +61,16 @@ vertical_mount = NodePath("../ArmTopLeft")
 horizontal_mount = NodePath("../ArmRight")
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
-[node name="Target" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=1044979529]
+[node name="GroundProbe" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=1044979529]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.09, 0.602)
 
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=515761756]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.253, 0.2, 0.577)
 
-[node name="WallTarget" type="Node3D" parent="Hitbox/ArmLeft" unique_id=964169628]
+[node name="WallProbe" type="Node3D" parent="Hitbox/ArmLeft" unique_id=964169628]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.283, -0.5, 0)
 
-[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmLeft/WallTarget" unique_id=1384942331]
+[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmLeft/WallProbe" unique_id=1384942331]
 material_override = SubResource("StandardMaterial3D_pftr6")
 mesh = SubResource("SphereMesh_m2c1y")
 
@@ -86,7 +86,7 @@ idle_sway_y = 0.1
 sway_phase = 3.14159265358979
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
-[node name="Target" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=1012489981]
+[node name="GroundProbe" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=1012489981]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.5261469, -1.5244104)
 
 [node name="IdleTarget" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=1108706562]
@@ -95,10 +95,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, 1.5599794, -2.9131
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=183985606]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.336801, 2.787157, -0.93121254)
 
-[node name="WallTarget" type="Node3D" parent="Hitbox/ArmTopRight" unique_id=696696143]
+[node name="WallProbe" type="Node3D" parent="Hitbox/ArmTopRight" unique_id=696696143]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 1.553, 0)
 
-[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmTopRight/WallTarget" unique_id=1285604622]
+[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmTopRight/WallProbe" unique_id=1285604622]
 material_override = SubResource("StandardMaterial3D_pftr6")
 mesh = SubResource("SphereMesh_m2c1y")
 
@@ -113,7 +113,7 @@ idle_sway_x = 0.2
 idle_sway_y = 0.1
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
-[node name="Target" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=630538761]
+[node name="GroundProbe" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=630538761]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.5220013, -1.513683)
 
 [node name="IdleTarget" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=1476587123]
@@ -122,10 +122,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, 1.4203327, -3.1366746
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=144475676]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5615735, 2.7539291, -1.1966037)
 
-[node name="WallTarget" type="Node3D" parent="Hitbox/ArmTopLeft" unique_id=2115885880]
+[node name="WallProbe" type="Node3D" parent="Hitbox/ArmTopLeft" unique_id=2115885880]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.553, 0)
 
-[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmTopLeft/WallTarget" unique_id=1488078873]
+[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmTopLeft/WallProbe" unique_id=1488078873]
 material_override = SubResource("StandardMaterial3D_pftr6")
 mesh = SubResource("SphereMesh_m2c1y")
 
