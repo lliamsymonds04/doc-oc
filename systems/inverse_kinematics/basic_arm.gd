@@ -56,11 +56,11 @@ func is_grounded() -> bool:
 	var distance := (end_effector - target_pos).length()
 	return distance <= GROUNDED_DISTANCE_CHECK
 
-func is_fully_extended() -> bool:
+func is_fully_extended(length_percent: float = 1.0) -> bool:
 	var mount_pos := solver.joints[0]
 	var target_pos := to_local(target_world)
 	var distance := (mount_pos - target_pos).length()
-	return distance > solver.total_length
+	return distance > solver.total_length * length_percent
 
 func start_step(to: Vector3, delay := 0.0, surface_normal := Vector3.UP) -> void:
 	is_stepping = true

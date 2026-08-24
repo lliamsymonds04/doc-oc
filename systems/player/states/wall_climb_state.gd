@@ -22,6 +22,8 @@ var is_cornering: bool = false
 var cornering_timer: float = 0.0
 var cornering_target_normal: Vector3 = Vector3.ZERO
 var cornering_target_pos: Vector3 = Vector3.ZERO
+var wall_probe_hits: int = 0
+
 
 func exit() -> void:
 	var p := player
@@ -77,7 +79,7 @@ func physics_update(dt: float) -> void:
 			var right_vector := up_vector.cross(average_normal)
 
 			var direction := up_vector * -input_dir.y + right_vector * input_dir.x
-			if direction.length_squared() > 0.0:
+			if direction.length_squared() > 0.0 and wall_probe_hits > 0:
 				p.velocity = direction.normalized() * p.speed
 			else:
 				p.velocity.x = move_toward(p.velocity.x, 0, p.speed * dt)
@@ -137,13 +139,19 @@ func update_wall_arms(dt: float) -> void:
 	var space := p.get_world_3d().direct_space_state
 	var cornering_mode: CorneringType
 
+	wall_probe_hits = 0
+
 	for mount in p.arm_mounts:
+		var hit = mount.update_wall_climb(p.velocity)
+		if hit != null:
+			wall_probe_hits += 1
+
 		if mount.arm.is_stepping:
 			mount.arm.advance_step(dt)
 			mount.target_world = mount.arm.target_world
 			continue
 
-		var hit = mount.update_wall_climb(p.velocity)
+
 		var horizontal_grounded = mount.horizontal_mount.arm.is_grounded()
 		var diagonal_grounded = mount.vertical_mount.arm.is_grounded() and horizontal_grounded
 		var can_step = diagonal_grounded or mount.arm.is_fully_extended()
@@ -159,6 +167,10 @@ func update_wall_arms(dt: float) -> void:
 				var mount_pos := mount.global_position
 				var motion := ray_end - mount_pos
 				var side_result = mount.get_surface_hit(mount_pos, motion.normalized(), motion.length())
+				# DEBUG inside cornering - 1 frame (yellow miss / green hit), 0.5s lingering on valid corner
+				RaycastUtil.debug_ray(mount_pos, ray_end, Color.GREEN if side_result else Color.YELLOW, 0.0, 0.012)
+				if side_result:
+					RaycastUtil.debug_ray(side_result["position"], side_result["position"] + side_result["normal"] * 0.35, Color.GREEN, 0.0, 0.015)
 
 				if side_result:
 					var side_hit_pos: Vector3 = side_result["position"]
@@ -190,13 +202,24 @@ func update_wall_arms(dt: float) -> void:
 				# outside wall cornering
 				var d := 1.0
 				var ray_origin := wall_probe_pos + side_dir * d
-				var motion := -side_dir * (d + 1.5) - average_normal * 3.0
+				var motion := -side_dir * (d + 2.5) - average_normal * 3.0
 
 				# check if we we are casting the ray from is actually visible
 				var visible_query := PhysicsRayQueryParameters3D.create(mount.global_position, ray_origin, ~2)
 				var visible := space.intersect_ray(visible_query).is_empty()
 
 				var side_result = mount.get_surface_hit(ray_origin, motion.normalized(), motion.length())
+				# DEBUG outside wall cornering - visibility + probe rays
+				RaycastUtil.debug_ray(mount.global_position, ray_origin, Color.CYAN if visible else Color.RED, 0.0, 0.01)
+				if side_result:
+					RaycastUtil.debug_ray(ray_origin, side_result["position"], Color.GREEN, 0.0, 0.018)
+					RaycastUtil.debug_ray(side_result["position"], side_result["position"] + side_result["normal"] * 0.4, Color.GREEN, 0.0, 0.018)
+				else:
+					RaycastUtil.debug_ray(ray_origin, ray_origin + motion, Color.YELLOW, 5.0, 0.008)
+				# lingering 0.5s when outside corner candidate passes normal check
+				if visible and side_result and side_result["normal"].dot(side_dir) > 0.4:
+					RaycastUtil.debug_ray(ray_origin, side_result["position"], Color.GREEN, 0.5, 0.025)
+					RaycastUtil.debug_ray(side_result["position"], side_result["position"] + side_result["normal"] * 0.5, Color.GREEN, 0.5, 0.025)
 				if visible and side_result:
 					var hit_pos: Vector3 = side_result["position"]
 					var hit_normal: Vector3 = side_result["normal"]
