@@ -5,9 +5,6 @@ var average_normal: Vector3 = Vector3.ZERO
 var wall_normal: Vector3 = Vector3.ZERO
 var mount_normal_change_debounces: Dictionary = {}
 
-const MOUNT_NORMAL_CHANGE_DEBOUNCE_TIME: float = 1.6
-const NORMAL_SIMILARITY_THRESHOLD: float = 0.7
-
 enum CorneringType {
 	NONE,
 	INSIDE,
@@ -23,7 +20,6 @@ var is_cornering: bool = false
 var cornering_timer: float = 0.0
 var cornering_target_normal: Vector3 = Vector3.ZERO
 var cornering_target_pos: Vector3 = Vector3.ZERO
-var wall_probe_hits: int = 0
 
 
 func exit() -> void:
@@ -33,6 +29,12 @@ func exit() -> void:
 	for mount in p.arm_mounts:
 		mount.wall_surface_normal = Vector3.ZERO
 		mount_normal_change_debounces[mount] = 0
+
+	# reset cornering state
+	is_cornering = false
+	cornering_timer = 0.0
+	cornering_target_normal = Vector3.ZERO
+	cornering_target_pos = Vector3.ZERO
 
 func _init(p: PlayerController) -> void:
 	super._init(p)
@@ -96,7 +98,7 @@ func physics_update(dt: float) -> void:
 			var up_vector := (Vector3.UP - average_normal * average_normal.dot(Vector3.UP)).normalized()
 			var right_vector := up_vector.cross(average_normal)
 			var direction := up_vector * -input_dir.y + right_vector * input_dir.x
-			if direction.length_squared() > 0.0 and wall_probe_hits > 0:
+			if direction.length_squared() > 0.0:
 				p.velocity = direction.normalized() * p.speed
 			else:
 				p.velocity.x = move_toward(p.velocity.x, 0, p.speed * dt)
@@ -144,12 +146,8 @@ func update_wall_arms(dt: float) -> void:
 	var space := p.get_world_3d().direct_space_state
 	var cornering_mode: CorneringType
 
-	wall_probe_hits = 0
-
 	for mount in p.arm_mounts:
 		var hit = mount.update_wall_climb(p.velocity)
-		if hit != null:
-			wall_probe_hits += 1
 
 		if mount.arm.is_stepping:
 			mount.arm.advance_step(dt)

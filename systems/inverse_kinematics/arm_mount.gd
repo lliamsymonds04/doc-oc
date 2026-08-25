@@ -26,8 +26,6 @@ var step_target: Variant
 var wall_surface_normal: Vector3 = Vector3.ZERO
 var _sway_time: float = 0.0
 
-# Optimization 2: foot target is pure world-space Vector3, no Node clone.
-# Optimization 3: cache world pos once per frame to avoid repeated global_position fetches.
 var target_world: Vector3
 var _cached_target_world: Vector3
 
@@ -39,7 +37,6 @@ func init() -> BasicArm:
 		push_error("vertical and horizontal mount must be set")
 		return null
 
-	# Seed foot at probe world position (no duplicate Node, no top_level).
 	target_world = ground_probe.global_position
 	_cached_target_world = target_world
 
@@ -110,10 +107,15 @@ func update_wall_climb(velocity: Vector3) -> Variant:
 	_cached_target_world = arm.target_world
 	target_world = _cached_target_world
 	if hit != null:
+		# keep wall_surface_normal in sync with what we actually grip
+		wall_surface_normal = hit.normal
 		var hit_pos: Vector3 = hit.position
 		var distance := (hit_pos - _cached_target_world).length()
 		if distance > raycast_config.max_target_displacement:
 			step_target = hit_pos
+	elif not arm.is_stepping:
+		# not touching anything and not mid-step: not a valid grip
+		wall_surface_normal = Vector3.ZERO
 	arm.target = to_local(_cached_target_world)
 	return hit
 
