@@ -2,24 +2,7 @@ extends PlayerState
 class_name WallClimbState
 
 var average_normal: Vector3 = Vector3.ZERO
-var wall_normal: Vector3 = Vector3.ZERO
-var mount_normal_change_debounces: Dictionary = {}
-
-enum CorneringType {
-	NONE,
-	INSIDE,
-	OUTSIDE,
-}
-
-const CORNERING_DURATIONS: Dictionary = {
-	CorneringType.INSIDE: 1.5,
-	CorneringType.OUTSIDE: 0.7,
-}
-
-var is_cornering: bool = false
-var cornering_timer: float = 0.0
-var cornering_target_normal: Vector3 = Vector3.ZERO
-var cornering_target_pos: Vector3 = Vector3.ZERO
+var arms: WallClimbArms
 
 
 func exit() -> void:
@@ -28,104 +11,30 @@ func exit() -> void:
 	p.wall_climb_debounce = p.wall_climb_debounce_time
 	for mount in p.arm_mounts:
 		mount.wall_surface_normal = Vector3.ZERO
-		mount_normal_change_debounces[mount] = 0
 
-	# reset cornering state
-	is_cornering = false
-	cornering_timer = 0.0
-	cornering_target_normal = Vector3.ZERO
-	cornering_target_pos = Vector3.ZERO
+	arms.reset()
 
 func _init(p: PlayerController) -> void:
 	super._init(p)
-	mount_normal_change_debounces = {}
-	for mount in p.arm_mounts:
-		mount_normal_change_debounces[mount] = 0
+	arms = WallClimbArms.new(p)
 
 func physics_update(dt: float) -> void:
 	var p := player
 
-	var valid_normals := 0
-	average_normal = Vector3.ZERO
-	for mount in p.arm_mounts:
-		if mount_normal_change_debounces[mount] > 0:
-			mount_normal_change_debounces[mount] -= dt
+	arms.tick(dt)
 
-		if mount.wall_surface_normal != Vector3.ZERO:
-			average_normal += mount.wall_surface_normal
-			valid_normals += 1
-
-	if valid_normals > 0:
-		average_normal = average_normal.normalized()
-
-		if is_cornering:
-			cornering_timer -= dt
-			if cornering_timer <= 0:
-				is_cornering = false
-
-			var remaining := maxf(cornering_timer, dt)
-			var weight := dt / remaining
-
-			# lerp the y rotation to the cornering target
-			var goal_yaw := atan2(-cornering_target_normal.x, -cornering_target_normal.z)
-			p.rotation.y = lerp_angle(p.rotation.y, goal_yaw, weight)
-
-			# move the player towards the cornering target
-			var direction := cornering_target_pos - p.position
-			if direction.length_squared() > 0.0:
-				p.velocity = direction / remaining
-			else:
-				p.velocity = Vector3.ZERO
-
-			wall_normal = p.basis.z
-
+	if _update_average_normal():
+		if arms.is_cornering:
+			arms.update_cornering(dt)
 		else:
-			var space := p.get_world_3d().direct_space_state
-			var query := PhysicsRayQueryParameters3D.create(p.position, p.position + -p.basis.z * p.wall_offset * p.wall_raycast_dist, ~2)
-			var result := space.intersect_ray(query)
-
-			# core rule: always face the wall directly in front (lerped), reject glancing hits
-			var goal_direction := -p.basis.z
-			if not result.is_empty():
-				var surface_normal := result["normal"] as Vector3
-				# only trust normals pointing back at us; glancing side hits would whip the player
-				if surface_normal.dot(p.basis.z) > 0.5:
-					goal_direction = -surface_normal
-
-			wall_normal = -goal_direction
-
-			# B: movement basis from average_normal (stable at corner steps, follows slopes)
-			var up_vector := (Vector3.UP - average_normal * average_normal.dot(Vector3.UP)).normalized()
-			var right_vector := up_vector.cross(average_normal)
-			var direction := up_vector * -input_dir.y + right_vector * input_dir.x
-			if direction.length_squared() > 0.0:
-				p.velocity = direction.normalized() * p.speed
-			else:
-				p.velocity.x = move_toward(p.velocity.x, 0, p.speed * dt)
-				p.velocity.z = move_toward(p.velocity.z, 0, p.speed * dt)
-				p.velocity.y = move_toward(p.velocity.y, 0, p.speed * dt)
-
-			# wall offset still corrects toward gripped wall (after movement so it isn't overwritten)
-			if not result.is_empty():
-				var surface_normal := result["normal"] as Vector3
-				if surface_normal.dot(average_normal) >= cos(deg_to_rad(70)):
-					var hit_pos: Vector3 = result["position"] as Vector3
-					var distance_from_wall: float = (hit_pos - p.position).length()
-					var distance_error := distance_from_wall - p.wall_offset
-					var target_normal_vel: Vector3 = -average_normal * distance_error * p.wall_offset_correction_rate
-					var normal_comp := average_normal * p.velocity.dot(average_normal)
-					p.velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * p.wall_offset_correction_rate)
-
-			var goal_yaw := atan2(-goal_direction.x, -goal_direction.z)
-			p.rotation.y = lerp_angle(p.rotation.y, goal_yaw, dt * p.turn_speed)
-
+			_apply_movement(dt)
 	else:
 		p.velocity = Vector3.ZERO
-		wall_normal = p.basis.z
+		arms.wall_normal = p.basis.z
 
-	update_wall_arms(dt)
+	arms.update_arms(dt, input_dir, average_normal)
 
-	# wall discmount logic
+	# wall dismount logic
 	if input_dir.y < 0:
 		var ledge_result = _detect_ledge(average_normal)
 		if ledge_result != null:
@@ -133,108 +42,56 @@ func physics_update(dt: float) -> void:
 	elif input_dir.y > 0:
 		_check_floor_from_wall()
 
-func update_wall_arms(dt: float) -> void:
+func _update_average_normal() -> bool:
+	average_normal = Vector3.ZERO
+	var valid_normals := 0
+	for mount in player.arm_mounts:
+		if mount.wall_surface_normal != Vector3.ZERO:
+			average_normal += mount.wall_surface_normal
+			valid_normals += 1
+	if valid_normals > 0:
+		average_normal = average_normal.normalized()
+	return valid_normals > 0
+
+func _apply_movement(dt: float) -> void:
 	var p := player
-
-	var best_mount: ArmMount = null
-	var furthest_distance := 0.0
-	var best_hit = null
-
-	var up_vector := (Vector3.UP - wall_normal * wall_normal.dot(Vector3.UP)).normalized()
-	var right_vector := up_vector.cross(wall_normal)
-
 	var space := p.get_world_3d().direct_space_state
-	var cornering_mode: CorneringType
+	var query := PhysicsRayQueryParameters3D.create(p.position, p.position + -p.basis.z * p.wall_offset * p.wall_raycast_dist, ~2)
+	var result := space.intersect_ray(query)
 
-	for mount in p.arm_mounts:
-		var hit = mount.update_wall_climb(p.velocity)
+	# core rule: always face the wall directly in front (lerped), reject glancing hits
+	var goal_direction := -p.basis.z
+	if not result.is_empty():
+		var surface_normal := result["normal"] as Vector3
+		# only trust normals pointing back at us; glancing side hits would whip the player
+		if surface_normal.dot(p.basis.z) > 0.5:
+			goal_direction = -surface_normal
 
-		if mount.arm.is_stepping:
-			mount.arm.advance_step(dt)
-			mount.target_world = mount.arm.target_world
-			continue
+	arms.wall_normal = -goal_direction
 
+	# B: movement basis from average_normal (stable at corner steps, follows slopes)
+	var b := WallClimbArms.wall_basis(average_normal)
+	var direction := b.y * -input_dir.y + b.x * input_dir.x
+	if direction.length_squared() > 0.0:
+		p.velocity = direction.normalized() * p.speed
+	else:
+		p.velocity.x = move_toward(p.velocity.x, 0, p.speed * dt)
+		p.velocity.z = move_toward(p.velocity.z, 0, p.speed * dt)
+		p.velocity.y = move_toward(p.velocity.y, 0, p.speed * dt)
 
-		var horizontal_grounded = mount.horizontal_mount.arm.is_grounded()
-		var diagonal_grounded = mount.vertical_mount.arm.is_grounded() and horizontal_grounded
-		var can_step = diagonal_grounded or mount.arm.is_fully_extended()
-		if can_step:
-			# cast sideways inside to turn the corner
-			var wall_probe_pos := mount.wall_probe.global_position
-			var side_dir := (right_vector * input_dir.x).normalized()
-			var is_on_strafe_side := (wall_probe_pos - p.global_position).dot(side_dir) > 0
-			var can_corner = mount_normal_change_debounces[mount] <= 0
+	# wall offset still corrects toward gripped wall (after movement so it isn't overwritten)
+	if not result.is_empty():
+		var surface_normal := result["normal"] as Vector3
+		if surface_normal.dot(average_normal) >= cos(deg_to_rad(70)):
+			var hit_pos: Vector3 = result["position"] as Vector3
+			var distance_from_wall: float = (hit_pos - p.position).length()
+			var distance_error := distance_from_wall - p.wall_offset
+			var target_normal_vel: Vector3 = -average_normal * distance_error * p.wall_offset_correction_rate
+			var normal_comp := average_normal * p.velocity.dot(average_normal)
+			p.velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * p.wall_offset_correction_rate)
 
-			if is_on_strafe_side and can_corner:
-				var ray_end: Vector3 = wall_probe_pos + side_dir * p.raycast_config.wall_inside_cornering_raycast_distance
-				var mount_pos := mount.global_position
-				var motion := ray_end - mount_pos
-				var side_result = mount.get_surface_hit(mount_pos, motion.normalized(), motion.length())
-
-				if side_result:
-					var side_hit_pos: Vector3 = side_result["position"]
-					var new_normal: Vector3 = side_result["normal"]
-					var current_normal: Vector3 = mount.wall_surface_normal
-
-					# check the normal is from a different surface angle
-					if new_normal.dot(current_normal) < 0.3:
-						mount.step_target = side_hit_pos
-						var current_pos = mount.target_world
-						var dist = (current_pos - mount.step_target).length()
-						if dist > furthest_distance and dist >= 0.5:
-							furthest_distance = dist
-							best_mount = mount
-							best_hit = side_result
-							cornering_mode = CorneringType.INSIDE
-
-							continue
-
-			if mount.step_target != null:
-				var current_pos = mount.target_world
-
-				var dist = (current_pos - mount.step_target).length()
-				if dist > furthest_distance and dist >= mount.raycast_config.max_target_displacement:
-					furthest_distance = dist
-					best_mount = mount
-					best_hit = hit
-			elif is_on_strafe_side and can_corner:
-				# outside wall cornering
-				var d := 1.0
-				var ray_origin := wall_probe_pos + side_dir * d
-				var motion := -side_dir * (d + 2.5) - average_normal * 3.0
-
-				# check if we we are casting the ray from is actually visible
-				var visible_query := PhysicsRayQueryParameters3D.create(mount.global_position, ray_origin, ~2)
-				var visible := space.intersect_ray(visible_query).is_empty()
-
-				var side_result = mount.get_surface_hit(ray_origin, motion.normalized(), motion.length())
-				if visible and side_result:
-					var hit_pos: Vector3 = side_result["position"]
-					var hit_normal: Vector3 = side_result["normal"]
-
-					if hit_normal.dot(side_dir) > 0.4 and wall_normal.dot(hit_normal) < 0.7:
-						mount.step_target = hit_pos
-						var current_pos = mount.target_world
-						var dist = (current_pos - mount.step_target).length()
-						if dist > furthest_distance and dist >= 0.5:
-							furthest_distance = dist
-							best_mount = mount
-							best_hit = side_result
-							cornering_mode = CorneringType.OUTSIDE
-
-	if best_mount != null:
-		if cornering_mode != CorneringType.NONE:
-			var debounce_time = CORNERING_DURATIONS[cornering_mode]
-			mount_normal_change_debounces[best_mount] = debounce_time
-			if not is_cornering:
-				is_cornering = true
-				cornering_timer = debounce_time
-				cornering_target_normal = -best_hit.normal
-				cornering_target_pos = best_mount.step_target + best_hit.normal * p.wall_offset
-				cornering_target_pos.y = p.position.y
-
-		best_mount.arm.start_step(best_mount.step_target, 0.0, best_hit.normal)
-		best_mount.wall_surface_normal = best_hit.normal
+	var goal_yaw := atan2(-goal_direction.x, -goal_direction.z)
+	p.rotation.y = lerp_angle(p.rotation.y, goal_yaw, dt * p.turn_speed)
 
 func _detect_ledge(wall_normal: Vector3) -> Variant:
 	var p := player
