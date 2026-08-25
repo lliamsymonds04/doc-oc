@@ -115,7 +115,9 @@ func try_mount_wall() -> void:
 			var hit = mount.get_wall_hit_pos(Vector3.ZERO)
 			wall_hits[mount] = hit
 
-			if hit != null:
+			# guard: only count walls we're actually facing (same 60deg cone as the climb rule),
+			# so we can never enter wall climb misaligned with the wall in front
+			if hit != null and (hit.normal as Vector3).dot(p.basis.z) > 0.5:
 				wall_detection_count += 1
 
 	if wall_detection_count > 1:
