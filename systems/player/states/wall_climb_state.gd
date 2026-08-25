@@ -2,6 +2,7 @@ extends PlayerState
 class_name WallClimbState
 
 var average_normal: Vector3 = Vector3.ZERO
+var wall_normal: Vector3 = Vector3.ZERO
 var mount_normal_change_debounces: Dictionary = {}
 
 const MOUNT_NORMAL_CHANGE_DEBOUNCE_TIME: float = 1.6
@@ -74,10 +75,26 @@ func physics_update(dt: float) -> void:
 			else:
 				p.velocity = Vector3.ZERO
 
+			wall_normal = p.basis.z
+
 		else:
+			var space := p.get_world_3d().direct_space_state
+			var query := PhysicsRayQueryParameters3D.create(p.position, p.position + -p.basis.z * p.wall_offset * p.wall_raycast_dist, ~2)
+			var result := space.intersect_ray(query)
+
+			# core rule: always face the wall directly in front (lerped), reject glancing hits
+			var goal_direction := -p.basis.z
+			if not result.is_empty():
+				var surface_normal := result["normal"] as Vector3
+				# only trust normals pointing back at us; glancing side hits would whip the player
+				if surface_normal.dot(p.basis.z) > 0.5:
+					goal_direction = -surface_normal
+
+			wall_normal = -goal_direction
+
+			# B: movement basis from average_normal (stable at corner steps, follows slopes)
 			var up_vector := (Vector3.UP - average_normal * average_normal.dot(Vector3.UP)).normalized()
 			var right_vector := up_vector.cross(average_normal)
-
 			var direction := up_vector * -input_dir.y + right_vector * input_dir.x
 			if direction.length_squared() > 0.0 and wall_probe_hits > 0:
 				p.velocity = direction.normalized() * p.speed
@@ -86,26 +103,13 @@ func physics_update(dt: float) -> void:
 				p.velocity.z = move_toward(p.velocity.z, 0, p.speed * dt)
 				p.velocity.y = move_toward(p.velocity.y, 0, p.speed * dt)
 
-			var goal_direction = -average_normal
-
-			# wall offset logic
-			var space := p.get_world_3d().direct_space_state
-			var query := PhysicsRayQueryParameters3D.create(p.position, p.position + -average_normal * p.wall_offset * p.wall_raycast_dist, ~2)
-
-			var result := space.intersect_ray(query)
+			# wall offset still corrects toward gripped wall (after movement so it isn't overwritten)
 			if not result.is_empty():
-				# check the surface normal is facing the player
 				var surface_normal := result["normal"] as Vector3
-				var angle := rad_to_deg(acos(surface_normal.dot(average_normal)))
-
-				if angle >= 15.0:
-					goal_direction = -surface_normal
-
 				if surface_normal.dot(average_normal) >= cos(deg_to_rad(70)):
-					var hit_pos := result["position"] as Vector3
-					var distance_from_wall := (hit_pos - p.position).length()
+					var hit_pos: Vector3 = result["position"] as Vector3
+					var distance_from_wall: float = (hit_pos - p.position).length()
 					var distance_error := distance_from_wall - p.wall_offset
-
 					var target_normal_vel: Vector3 = -average_normal * distance_error * p.wall_offset_correction_rate
 					var normal_comp := average_normal * p.velocity.dot(average_normal)
 					p.velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * p.wall_offset_correction_rate)
@@ -115,6 +119,7 @@ func physics_update(dt: float) -> void:
 
 	else:
 		p.velocity = Vector3.ZERO
+		wall_normal = p.basis.z
 
 	update_wall_arms(dt)
 
@@ -133,8 +138,8 @@ func update_wall_arms(dt: float) -> void:
 	var furthest_distance := 0.0
 	var best_hit = null
 
-	var up_vector := (Vector3.UP - average_normal * average_normal.dot(Vector3.UP)).normalized()
-	var right_vector := up_vector.cross(average_normal)
+	var up_vector := (Vector3.UP - wall_normal * wall_normal.dot(Vector3.UP)).normalized()
+	var right_vector := up_vector.cross(wall_normal)
 
 	var space := p.get_world_3d().direct_space_state
 	var cornering_mode: CorneringType
@@ -167,10 +172,6 @@ func update_wall_arms(dt: float) -> void:
 				var mount_pos := mount.global_position
 				var motion := ray_end - mount_pos
 				var side_result = mount.get_surface_hit(mount_pos, motion.normalized(), motion.length())
-				# DEBUG inside cornering - 1 frame (yellow miss / green hit), 0.5s lingering on valid corner
-				RaycastUtil.debug_ray(mount_pos, ray_end, Color.GREEN if side_result else Color.YELLOW, 0.0, 0.012)
-				if side_result:
-					RaycastUtil.debug_ray(side_result["position"], side_result["position"] + side_result["normal"] * 0.35, Color.GREEN, 0.0, 0.015)
 
 				if side_result:
 					var side_hit_pos: Vector3 = side_result["position"]
@@ -209,22 +210,11 @@ func update_wall_arms(dt: float) -> void:
 				var visible := space.intersect_ray(visible_query).is_empty()
 
 				var side_result = mount.get_surface_hit(ray_origin, motion.normalized(), motion.length())
-				# DEBUG outside wall cornering - visibility + probe rays
-				RaycastUtil.debug_ray(mount.global_position, ray_origin, Color.CYAN if visible else Color.RED, 0.0, 0.01)
-				if side_result:
-					RaycastUtil.debug_ray(ray_origin, side_result["position"], Color.GREEN, 0.0, 0.018)
-					RaycastUtil.debug_ray(side_result["position"], side_result["position"] + side_result["normal"] * 0.4, Color.GREEN, 0.0, 0.018)
-				else:
-					RaycastUtil.debug_ray(ray_origin, ray_origin + motion, Color.YELLOW, 5.0, 0.008)
-				# lingering 0.5s when outside corner candidate passes normal check
-				if visible and side_result and side_result["normal"].dot(side_dir) > 0.4:
-					RaycastUtil.debug_ray(ray_origin, side_result["position"], Color.GREEN, 0.5, 0.025)
-					RaycastUtil.debug_ray(side_result["position"], side_result["position"] + side_result["normal"] * 0.5, Color.GREEN, 0.5, 0.025)
 				if visible and side_result:
 					var hit_pos: Vector3 = side_result["position"]
 					var hit_normal: Vector3 = side_result["normal"]
 
-					if hit_normal.dot(side_dir) > 0.4:
+					if hit_normal.dot(side_dir) > 0.4 and wall_normal.dot(hit_normal) < 0.7:
 						mount.step_target = hit_pos
 						var current_pos = mount.target_world
 						var dist = (current_pos - mount.step_target).length()
