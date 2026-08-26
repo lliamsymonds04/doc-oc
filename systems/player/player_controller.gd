@@ -29,7 +29,7 @@ class_name PlayerController
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var arms: Array[BasicArm] = []
 
-enum StateID { GROUNDED, WALL_CLIMB }
+enum StateID { GROUNDED, WALL_CLIMB, AIR }
 var wall_climb_debounce: float = 0.0
 
 var _states: Dictionary = {}
@@ -46,6 +46,7 @@ func _ready() -> void:
 
 	_states[StateID.GROUNDED] = GroundedState.new(self)
 	_states[StateID.WALL_CLIMB] = WallClimbState.new(self)
+	_states[StateID.AIR] = AirState.new(self)
 	_current = _states[StateID.GROUNDED]
 
 ## All mounts (legs first) in the pre-refactor scene order (ArmRight, ArmLeft, ArmTopRight, ArmTopLeft).

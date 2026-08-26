@@ -43,7 +43,7 @@ horizontal_mount = NodePath("../ArmLeft")
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
 [node name="GroundProbe" type="Marker3D" parent="Hitbox/ArmRight" unique_id=550686394]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0896435, 0.6019857)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0204345, 0.6019857)
 
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmRight" unique_id=1263360260]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.253, 0.2, 0.577)
@@ -63,7 +63,7 @@ horizontal_mount = NodePath("../ArmRight")
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
 [node name="GroundProbe" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=1044979529]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.09, 0.602)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.0284808, 0.602)
 
 [node name="Pole" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=515761756]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.253, 0.2, 0.577)
@@ -87,7 +87,7 @@ sway_phase = 3.14159265358979
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
 [node name="GroundProbe" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=1012489981]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.5261469, -1.5244104)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.4184881, -1.5244104)
 
 [node name="IdleTarget" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=1108706562]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, 1.5599794, -2.9131262)
@@ -113,7 +113,7 @@ idle_sway_y = 0.1
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
 [node name="GroundProbe" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=630538761]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.5220013, -1.513683)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.4220326, -1.513683)
 
 [node name="IdleTarget" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=1476587123]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, 1.4203327, -3.1366746)

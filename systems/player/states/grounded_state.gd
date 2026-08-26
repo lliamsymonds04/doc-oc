@@ -32,14 +32,17 @@ func physics_update(dt: float) -> void:
 		p.velocity.x = move_toward(p.velocity.x, 0, p.speed * dt)
 		p.velocity.z = move_toward(p.velocity.z, 0, p.speed * dt)
 
-	_update_body_y_offset(dt)
+	_update_legs(dt)
 	_update_arms(dt)
+
+	_update_body_y_offset(dt)
+
 	try_mount_wall()
 
 	if p.wall_climb_debounce > 0.0:
 		p.wall_climb_debounce -= dt
 
-func _update_arms(dt: float) -> void:
+func _update_legs(dt: float) -> void:
 	var p := player
 
 	var best_arm: BasicArm = null
@@ -47,12 +50,11 @@ func _update_arms(dt: float) -> void:
 	var best_arm_hit_pos := Vector3.ZERO
 
 	var probe_hits := 0
-	for mount in p.all_mounts():
+	for mount in p.leg_mounts:
 		var probe_pos := mount.ground_probe.global_position
 		var hit = mount.get_surface_hit(probe_pos, Vector3.DOWN, p.raycast_config.step_raycast_distance)
 		if hit:
 			probe_hits += 1
-
 
 		mount.update_step(p.velocity, dt)
 		var can_step: bool = mount.step_target != null and ((mount.arm.is_grounded()
@@ -68,7 +70,13 @@ func _update_arms(dt: float) -> void:
 		best_arm.start_step(best_arm_hit_pos)
 
 	if probe_hits == 0:
-		print("no probes")
+		p.set_state(p.StateID.AIR)
+
+func _update_arms(dt: float) -> void:
+	var p := player
+	for mount in p.arm_mounts:
+		mount.update_step(p.velocity, dt)
+
 
 func _calculate_average_target_y() -> Variant:
 	var p := player

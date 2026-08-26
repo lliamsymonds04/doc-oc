@@ -56,7 +56,10 @@ static func shape_cast(space: PhysicsDirectSpaceState3D, shape: Shape3D, origin:
 	var sweep := space.cast_motion(params)
 	var safe: float = sweep[0]  # [safe_fraction, unsafe_fraction]
 	if safe >= 1.0:
-		return null
+		var overlap_rest := space.get_rest_info(params)
+		if overlap_rest.is_empty():
+			return null
+		return {"position": overlap_rest["point"], "normal": overlap_rest["normal"]}
 
 	params.transform = Transform3D(Basis.IDENTITY, origin + motion * safe)
 	var rest := space.get_rest_info(params)
