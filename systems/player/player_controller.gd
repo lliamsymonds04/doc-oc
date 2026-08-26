@@ -6,6 +6,7 @@ class_name PlayerController
 @export var jump_velocity = 4.5
 @export var turn_speed = 10.0
 @export var arm_mounts: Array[ArmMount] = []
+@export var leg_mounts: Array[ArmMount] = []
 @export var raycast_config: ArmRaycastConfig
 
 @export_category("Hover")
@@ -37,7 +38,8 @@ var _current: PlayerState
 var body_y_offset = (min_y_offset + max_y_offset)/2.0
 
 func _ready() -> void:
-	for mount in arm_mounts:
+	for mount in arm_mounts + leg_mounts:
+		mount.is_leg = leg_mounts.has(mount)
 		mount.raycast_config = raycast_config
 		var arm = mount.init()
 		arms.append(arm)
@@ -45,6 +47,10 @@ func _ready() -> void:
 	_states[StateID.GROUNDED] = GroundedState.new(self)
 	_states[StateID.WALL_CLIMB] = WallClimbState.new(self)
 	_current = _states[StateID.GROUNDED]
+
+## All mounts (legs first) in the pre-refactor scene order (ArmRight, ArmLeft, ArmTopRight, ArmTopLeft).
+func all_mounts() -> Array[ArmMount]:
+	return leg_mounts + arm_mounts
 
 func set_state(id: StateID) -> void:
 	if _current == _states[id]:

@@ -9,7 +9,7 @@ func exit() -> void:
 	var p := player
 
 	p.wall_climb_debounce = p.wall_climb_debounce_time
-	for mount in p.arm_mounts:
+	for mount in p.all_mounts():
 		mount.wall_surface_normal = Vector3.ZERO
 
 	arms.reset()
@@ -45,7 +45,7 @@ func physics_update(dt: float) -> void:
 func _update_average_normal() -> bool:
 	average_normal = Vector3.ZERO
 	var valid_normals := 0
-	for mount in player.arm_mounts:
+	for mount in player.all_mounts():
 		if mount.wall_surface_normal != Vector3.ZERO:
 			average_normal += mount.wall_surface_normal
 			valid_normals += 1
@@ -123,10 +123,7 @@ func _dismount_to_ledge(ledge_result: Dictionary) -> void:
 	var right := p.global_transform.basis.x
 	var step_count := 0
 
-	for mount in p.arm_mounts:
-		if not mount.is_leg:
-			continue
-
+	for mount in p.leg_mounts:
 		var foot_pos := ledge_pos + right * mount.ground_probe.position.x
 		var surface = mount.get_surface_hit(foot_pos, Vector3.DOWN, p.raycast_config.step_raycast_distance)
 		if surface != null:
@@ -143,10 +140,7 @@ func _check_floor_from_wall() -> void:
 	var p := player
 
 	var mount_hits = {}
-	for mount in p.arm_mounts:
-		if not mount.is_leg:
-			continue
-
+	for mount in p.leg_mounts:
 		var anchor_pos := mount.ground_probe.global_position
 
 		var hit = mount.get_surface_hit(anchor_pos, Vector3.DOWN, p.raycast_config.step_raycast_distance)

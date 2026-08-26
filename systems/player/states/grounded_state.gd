@@ -3,12 +3,12 @@ extends PlayerState
 
 func enter() -> void:
 	var p := player
-	for mount in p.arm_mounts:
+	for mount in p.all_mounts():
 		mount.set_apply_floor(true)
 
-		if not mount.is_leg:
-			if mount.idle_target:
-				mount.arm.start_step(mount.to_global(mount.compute_idle_target()))
+	for mount in p.arm_mounts:
+		if mount.idle_target:
+			mount.arm.start_step(mount.to_global(mount.compute_idle_target()))
 
 func physics_update(dt: float) -> void:
 	var p := player
@@ -46,7 +46,14 @@ func _update_arms(dt: float) -> void:
 	var furthest_distance := 0.0
 	var best_arm_hit_pos := Vector3.ZERO
 
-	for mount in p.arm_mounts:
+	var probe_hits := 0
+	for mount in p.all_mounts():
+		var probe_pos := mount.ground_probe.global_position
+		var hit = mount.get_surface_hit(probe_pos, Vector3.DOWN, p.raycast_config.step_raycast_distance)
+		if hit:
+			probe_hits += 1
+
+
 		mount.update_step(p.velocity, dt)
 		var can_step: bool = mount.step_target != null and ((mount.arm.is_grounded()
 			and mount.horizontal_mount.arm.is_grounded()) or mount.arm.is_fully_extended())
@@ -60,6 +67,8 @@ func _update_arms(dt: float) -> void:
 	if best_arm != null:
 		best_arm.start_step(best_arm_hit_pos)
 
+	if probe_hits == 0:
+		print("no probes")
 
 func _calculate_average_target_y() -> Variant:
 	var p := player
@@ -67,7 +76,7 @@ func _calculate_average_target_y() -> Variant:
 	var total_y = 0
 	var grounded_legs = 0
 
-	for mount in p.arm_mounts:
+	for mount in p.leg_mounts:
 		var arm := mount.arm
 		if not arm.is_grounded():
 			continue
@@ -111,7 +120,7 @@ func try_mount_wall() -> void:
 
 	for mount in p.arm_mounts:
 		# wall raycasts
-		if not mount.is_leg and mount.wall_probe != null and mount.arm.is_stepping == false:
+		if mount.wall_probe != null and mount.arm.is_stepping == false:
 			var hit = mount.get_wall_hit_pos(Vector3.ZERO)
 			wall_hits[mount] = hit
 
@@ -123,7 +132,7 @@ func try_mount_wall() -> void:
 	if wall_detection_count > 1:
 		p.set_state(p.StateID.WALL_CLIMB)
 		for mount in p.arm_mounts:
-			if mount.is_leg or mount.arm.is_stepping:
+			if mount.arm.is_stepping:
 				continue
 
 			mount.set_apply_floor(false)

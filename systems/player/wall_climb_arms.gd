@@ -25,7 +25,7 @@ var debounces: Dictionary = {}
 
 func _init(p: PlayerController) -> void:
 	player = p
-	for mount in player.arm_mounts:
+	for mount in player.all_mounts():
 		debounces[mount] = 0
 
 func reset() -> void:
@@ -33,7 +33,7 @@ func reset() -> void:
 	cornering_timer = 0.0
 	cornering_target_normal = Vector3.ZERO
 	cornering_target_pos = Vector3.ZERO
-	for mount in player.arm_mounts:
+	for mount in player.all_mounts():
 		debounces[mount] = 0
 
 # cornering re-trigger countdown
@@ -78,7 +78,7 @@ func update_arms(dt: float, input_dir: Vector2, average_normal: Vector3) -> void
 
 	var right := wall_basis(wall_normal).x
 
-	for mount in p.arm_mounts:
+	for mount in p.all_mounts():
 		var hit = mount.update_wall_climb(p.velocity)
 
 		if mount.arm.is_stepping:
