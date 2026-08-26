@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://b3un13prji6wu" path="res://assets/textures/dark_grid.png" id="1_h2yge"]
 [ext_resource type="PackedScene" uid="uid://cidasq88868wo" path="res://systems/player/player.tscn" id="1_ig7tw"]
 [ext_resource type="Texture2D" uid="uid://80w2bs0a2buc" path="res://assets/textures/purple_grid.png" id="3_h2yge"]
-[ext_resource type="Script" uid="uid://h2wujriypiq43" path="res://systems/util/debug_ray_drawer.gd" id="9_dbg"]
+[ext_resource type="Script" uid="uid://c34dnohk30mk" path="res://systems/util/debug_ray_drawer.gd" id="9_dbg"]
 
 [sub_resource type="StandardMaterial3D" id="FloorMat"]
 albedo_texture = ExtResource("1_h2yge")
@@ -136,7 +136,7 @@ material = SubResource("BoxMat_purple")
 
 [node name="CharacterBody3D" parent="." unique_id=1831706131 instance=ExtResource("1_ig7tw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.682001, 0.08204651, 21.104301)
-jump_velocity = 7.0
+jump_velocity = 30.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=415060811]
 environment = SubResource("Environment_m2c1y")

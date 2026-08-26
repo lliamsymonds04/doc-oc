@@ -27,6 +27,7 @@ albedo_color = Color(0.47058824, 1, 1, 1)
 [node name="Player" type="CharacterBody3D" unique_id=1831706131 node_paths=PackedStringArray("arm_mounts", "leg_mounts")]
 collision_layer = 2
 script = ExtResource("1_ktl23")
+jump_velocity = 1000.0
 arm_mounts = [NodePath("Hitbox/ArmTopRight"), NodePath("Hitbox/ArmTopLeft")]
 leg_mounts = [NodePath("Hitbox/ArmRight"), NodePath("Hitbox/ArmLeft")]
 raycast_config = SubResource("Resource_dwurs")

@@ -49,7 +49,6 @@ func _ready() -> void:
 	_states[StateID.AIR] = AirState.new(self)
 	_current = _states[StateID.GROUNDED]
 
-## All mounts (legs first) in the pre-refactor scene order (ArmRight, ArmLeft, ArmTopRight, ArmTopLeft).
 func all_mounts() -> Array[ArmMount]:
 	return leg_mounts + arm_mounts
 

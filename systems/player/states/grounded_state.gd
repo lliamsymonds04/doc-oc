@@ -8,7 +8,13 @@ func enter() -> void:
 
 	for mount in p.arm_mounts:
 		if mount.idle_target:
-			mount.arm.start_step(mount.to_global(mount.compute_idle_target()))
+			var idle_pos := mount.compute_idle_target()
+			var end_effector_pos := mount.arm.solver.get_end_effector()
+			var dist := (idle_pos - end_effector_pos).length()
+			if dist > 0.5:
+				mount.arm.start_step(mount.to_global(idle_pos))
+			else:
+				mount.sync_from_arm()
 
 func physics_update(dt: float) -> void:
 	var p := player
@@ -41,6 +47,10 @@ func physics_update(dt: float) -> void:
 
 	if p.wall_climb_debounce > 0.0:
 		p.wall_climb_debounce -= dt
+
+	if Input.is_action_just_pressed("jump"):
+		p.velocity.y = p.jump_velocity
+		p.set_state(p.StateID.AIR)
 
 func _update_legs(dt: float) -> void:
 	var p := player

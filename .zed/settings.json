@@ -2,6 +2,7 @@
   "file_scan_exclusions": [
     "*.gd.uid",
     "*.gdshader.uid",
-    "*.import"
+    "*.import",
+    "*.tscn"
   ]
 }
