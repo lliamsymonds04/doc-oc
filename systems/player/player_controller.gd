@@ -26,9 +26,9 @@ class_name PlayerController
 @export var mount_velocity_impulse: float = 5.0
 @export var wall_offset_correction_rate: float = 10.0
 
-@onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var arms: Array[BasicArm] = []
 @onready var Bean: Node3D = $Bean
+@onready var camera_controller: CameraController = $CameraController
 
 enum StateID { GROUNDED, WALL_CLIMB, AIR }
 var wall_climb_debounce: float = 0.0

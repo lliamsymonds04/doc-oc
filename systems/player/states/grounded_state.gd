@@ -25,8 +25,8 @@ func enter() -> void:
 func physics_update(dt: float) -> void:
 	var p := player
 
-	p.rotation.y = p.spring_arm.global_rotation.y
-	p.spring_arm.rotation.y = 0.0
+	p.rotation.y = p.camera_controller.global_rotation.y
+	p.camera_controller.rotation.y = 0
 
 	if not p.is_on_floor():
 		p.velocity += p.get_gravity() * dt
@@ -123,7 +123,7 @@ func _update_body_y_offset(dt:float) -> void:
 	var p := player
 
 	#calculate camera pitch
-	var camera_pitch = p.spring_arm.rotation_degrees.x
+	var camera_pitch = p.camera_controller.rotation_degrees.x
 	var effective_pitch = camera_pitch - p.neutral_pitch
 	if abs(effective_pitch) > p.min_height_change_look_threshold:
 		var goal_y_offset = p.max_y_offset if effective_pitch > 0 else p.min_y_offset

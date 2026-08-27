@@ -1,4 +1,5 @@
 extends SpringArm3D
+class_name CameraController
 
 @export var sensitivity: float = 0.02
 

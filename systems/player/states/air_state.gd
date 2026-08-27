@@ -23,8 +23,14 @@ func physics_update(dt: float) -> void:
 
 	p.velocity += p.get_gravity() * dt
 
-	p.rotation.y = p.spring_arm.global_rotation.y
-	p.spring_arm.rotation.y = 0.0
+	var velocityRotation := p.velocity.y/40
+
+	p.rotation.y = p.camera_controller.global_rotation.y
+	p.camera_controller.rotation.y = 0
+
+	var current_rot_x := p.camera_controller.rotation.x
+	var new_rot_x = lerp(current_rot_x, velocityRotation, dt * 60.0)
+	p.rotation.x = new_rot_x
 
 	var mount_hit_positions: Dictionary
 
@@ -39,6 +45,7 @@ func physics_update(dt: float) -> void:
 	var hand_velocity_offset = calculate_hand_velocity_offset(p.velocity)
 	for mount in p.all_mounts():
 		mount.arm.target = mount.compute_idle_target() + hand_velocity_offset
+
 
 	if probe_hits >= 1 and p.velocity.y <= 0.0:
 		for mount in p.leg_mounts:
