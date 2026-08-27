@@ -2,6 +2,9 @@ class_name GroundedState
 extends PlayerState
 
 const GROUNDED_DEBOUNCE_TIME := 1.2
+const WALK_TILT_X := deg_to_rad(10)
+const WALK_TILT_Z := deg_to_rad(10)
+const TILT_SPEED := 1.0
 
 var grounded_debounce := 0.0
 
@@ -44,6 +47,8 @@ func physics_update(dt: float) -> void:
 		p.velocity.x = move_toward(p.velocity.x, 0, p.speed * dt)
 		p.velocity.z = move_toward(p.velocity.z, 0, p.speed * dt)
 
+	_update_tilt(dt)
+
 	_update_legs(dt)
 	_update_arms(dt)
 
@@ -63,6 +68,26 @@ func physics_update(dt: float) -> void:
 	if Input.is_action_just_pressed("jump"):
 		p.velocity.y = p.jump_velocity
 		p.set_state(p.StateID.AIR)
+
+
+func _update_tilt(dt: float) -> void:
+	var p := player
+
+	var dir := input_dir
+	if dir.length_squared() > 0.0:
+		dir = dir.normalized()
+
+	var current_tilt_x := p.tilt_pivot.rotation.x
+	var current_tilt_z := p.tilt_pivot.rotation.z
+
+	var target_tilt_x := dir.y * WALK_TILT_X
+	var target_tilt_z := -dir.x * WALK_TILT_Z
+
+	var tilted_x = lerp(current_tilt_x, target_tilt_x, dt * TILT_SPEED)
+	var tilted_z = lerp(current_tilt_z, target_tilt_z, dt * TILT_SPEED)
+
+	p.tilt_pivot.rotation.x = tilted_x
+	p.tilt_pivot.rotation.z = tilted_z
 
 func _update_legs(dt: float) -> void:
 	var p := player
