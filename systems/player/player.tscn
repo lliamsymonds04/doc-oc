@@ -12,6 +12,11 @@ metadata/_custom_type_script = "uid://ci0k2wv8n3bhd"
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m2c1y"]
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ktl23"]
+albedo_color = Color(0.47058824, 1, 1, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_m2c1y"]
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pftr6"]
 albedo_color = Color(1, 0, 1, 1)
 
@@ -19,124 +24,17 @@ albedo_color = Color(1, 0, 1, 1)
 radius = 0.1
 height = 0.2
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ktl23"]
-albedo_color = Color(0.47058824, 1, 1, 1)
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_m2c1y"]
-
 [node name="Player" type="CharacterBody3D" unique_id=1831706131 node_paths=PackedStringArray("arm_mounts", "leg_mounts")]
 collision_layer = 2
 script = ExtResource("1_ktl23")
 jump_velocity = 1000.0
-arm_mounts = [NodePath("Hitbox/ArmTopRight"), NodePath("Hitbox/ArmTopLeft")]
-leg_mounts = [NodePath("Hitbox/ArmRight"), NodePath("Hitbox/ArmLeft")]
+arm_mounts = [NodePath("TiltPivot/ArmTopRight"), NodePath("TiltPivot/ArmTopLeft")]
+leg_mounts = [NodePath("TiltPivot/ArmRight"), NodePath("TiltPivot/ArmLeft")]
 raycast_config = SubResource("Resource_dwurs")
 
 [node name="Hitbox" type="CollisionShape3D" parent="." unique_id=1899741163]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.99949986, 0)
 shape = SubResource("CapsuleShape3D_m2c1y")
-
-[node name="ArmRight" type="Node3D" parent="Hitbox" unique_id=714455465 node_paths=PackedStringArray("vertical_mount", "horizontal_mount")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 0.1, 0.377)
-script = ExtResource("2_fqfg4")
-vertical_mount = NodePath("../ArmTopRight")
-horizontal_mount = NodePath("../ArmLeft")
-metadata/_custom_type_script = "uid://bba0h6wxddaoe"
-
-[node name="GroundProbe" type="Marker3D" parent="Hitbox/ArmRight" unique_id=550686394]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0204345, 0.6019857)
-
-[node name="IdleTarget" type="Marker3D" parent="Hitbox/ArmRight" unique_id=1422011768]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0204345, -1.6819203)
-
-[node name="Pole" type="Marker3D" parent="Hitbox/ArmRight" unique_id=1263360260]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.253, 0.2, 0.577)
-
-[node name="WallProbe" type="Node3D" parent="Hitbox/ArmRight" unique_id=1227139099]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.254, -0.5, 0)
-
-[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmRight/WallProbe" unique_id=1864961534]
-material_override = SubResource("StandardMaterial3D_pftr6")
-mesh = SubResource("SphereMesh_m2c1y")
-
-[node name="ArmLeft" type="Node3D" parent="Hitbox" unique_id=241021393 node_paths=PackedStringArray("vertical_mount", "horizontal_mount")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 0.1, 0.377)
-script = ExtResource("2_fqfg4")
-vertical_mount = NodePath("../ArmTopLeft")
-horizontal_mount = NodePath("../ArmRight")
-metadata/_custom_type_script = "uid://bba0h6wxddaoe"
-
-[node name="GroundProbe" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=1044979529]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.0284808, 0.602)
-
-[node name="IdleTarget" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=1583181527]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.028, -1.682)
-
-[node name="Pole" type="Marker3D" parent="Hitbox/ArmLeft" unique_id=515761756]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.253, 0.2, 0.577)
-
-[node name="WallProbe" type="Node3D" parent="Hitbox/ArmLeft" unique_id=964169628]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.283, -0.5, 0)
-
-[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmLeft/WallProbe" unique_id=1384942331]
-material_override = SubResource("StandardMaterial3D_pftr6")
-mesh = SubResource("SphereMesh_m2c1y")
-
-[node name="ArmTopRight" type="Node3D" parent="Hitbox" unique_id=2058179573 node_paths=PackedStringArray("vertical_mount", "horizontal_mount")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 0.506, 0.377)
-script = ExtResource("2_fqfg4")
-vertical_mount = NodePath("../ArmRight")
-horizontal_mount = NodePath("../ArmTopLeft")
-idle_sway_x = 0.2
-idle_sway_y = 0.1
-sway_phase = 3.14159265358979
-metadata/_custom_type_script = "uid://bba0h6wxddaoe"
-
-[node name="GroundProbe" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=1012489981]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.4184881, -1.5244104)
-
-[node name="IdleTarget" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=1108706562]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, 1.5599794, -2.9131262)
-
-[node name="Pole" type="Marker3D" parent="Hitbox/ArmTopRight" unique_id=183985606]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.336801, 2.787157, -0.93121254)
-
-[node name="WallProbe" type="Node3D" parent="Hitbox/ArmTopRight" unique_id=696696143]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 1.553, 0)
-
-[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmTopRight/WallProbe" unique_id=1285604622]
-material_override = SubResource("StandardMaterial3D_pftr6")
-mesh = SubResource("SphereMesh_m2c1y")
-
-[node name="ArmTopLeft" type="Node3D" parent="Hitbox" unique_id=1899558695 node_paths=PackedStringArray("vertical_mount", "horizontal_mount")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 0.5156874, 0.377)
-script = ExtResource("2_fqfg4")
-vertical_mount = NodePath("../ArmLeft")
-horizontal_mount = NodePath("../ArmTopRight")
-idle_sway_x = 0.2
-idle_sway_y = 0.1
-metadata/_custom_type_script = "uid://bba0h6wxddaoe"
-
-[node name="GroundProbe" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=630538761]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.4220326, -1.513683)
-
-[node name="IdleTarget" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=1476587123]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, 1.4203327, -3.1366746)
-
-[node name="Pole" type="Marker3D" parent="Hitbox/ArmTopLeft" unique_id=144475676]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5615735, 2.7539291, -1.1966037)
-
-[node name="WallProbe" type="Node3D" parent="Hitbox/ArmTopLeft" unique_id=2115885880]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.553, 0)
-
-[node name="DebugMesh" type="MeshInstance3D" parent="Hitbox/ArmTopLeft/WallProbe" unique_id=1488078873]
-material_override = SubResource("StandardMaterial3D_pftr6")
-mesh = SubResource("SphereMesh_m2c1y")
-
-[node name="Bean" type="MeshInstance3D" parent="." unique_id=1008928997]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0040846, 0)
-material_override = SubResource("StandardMaterial3D_ktl23")
-mesh = SubResource("CapsuleMesh_m2c1y")
 
 [node name="CameraController" type="SpringArm3D" parent="." unique_id=889996896]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1461957, 0)
@@ -145,3 +43,107 @@ script = ExtResource("1_2anqx")
 sensitivity = 0.04
 
 [node name="Camera3D" type="Camera3D" parent="CameraController" unique_id=1441241849]
+
+[node name="TiltPivot" type="Node3D" parent="." unique_id=566898379]
+
+[node name="Bean" type="MeshInstance3D" parent="TiltPivot" unique_id=1008928997]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0040846, 0)
+material_override = SubResource("StandardMaterial3D_ktl23")
+mesh = SubResource("CapsuleMesh_m2c1y")
+
+[node name="ArmTopLeft" type="Node3D" parent="TiltPivot" unique_id=1899558695 node_paths=PackedStringArray("vertical_mount", "horizontal_mount")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 1.5151873, 0.377)
+script = ExtResource("2_fqfg4")
+vertical_mount = NodePath("../ArmLeft")
+horizontal_mount = NodePath("../ArmTopRight")
+idle_sway_x = 0.2
+idle_sway_y = 0.1
+metadata/_custom_type_script = "uid://bba0h6wxddaoe"
+
+[node name="GroundProbe" type="Marker3D" parent="TiltPivot/ArmTopLeft" unique_id=630538761]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.4220326, -1.513683)
+
+[node name="IdleTarget" type="Marker3D" parent="TiltPivot/ArmTopLeft" unique_id=1476587123]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, 1.4203327, -3.1366746)
+
+[node name="Pole" type="Marker3D" parent="TiltPivot/ArmTopLeft" unique_id=144475676]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5615735, 2.7539291, -1.1966037)
+
+[node name="WallProbe" type="Node3D" parent="TiltPivot/ArmTopLeft" unique_id=2115885880]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.553, 0)
+
+[node name="DebugMesh" type="MeshInstance3D" parent="TiltPivot/ArmTopLeft/WallProbe" unique_id=1488078873]
+material_override = SubResource("StandardMaterial3D_pftr6")
+mesh = SubResource("SphereMesh_m2c1y")
+
+[node name="ArmTopRight" type="Node3D" parent="TiltPivot" unique_id=2058179573 node_paths=PackedStringArray("vertical_mount", "horizontal_mount")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 1.5054998, 0.377)
+script = ExtResource("2_fqfg4")
+vertical_mount = NodePath("../ArmRight")
+horizontal_mount = NodePath("../ArmTopLeft")
+idle_sway_x = 0.2
+idle_sway_y = 0.1
+sway_phase = 3.14159265358979
+metadata/_custom_type_script = "uid://bba0h6wxddaoe"
+
+[node name="GroundProbe" type="Marker3D" parent="TiltPivot/ArmTopRight" unique_id=1012489981]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.4184881, -1.5244104)
+
+[node name="IdleTarget" type="Marker3D" parent="TiltPivot/ArmTopRight" unique_id=1108706562]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, 1.5599794, -2.9131262)
+
+[node name="Pole" type="Marker3D" parent="TiltPivot/ArmTopRight" unique_id=183985606]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.336801, 2.787157, -0.93121254)
+
+[node name="WallProbe" type="Node3D" parent="TiltPivot/ArmTopRight" unique_id=696696143]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 1.553, 0)
+
+[node name="DebugMesh" type="MeshInstance3D" parent="TiltPivot/ArmTopRight/WallProbe" unique_id=1285604622]
+material_override = SubResource("StandardMaterial3D_pftr6")
+mesh = SubResource("SphereMesh_m2c1y")
+
+[node name="ArmLeft" type="Node3D" parent="TiltPivot" unique_id=241021393 node_paths=PackedStringArray("vertical_mount", "horizontal_mount")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 1.0994998, 0.377)
+script = ExtResource("2_fqfg4")
+vertical_mount = NodePath("../ArmTopLeft")
+horizontal_mount = NodePath("../ArmRight")
+metadata/_custom_type_script = "uid://bba0h6wxddaoe"
+
+[node name="GroundProbe" type="Marker3D" parent="TiltPivot/ArmLeft" unique_id=1044979529]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.0284808, 0.602)
+
+[node name="IdleTarget" type="Marker3D" parent="TiltPivot/ArmLeft" unique_id=1583181527]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.028, -1.682)
+
+[node name="Pole" type="Marker3D" parent="TiltPivot/ArmLeft" unique_id=515761756]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.253, 0.2, 0.577)
+
+[node name="WallProbe" type="Node3D" parent="TiltPivot/ArmLeft" unique_id=964169628]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.283, -0.5, 0)
+
+[node name="DebugMesh" type="MeshInstance3D" parent="TiltPivot/ArmLeft/WallProbe" unique_id=1384942331]
+material_override = SubResource("StandardMaterial3D_pftr6")
+mesh = SubResource("SphereMesh_m2c1y")
+
+[node name="ArmRight" type="Node3D" parent="TiltPivot" unique_id=714455465 node_paths=PackedStringArray("vertical_mount", "horizontal_mount")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 1.0994998, 0.377)
+script = ExtResource("2_fqfg4")
+vertical_mount = NodePath("../ArmTopRight")
+horizontal_mount = NodePath("../ArmLeft")
+metadata/_custom_type_script = "uid://bba0h6wxddaoe"
+
+[node name="GroundProbe" type="Marker3D" parent="TiltPivot/ArmRight" unique_id=550686394]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0204345, 0.6019857)
+
+[node name="IdleTarget" type="Marker3D" parent="TiltPivot/ArmRight" unique_id=1422011768]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.0204345, -1.6819203)
+
+[node name="Pole" type="Marker3D" parent="TiltPivot/ArmRight" unique_id=1263360260]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.253, 0.2, 0.577)
+
+[node name="WallProbe" type="Node3D" parent="TiltPivot/ArmRight" unique_id=1227139099]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.254, -0.5, 0)
+
+[node name="DebugMesh" type="MeshInstance3D" parent="TiltPivot/ArmRight/WallProbe" unique_id=1864961534]
+material_override = SubResource("StandardMaterial3D_pftr6")
+mesh = SubResource("SphereMesh_m2c1y")

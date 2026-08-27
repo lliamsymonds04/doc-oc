@@ -27,7 +27,8 @@ class_name PlayerController
 @export var wall_offset_correction_rate: float = 10.0
 
 @onready var arms: Array[BasicArm] = []
-@onready var Bean: Node3D = $Bean
+@onready var tilt_pivot: Node3D = $TiltPivot
+@onready var Bean: Node3D = $TiltPivot/Bean
 @onready var camera_controller: CameraController = $CameraController
 
 enum StateID { GROUNDED, WALL_CLIMB, AIR }
