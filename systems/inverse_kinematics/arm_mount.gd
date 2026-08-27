@@ -8,7 +8,7 @@ class_name ArmMount
 @export var horizontal_mount: ArmMount
 
 @export_category("Idle targeting")
-@export var idle_target: Node3D
+# @export var idle_target: Node3D
 @export var idle_sway_x: float = 0.0
 @export var idle_sway_y: float = 0.0
 @export var idle_sway_speed: float = 1.0
@@ -18,6 +18,7 @@ class_name ArmMount
 @onready var pole: Node3D = $Pole
 @onready var ground_probe: Node3D = $GroundProbe
 @onready var wall_probe: Node3D = $WallProbe
+@onready var idle_target: Node3D = $IdleTarget
 
 var raycast_config: ArmRaycastConfig
 var _cast_sphere: SphereShape3D
