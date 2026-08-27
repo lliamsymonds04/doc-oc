@@ -28,6 +28,7 @@ class_name PlayerController
 
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var arms: Array[BasicArm] = []
+@onready var Bean: Node3D = $Bean
 
 enum StateID { GROUNDED, WALL_CLIMB, AIR }
 var wall_climb_debounce: float = 0.0

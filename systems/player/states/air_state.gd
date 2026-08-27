@@ -1,6 +1,9 @@
 class_name AirState
 extends PlayerState
 
+const HAND_VELOCITY_OFFSET_SCALE: float = 0.05
+const HAND_VELOCITY_OFFSET_MAX: float = 1.0
+
 func enter() -> void:
 	var p := player
 
@@ -9,6 +12,11 @@ func enter() -> void:
 
 		mount.arm.target = idle_pos
 		mount.set_apply_floor(false)
+
+func calculate_hand_velocity_offset(velocity: Vector3) -> Vector3:
+	var mag = velocity.length()
+	var new_mag = min(mag * HAND_VELOCITY_OFFSET_SCALE, HAND_VELOCITY_OFFSET_MAX)
+	return velocity.normalized() * new_mag
 
 func physics_update(dt: float) -> void:
 	var p := player
@@ -28,13 +36,12 @@ func physics_update(dt: float) -> void:
 			probe_hits += 1
 			mount_hit_positions[mount] = hit["position"]
 
+	var hand_velocity_offset = calculate_hand_velocity_offset(p.velocity)
 	for mount in p.all_mounts():
-		mount.arm.target = mount.compute_idle_target()
+		mount.arm.target = mount.compute_idle_target() + hand_velocity_offset
 
 	if probe_hits >= 1 and p.velocity.y <= 0.0:
 		for mount in p.leg_mounts:
-			# Plant at the actual ground contact instead of the current tip, so the
-			# first update_step finds no displacement and doesn't start a landing step.
 			if mount_hit_positions.has(mount):
 				var hit_pos: Vector3 = mount_hit_positions[mount]
 				if hit_pos:

@@ -2,13 +2,14 @@ class_name GroundedState
 extends PlayerState
 
 const GROUNDED_DEBOUNCE_TIME := 1.2
+
 var grounded_debounce := 0.0
 
 func enter() -> void:
 	grounded_debounce = GROUNDED_DEBOUNCE_TIME
 
 	var p := player
-	for mount in p.all_mounts():
+	for mount in p.leg_mounts:
 		mount.set_apply_floor(true)
 
 	for mount in p.arm_mounts:
@@ -16,7 +17,7 @@ func enter() -> void:
 			var idle_pos := mount.compute_idle_target()
 			var end_effector_pos := mount.arm.solver.get_end_effector()
 			var dist := (idle_pos - end_effector_pos).length()
-			if dist > 0.5:
+			if dist > 1.0:
 				mount.arm.start_step(mount.to_global(idle_pos))
 			else:
 				mount.sync_from_arm()
@@ -55,6 +56,9 @@ func physics_update(dt: float) -> void:
 
 	if grounded_debounce > 0.0:
 		grounded_debounce -= dt
+		if grounded_debounce < 0.0:
+			for mount in p.arm_mounts:
+				mount.set_apply_floor(true)
 
 	if Input.is_action_just_pressed("jump"):
 		p.velocity.y = p.jump_velocity
