@@ -31,7 +31,7 @@ func physics_update(dt: float) -> void:
 	for mount in p.all_mounts():
 		mount.arm.target = mount.compute_idle_target()
 
-	if probe_hits >= 1:
+	if probe_hits >= 1 and p.velocity.y <= 0.0:
 		for mount in p.leg_mounts:
 			# Plant at the actual ground contact instead of the current tip, so the
 			# first update_step finds no displacement and doesn't start a landing step.

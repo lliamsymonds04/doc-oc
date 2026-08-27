@@ -1,7 +1,12 @@
 class_name GroundedState
 extends PlayerState
 
+const GROUNDED_DEBOUNCE_TIME := 1.2
+var grounded_debounce := 0.0
+
 func enter() -> void:
+	grounded_debounce = GROUNDED_DEBOUNCE_TIME
+
 	var p := player
 	for mount in p.all_mounts():
 		mount.set_apply_floor(true)
@@ -48,6 +53,9 @@ func physics_update(dt: float) -> void:
 	if p.wall_climb_debounce > 0.0:
 		p.wall_climb_debounce -= dt
 
+	if grounded_debounce > 0.0:
+		grounded_debounce -= dt
+
 	if Input.is_action_just_pressed("jump"):
 		p.velocity.y = p.jump_velocity
 		p.set_state(p.StateID.AIR)
@@ -79,7 +87,7 @@ func _update_legs(dt: float) -> void:
 	if best_arm != null:
 		best_arm.start_step(best_arm_hit_pos)
 
-	if probe_hits == 0:
+	if probe_hits == 0 and grounded_debounce <= 0.0:
 		p.set_state(p.StateID.AIR)
 
 func _update_arms(dt: float) -> void:
