@@ -4,6 +4,11 @@ extends PlayerState
 const HAND_VELOCITY_OFFSET_SCALE: float = 0.05
 const HAND_VELOCITY_OFFSET_MAX: float = 1.0
 
+const TILT_PIVOT_ROTATION_SPEED: float = 60.0
+const TILT_PIVOT_ROTATION_SCALE : float = 0.02
+const TILT_FORWARD_LIMIT: float = deg_to_rad(30.0)
+const TILT_BACKWARD_LIMIT: float = deg_to_rad(30.0)
+
 func enter() -> void:
 	var p := player
 
@@ -23,13 +28,18 @@ func physics_update(dt: float) -> void:
 
 	p.velocity += p.get_gravity() * dt
 
-	var velocityRotation := p.velocity.y/40
+	var velocityRotation := p.velocity.y * TILT_PIVOT_ROTATION_SCALE
+
+	if velocityRotation < -TILT_FORWARD_LIMIT:
+		velocityRotation = -TILT_FORWARD_LIMIT
+	if velocityRotation > TILT_BACKWARD_LIMIT:
+		velocityRotation = TILT_BACKWARD_LIMIT
 
 	p.rotation.y = p.camera_controller.global_rotation.y
 	p.camera_controller.rotation.y = 0
 
 	var current_rot_x := p.tilt_pivot.rotation.x
-	var new_rot_x = lerp(current_rot_x, velocityRotation, dt * 60.0)
+	var new_rot_x = lerp(current_rot_x, velocityRotation, dt * TILT_PIVOT_ROTATION_SPEED)
 	p.tilt_pivot.rotation.x = new_rot_x
 
 	var mount_hit_positions: Dictionary
