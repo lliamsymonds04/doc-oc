@@ -21,6 +21,7 @@ class_name ArmMount
 @onready var idle_target: Node3D = $IdleTarget
 
 var raycast_config: ArmRaycastConfig
+var player: PlayerController
 var _cast_sphere: SphereShape3D
 var arm: BasicArm
 var step_target: Variant
@@ -92,7 +93,8 @@ func get_step_distance() -> float:
 
 func get_wall_hit_pos(velocity: Vector3) -> Variant:
 	var wall_probe_pos := wall_probe.global_position
-	var cast_dir := -global_transform.basis.z
+	# yaw-only direction: ignores tilt_pivot lean so wall rays stay perpendicular
+	var cast_dir := -player.basis.z
 	var cast_pos = wall_probe_pos + raycast_config.anchor_lead_time * velocity
 	var hit = get_surface_hit(cast_pos, cast_dir, raycast_config.wall_raycast_distance)
 	return hit

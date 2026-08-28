@@ -143,13 +143,13 @@ environment = SubResource("Environment_m2c1y")
 
 [node name="CSGCombiner3D" type="CSGCombiner3D" parent="." unique_id=428718861]
 
-[node name="ClimbingWall" type="CSGBox3D" parent="." unique_id=1669438976]
+[node name="WallB" type="CSGBox3D" parent="." unique_id=1669438976]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 10, 11.69043)
 use_collision = true
 size = Vector3(10, 20, 16.61914)
 material = SubResource("StandardMaterial3D_m2c1y")
 
-[node name="ClimbingWall2" type="CSGBox3D" parent="." unique_id=1301503845]
+[node name="WallA" type="CSGBox3D" parent="." unique_id=1301503845]
 transform = Transform3D(0.9659258, 0, 0.25881904, 0, 1, 0, -0.25881904, 0, 0.9659258, 16.147423, 10, 23.521957)
 use_collision = true
 size = Vector3(10, 20, 10)

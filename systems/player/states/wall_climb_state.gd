@@ -21,6 +21,8 @@ func _init(p: PlayerController) -> void:
 func physics_update(dt: float) -> void:
 	var p := player
 
+	_update_tilt(dt)
+
 	arms.tick(dt)
 
 	if _update_average_normal():
@@ -142,3 +144,22 @@ func _check_floor_from_wall() -> void:
 	var leg_probe_hits := p.mount_prober.get_leg_probe_hits()
 	if leg_probe_hits.size() == 2:
 		p.set_state(p.StateID.GROUNDED)
+
+func _update_tilt(dt: float) -> void:
+	var p := player
+
+	var dir := input_dir
+	if dir.length_squared() > 0.0:
+		dir = dir.normalized()
+
+	var current_tilt_x := p.tilt_pivot.rotation.x
+	var current_tilt_z := p.tilt_pivot.rotation.z
+
+	var target_tilt_x := dir.y * deg_to_rad(5)
+	var target_tilt_z := -dir.x * deg_to_rad(5)
+
+	var tilted_x = lerp(current_tilt_x, target_tilt_x, dt * 2)
+	var tilted_z = lerp(current_tilt_z, target_tilt_z, dt * 2)
+
+	p.tilt_pivot.rotation.x = tilted_x
+	p.tilt_pivot.rotation.z = tilted_z

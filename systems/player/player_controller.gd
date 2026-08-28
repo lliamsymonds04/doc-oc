@@ -43,6 +43,7 @@ var body_y_offset = (min_y_offset + max_y_offset)/2.0
 
 func _ready() -> void:
 	for mount in arm_mounts + leg_mounts:
+		mount.player = self
 		mount.is_leg = leg_mounts.has(mount)
 		mount.raycast_config = raycast_config
 		var arm = mount.init()
