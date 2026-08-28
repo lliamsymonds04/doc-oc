@@ -46,6 +46,15 @@ func physics_update(dt: float) -> void:
 	for mount in p.all_mounts():
 		mount.arm.target = mount.compute_idle_target() + hand_velocity_offset
 
+	var is_grounded = _check_grounded()
+	if is_grounded:
+		return
+
+	p.mount_prober.try_mount_wall(input_dir)
+
+func _check_grounded() -> bool:
+	var p := player
+
 	var probe_hits := p.mount_prober.get_leg_probe_hits()
 	if probe_hits.size() >= 1 and p.velocity.y <= 0.0:
 		for mount in p.leg_mounts:
@@ -61,3 +70,6 @@ func physics_update(dt: float) -> void:
 			mount.set_target(mount.compute_idle_target())
 
 		p.set_state(p.StateID.GROUNDED)
+		return true
+
+	return false
