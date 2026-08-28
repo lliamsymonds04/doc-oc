@@ -54,7 +54,7 @@ func physics_update(dt: float) -> void:
 
 	_update_body_y_offset(dt)
 
-	try_mount_wall()
+	p.mount_prober.try_mount_wall(input_dir)
 
 	if p.wall_climb_debounce > 0.0:
 		p.wall_climb_debounce -= dt
@@ -96,16 +96,11 @@ func _update_legs(dt: float) -> void:
 	var furthest_distance := 0.0
 	var best_arm_hit_pos := Vector3.ZERO
 
-	var probe_hits := 0
 	for mount in p.leg_mounts:
-		var probe_pos := mount.ground_probe.global_position
-		var hit = mount.get_surface_hit(probe_pos, Vector3.DOWN, p.raycast_config.step_raycast_distance)
-		if hit:
-			probe_hits += 1
-
 		mount.update_step(p.velocity, dt)
 		var can_step: bool = mount.step_target != null and ((mount.arm.is_grounded()
 			and mount.horizontal_mount.arm.is_grounded()) or mount.arm.is_fully_extended())
+
 		if can_step:
 			var dist = mount.get_step_distance()
 			if dist > furthest_distance:
@@ -116,7 +111,8 @@ func _update_legs(dt: float) -> void:
 	if best_arm != null:
 		best_arm.start_step(best_arm_hit_pos)
 
-	if probe_hits == 0 and grounded_debounce <= 0.0:
+	var probe_hits := p.mount_prober.get_leg_probe_hits()
+	if probe_hits.size() == 0  and grounded_debounce <= 0.0:
 		p.set_state(p.StateID.AIR)
 
 func _update_arms(dt: float) -> void:
@@ -163,35 +159,3 @@ func _update_body_y_offset(dt:float) -> void:
 	var height_error = goal_y - current_y
 	var target_y_vel = height_error * p.hover_speed
 	p.velocity.y = lerp(p.velocity.y, target_y_vel, dt*p.hover_speed)
-
-func try_mount_wall() -> void:
-	var p := player
-
-	if p.wall_climb_debounce > 0.0:
-		return
-
-	var wall_detection_count = 0
-	var wall_hits := {}
-
-	for mount in p.arm_mounts:
-		# wall raycasts
-		if mount.wall_probe != null and mount.arm.is_stepping == false:
-			var hit = mount.get_wall_hit_pos(Vector3.ZERO)
-			wall_hits[mount] = hit
-
-			# guard: only count walls we're actually facing (same 60deg cone as the climb rule),
-			# so we can never enter wall climb misaligned with the wall in front
-			if hit != null and (hit.normal as Vector3).dot(p.basis.z) > 0.5:
-				wall_detection_count += 1
-
-	if wall_detection_count > 1:
-		p.set_state(p.StateID.WALL_CLIMB)
-		for mount in p.arm_mounts:
-			if mount.arm.is_stepping:
-				continue
-
-			mount.set_apply_floor(false)
-			var hit = wall_hits[mount]
-			if hit != null:
-				mount.arm.start_step(hit.position)
-				mount.wall_surface_normal = hit.normal

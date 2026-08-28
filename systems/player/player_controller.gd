@@ -37,6 +37,8 @@ var wall_climb_debounce: float = 0.0
 var _states: Dictionary = {}
 var _current: PlayerState
 
+var mount_prober: MountProber
+
 var body_y_offset = (min_y_offset + max_y_offset)/2.0
 
 func _ready() -> void:
@@ -45,6 +47,9 @@ func _ready() -> void:
 		mount.raycast_config = raycast_config
 		var arm = mount.init()
 		arms.append(arm)
+
+	mount_prober = MountProber.new()
+	mount_prober.init(self)
 
 	_states[StateID.GROUNDED] = GroundedState.new(self)
 	_states[StateID.WALL_CLIMB] = WallClimbState.new(self)
