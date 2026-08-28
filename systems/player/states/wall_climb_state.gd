@@ -139,13 +139,6 @@ func _dismount_to_ledge(ledge_result: Dictionary) -> void:
 func _check_floor_from_wall() -> void:
 	var p := player
 
-	var mount_hits = {}
-	for mount in p.leg_mounts:
-		var anchor_pos := mount.ground_probe.global_position
-
-		var hit = mount.get_surface_hit(anchor_pos, Vector3.DOWN, p.raycast_config.step_raycast_distance)
-		if hit != null:
-			mount_hits[mount] = hit
-
-	if mount_hits.size() == 2:
+	var leg_probe_hits := p.mount_prober.get_leg_probe_hits()
+	if leg_probe_hits.size() == 2:
 		p.set_state(p.StateID.GROUNDED)
