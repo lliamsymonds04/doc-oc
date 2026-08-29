@@ -8,6 +8,11 @@ const LEDGE_DISMOUNT_FOOT_STAGGER := 0.2
 const MAX_TILT_RAD := deg_to_rad(5)
 const TILT_SMOOTHING_SPEED := 2.0
 
+# jump velocity consts
+const JUMP_VELOCITY_UPWARD := 20
+const JUMP_VELOCITY_BACKWARD := 20
+const JUMP_VELOCITY_SIDEWAYS := 15
+
 var average_normal: Vector3 = Vector3.ZERO
 var arms: WallClimbArms
 
@@ -43,13 +48,30 @@ func physics_update(dt: float) -> void:
 
 	arms.update_arms(dt, input_dir, average_normal)
 
+	var dismounted := false
 	# wall dismount logic
 	if input_dir.y < 0:
 		var ledge_result = _detect_ledge(average_normal)
 		if ledge_result != null:
+			dismounted = true
 			_dismount_to_ledge(ledge_result)
 	elif input_dir.y > 0:
 		_check_floor_from_wall()
+
+	if dismounted:
+		return
+
+	if Input.is_action_just_pressed("jump"):
+		if input_dir.y < 0:
+			p.velocity = Vector3.UP * JUMP_VELOCITY_UPWARD
+		elif input_dir.x != 0:
+			p.velocity = p.basis.x * input_dir.x * JUMP_VELOCITY_SIDEWAYS
+		elif input_dir.y > 0:
+			p.velocity = p.basis.z * JUMP_VELOCITY_BACKWARD
+		else:
+			p.velocity = Vector3.ZERO
+
+		p.set_state(p.StateID.AIR)
 
 func _update_average_normal() -> bool:
 	average_normal = Vector3.ZERO
@@ -145,12 +167,15 @@ func _dismount_to_ledge(ledge_result: Dictionary) -> void:
 
 		step_count += 1
 
-func _check_floor_from_wall() -> void:
+func _check_floor_from_wall() -> bool:
 	var p := player
 
 	var leg_probe_hits := p.mount_prober.get_leg_probe_hits()
 	if leg_probe_hits.size() == 2:
 		p.set_state(p.StateID.GROUNDED)
+		return true
+
+	return false
 
 func _update_tilt(dt: float) -> void:
 	var p := player
