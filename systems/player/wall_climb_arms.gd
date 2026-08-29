@@ -7,10 +7,19 @@ enum CorneringType {
 	OUTSIDE,
 }
 
+const INSIDE_CORNER_DURATION := 1.0
+const OUTSIDE_CORNER_DURATION := 0.7
 const CORNERING_DURATIONS: Dictionary = {
-	CorneringType.INSIDE: 1.0,
-	CorneringType.OUTSIDE: 0.7,
+	CorneringType.INSIDE: INSIDE_CORNER_DURATION,
+	CorneringType.OUTSIDE: OUTSIDE_CORNER_DURATION,
 }
+const CORNER_STEP_MIN_DISPLACEMENT := 0.5
+const OUTSIDE_CORNER_RAY_LATERAL_OFFSET := 1.0
+const OUTSIDE_CORNER_RAY_REACH := 2.5
+const OUTSIDE_CORNER_RAY_DEPTH := 3.0
+const INSIDE_CORNER_MIN_NORMAL_DIFF_DOT := cos(deg_to_rad(70))
+const OUTSIDE_CORNER_MIN_SIDE_DOT := cos(deg_to_rad(65))
+const OUTSIDE_CORNER_MAX_PARALLEL_DOT := cos(deg_to_rad(45))
 
 var player: PlayerController
 
@@ -147,21 +156,21 @@ func _try_inside_corner(mount: ArmMount, side_dir: Vector3, best_dist: float):
 	var new_normal: Vector3 = side_result["normal"]
 	var current_normal: Vector3 = mount.wall_surface_normal
 	# only use surfaces angled differently from the current one
-	if new_normal.dot(current_normal) >= 0.3:
+	if new_normal.dot(current_normal) >= INSIDE_CORNER_MIN_NORMAL_DIFF_DOT:
 		return null
 
 	# set the target even if this candidate loses — the normal-step fallthrough
 	# below reads mount.step_target, so a rejected corner becomes a plain step
 	mount.step_target = side_result["position"]
-	return _pick(mount, side_result, 0.5, CorneringType.INSIDE, best_dist)
+	return _pick(mount, side_result, CORNER_STEP_MIN_DISPLACEMENT, CorneringType.INSIDE, best_dist)
 
 func _try_outside_corner(mount: ArmMount, side_dir: Vector3, average_normal: Vector3, best_dist: float):
 	var p := player
 	var space := p.get_world_3d().direct_space_state
 
-	var d := 1.0
+	var d := OUTSIDE_CORNER_RAY_LATERAL_OFFSET
 	var ray_origin := mount.wall_probe.global_position + side_dir * d
-	var motion := -side_dir * (d + 2.5) - average_normal * 3.0
+	var motion := -side_dir * (d + OUTSIDE_CORNER_RAY_REACH) - average_normal * OUTSIDE_CORNER_RAY_DEPTH
 
 	# only cast if the ray origin is actually visible from the mount
 	var visible_query := PhysicsRayQueryParameters3D.create(mount.global_position, ray_origin, ~2)
@@ -172,11 +181,11 @@ func _try_outside_corner(mount: ArmMount, side_dir: Vector3, average_normal: Vec
 		return null
 
 	var hit_normal: Vector3 = side_result["normal"]
-	if hit_normal.dot(side_dir) <= 0.4 or wall_normal.dot(hit_normal) >= 0.7:
+	if hit_normal.dot(side_dir) <= OUTSIDE_CORNER_MIN_SIDE_DOT or wall_normal.dot(hit_normal) >= OUTSIDE_CORNER_MAX_PARALLEL_DOT:
 		return null
 
 	mount.step_target = side_result["position"]
-	return _pick(mount, side_result, 0.5, CorneringType.OUTSIDE, best_dist)
+	return _pick(mount, side_result, CORNER_STEP_MIN_DISPLACEMENT, CorneringType.OUTSIDE, best_dist)
 
 func _commit_step(best_mount: ArmMount, best_hit, cornering_mode: CorneringType) -> void:
 	var p := player

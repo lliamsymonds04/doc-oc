@@ -1,6 +1,13 @@
 extends PlayerState
 class_name WallClimbState
 
+const MIN_WALL_FACING_DOT := cos(deg_to_rad(60))
+const MAX_WALL_NORMAL_DEVIATION_DOT := cos(deg_to_rad(70))
+const LEDGE_MIN_UP_DOT := cos(deg_to_rad(60))
+const LEDGE_DISMOUNT_FOOT_STAGGER := 0.2
+const MAX_TILT_RAD := deg_to_rad(5)
+const TILT_SMOOTHING_SPEED := 2.0
+
 var average_normal: Vector3 = Vector3.ZERO
 var arms: WallClimbArms
 
@@ -66,7 +73,7 @@ func _apply_movement(dt: float) -> void:
 	if not result.is_empty():
 		var surface_normal := result["normal"] as Vector3
 		# only trust normals pointing back at us; glancing side hits would whip the player
-		if surface_normal.dot(p.basis.z) > 0.5:
+		if surface_normal.dot(p.basis.z) > MIN_WALL_FACING_DOT:
 			goal_direction = -surface_normal
 
 	arms.wall_normal = -goal_direction
@@ -84,7 +91,7 @@ func _apply_movement(dt: float) -> void:
 	# wall offset still corrects toward gripped wall (after movement so it isn't overwritten)
 	if not result.is_empty():
 		var surface_normal := result["normal"] as Vector3
-		if surface_normal.dot(average_normal) >= cos(deg_to_rad(70)):
+		if surface_normal.dot(average_normal) >= MAX_WALL_NORMAL_DEVIATION_DOT:
 			var hit_pos: Vector3 = result["position"] as Vector3
 			var distance_from_wall: float = (hit_pos - p.position).length()
 			var distance_error := distance_from_wall - p.wall_offset
@@ -109,7 +116,7 @@ func _detect_ledge(wall_normal: Vector3) -> Variant:
 	if result.is_empty():
 		return null
 
-	if (result["normal"] as Vector3).y < 0.5:
+	if (result["normal"] as Vector3).y < LEDGE_MIN_UP_DOT:
 		return null
 
 	return result
@@ -132,7 +139,7 @@ func _dismount_to_ledge(ledge_result: Dictionary) -> void:
 			foot_pos = (surface["position"] as Vector3)
 
 		if step_count > 0:
-			mount.arm.start_step(foot_pos, 0.2 * step_count)
+			mount.arm.start_step(foot_pos, LEDGE_DISMOUNT_FOOT_STAGGER * step_count)
 		else:
 			mount.arm.start_step(foot_pos)
 
@@ -155,11 +162,11 @@ func _update_tilt(dt: float) -> void:
 	var current_tilt_x := p.tilt_pivot.rotation.x
 	var current_tilt_z := p.tilt_pivot.rotation.z
 
-	var target_tilt_x := dir.y * deg_to_rad(5)
-	var target_tilt_z := -dir.x * deg_to_rad(5)
+	var target_tilt_x := dir.y * MAX_TILT_RAD
+	var target_tilt_z := -dir.x * MAX_TILT_RAD
 
-	var tilted_x = lerp(current_tilt_x, target_tilt_x, dt * 2)
-	var tilted_z = lerp(current_tilt_z, target_tilt_z, dt * 2)
+	var tilted_x = lerp(current_tilt_x, target_tilt_x, dt * TILT_SMOOTHING_SPEED)
+	var tilted_z = lerp(current_tilt_z, target_tilt_z, dt * TILT_SMOOTHING_SPEED)
 
 	p.tilt_pivot.rotation.x = tilted_x
 	p.tilt_pivot.rotation.z = tilted_z
