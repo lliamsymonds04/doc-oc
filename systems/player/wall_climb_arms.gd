@@ -159,6 +159,10 @@ func _try_inside_corner(mount: ArmMount, side_dir: Vector3, best_dist: float):
 	if new_normal.dot(current_normal) >= INSIDE_CORNER_MIN_NORMAL_DIFF_DOT:
 		return null
 
+	# reject hits on surfaces buried inside another wall (overlap seams)
+	if not _hit_is_exposed(mount, side_result):
+		return null
+
 	# set the target even if this candidate loses — the normal-step fallthrough
 	# below reads mount.step_target, so a rejected corner becomes a plain step
 	mount.step_target = side_result["position"]
@@ -184,8 +188,21 @@ func _try_outside_corner(mount: ArmMount, side_dir: Vector3, average_normal: Vec
 	if hit_normal.dot(side_dir) <= OUTSIDE_CORNER_MIN_SIDE_DOT or wall_normal.dot(hit_normal) >= OUTSIDE_CORNER_MAX_PARALLEL_DOT:
 		return null
 
+	# reject hits on surfaces buried inside another wall (overlap seams)
+	if not _hit_is_exposed(mount, side_result):
+		return null
+
 	mount.step_target = side_result["position"]
 	return _pick(mount, side_result, CORNER_STEP_MIN_DISPLACEMENT, CorneringType.OUTSIDE, best_dist)
+
+# line-of-sight test from the mount to the hit: surfaces buried inside another
+# wall's collider (overlapping CSG shells) are always occluded along that line,
+# while a genuine exposed corner hit is not
+func _hit_is_exposed(mount: ArmMount, hit: Dictionary) -> bool:
+	var space := player.get_world_3d().direct_space_state
+	var target: Vector3 = hit["position"] + (hit["normal"] as Vector3) * 0.2
+	var query := PhysicsRayQueryParameters3D.create(mount.global_position, target, ~2)
+	return space.intersect_ray(query).is_empty()
 
 func _commit_step(best_mount: ArmMount, best_hit, cornering_mode: CorneringType) -> void:
 	var p := player
