@@ -54,7 +54,7 @@ func physics_update(dt: float) -> void:
 
 	_update_body_y_offset(dt)
 
-	p.mount_prober.try_mount_wall(input_dir)
+	p.mount_prober.try_mount_wall(input_dir, p.velocity)
 
 	if p.wall_climb_debounce > 0.0:
 		p.wall_climb_debounce -= dt

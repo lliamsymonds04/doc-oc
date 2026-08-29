@@ -50,7 +50,7 @@ func physics_update(dt: float) -> void:
 	if is_grounded:
 		return
 
-	p.mount_prober.try_mount_wall(input_dir)
+	p.mount_prober.try_mount_wall(input_dir, p.velocity)
 
 func _check_grounded() -> bool:
 	var p := player

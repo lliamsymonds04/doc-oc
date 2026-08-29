@@ -65,6 +65,10 @@ func set_state(id: StateID) -> void:
 		return
 	if _current:
 		_current.exit()
+
+	for mount in all_mounts():
+		mount.arm.is_stepping = false
+
 	_current = _states[id]
 	_current.enter()
 
