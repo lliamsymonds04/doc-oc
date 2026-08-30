@@ -33,10 +33,31 @@ func physics_update(dt: float) -> void:
 	_update_arms()
 
 	var direction := p.camera_controller.get_input_direction(input_dir)
-	if direction.length_squared() > 0.0:
-		var target := direction * p.air_speed
-		p.velocity.x = lerp(p.velocity.x, target.x, dt * p.air_accel)
-		p.velocity.z = lerp(p.velocity.z, target.z, dt * p.air_accel)
+
+	var hvel := Vector3(p.velocity.x, 0.0, p.velocity.z)
+	var speed := hvel.length()
+
+	if speed > p.air_speed:
+		# Fast: bleed off excess speed, then steer with what's left.
+		if p.air_drag > 0.0:
+			var new_speed := move_toward(speed, p.air_speed, p.air_drag * dt)
+			hvel *= new_speed / speed
+			speed = new_speed
+		if direction.length_squared() > 0.0:
+			# Heavy feel: turn authority fades as speed rises above air_speed.
+			var authority: float = clampf(p.air_speed / speed, p.min_turn_authority, 1.0)
+			var angle := hvel.signed_angle_to(direction, Vector3.UP)
+			var turn: float = minf(p.air_turn_speed * authority * dt, absf(angle))
+			hvel = hvel.rotated(Vector3.UP, signf(angle) * turn)
+	else:
+		# Slow: normal control.
+		if direction.length_squared() > 0.0:
+			hvel = hvel.lerp(direction * p.air_speed, dt * p.air_accel)
+		else:
+			hvel = hvel.lerp(Vector3.ZERO, dt * p.air_accel)
+
+	p.velocity.x = hvel.x
+	p.velocity.z = hvel.z
 
 	var is_grounded = _check_grounded()
 	if is_grounded:

@@ -26,12 +26,15 @@ class_name PlayerController
 @export var wall_offset_correction_rate: float = 10.0
 
 @export_category("Air")
-@export var air_accel: float = 5.0
+@export var air_accel: float = 2.0
 @export var air_speed: float = 5.0
+@export var air_turn_speed: float = 4.0
+@export var min_turn_authority: float = 0.15
+@export var air_drag: float = 5.0
 
 @export_category("Jump")
 @export var jump_vertical_velocity = 25.0
-@export var jump_horizontal_velocity = 30.0
+@export var jump_horizontal_velocity = 12.0
 @export var max_jump_hold_time = 0.6
 @export var min_jump_charge = 0.5
 
