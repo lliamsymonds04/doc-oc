@@ -3,7 +3,6 @@ class_name PlayerController
 
 
 @export var speed = 5.0
-@export var jump_velocity = 4.5
 @export var turn_speed = 10.0
 @export var arm_mounts: Array[ArmMount] = []
 @export var leg_mounts: Array[ArmMount] = []
@@ -25,6 +24,11 @@ class_name PlayerController
 @export var wall_climb_debounce_time: float = 0.5
 @export var mount_velocity_impulse: float = 5.0
 @export var wall_offset_correction_rate: float = 10.0
+
+@export_category("Air")
+@export var air_accel: float = 5.0
+@export var air_speed: float = 5.0
+
 
 @onready var arms: Array[BasicArm] = []
 @onready var tilt_pivot: Node3D = $TiltPivot
