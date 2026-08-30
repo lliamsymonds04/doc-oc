@@ -3,7 +3,6 @@ class_name PlayerController
 
 
 @export var speed = 5.0
-@export var jump_velocity = 10.0
 @export var turn_speed = 10.0
 @export var arm_mounts: Array[ArmMount] = []
 @export var leg_mounts: Array[ArmMount] = []
@@ -30,6 +29,11 @@ class_name PlayerController
 @export var air_accel: float = 5.0
 @export var air_speed: float = 5.0
 
+@export_category("Jump")
+@export var jump_vertical_velocity = 20.0
+@export var jump_horizontal_velocity = 30.0
+@export var max_jump_hold_time = 1.2
+@export var min_jump_charge = 0.5
 
 @onready var arms: Array[BasicArm] = []
 @onready var tilt_pivot: Node3D = $TiltPivot
@@ -43,8 +47,6 @@ var _states: Dictionary = {}
 var _current: PlayerState
 
 var mount_prober: MountProber
-
-var body_y_offset = (min_y_offset + max_y_offset)/2.0
 
 func _ready() -> void:
 	for mount in arm_mounts + leg_mounts:

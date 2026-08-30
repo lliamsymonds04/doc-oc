@@ -7,11 +7,18 @@ const WALK_TILT_Z := deg_to_rad(10)
 const TILT_SPEED := 1.0
 
 var grounded_debounce := 0.0
+var is_holding_jump := false
+var jump_hold_time := 0.0
+var body_y_offset := 0.0
 
 func enter() -> void:
-	grounded_debounce = GROUNDED_DEBOUNCE_TIME
-
 	var p := player
+
+	grounded_debounce = GROUNDED_DEBOUNCE_TIME
+	jump_hold_time = 0.0
+	is_holding_jump = false
+	body_y_offset = (p.min_y_offset + p.max_y_offset) / 2.0
+
 	for mount in p.leg_mounts:
 		mount.set_apply_floor(true)
 
@@ -48,8 +55,6 @@ func physics_update(dt: float) -> void:
 	_update_legs(dt)
 	_update_arms(dt)
 
-	_update_body_y_offset(dt)
-
 	p.mount_prober.try_mount_wall(input_dir, p.velocity)
 
 	if p.wall_climb_debounce > 0.0:
@@ -61,10 +66,25 @@ func physics_update(dt: float) -> void:
 			for mount in p.arm_mounts:
 				mount.set_apply_floor(true)
 
-	if Input.is_action_just_pressed("jump"):
-		p.velocity.y = p.jump_velocity
-		p.set_state(p.StateID.AIR)
+	if is_holding_jump:
+		jump_hold_time += dt
+		body_y_offset = 0.5
+	else:
+		_calculate_y_body_offset()
 
+	_update_body_y_offset(dt)
+
+	if Input.is_action_just_pressed("jump"):
+		is_holding_jump = true
+		jump_hold_time = 0.0
+
+	if Input.is_action_just_released("jump"):
+		var charge_f = min(jump_hold_time/p.max_jump_hold_time, 1.0)
+		var jump_charge = lerp(p.min_jump_charge, 1.0, charge_f)
+
+		p.velocity.y = p.jump_vertical_velocity * jump_charge
+		p.velocity += direction * p.jump_horizontal_velocity * jump_charge
+		p.set_state(p.StateID.AIR)
 
 func _update_tilt(dt: float) -> void:
 	var p := player
@@ -136,21 +156,23 @@ func _calculate_average_target_y() -> Variant:
 
 	return total_y / grounded_legs
 
-func _update_body_y_offset(dt:float) -> void:
+func _calculate_y_body_offset() -> void:
 	var p := player
 
-	#calculate camera pitch
 	var camera_pitch = p.camera_controller.rotation_degrees.x
 	var effective_pitch = camera_pitch - p.neutral_pitch
 	if abs(effective_pitch) > p.min_height_change_look_threshold:
-		var goal_y_offset = p.max_y_offset if effective_pitch > 0 else p.min_y_offset
-		p.body_y_offset = lerp(p.body_y_offset, goal_y_offset, dt * p.height_change_rate)
+		body_y_offset = p.max_y_offset if effective_pitch > 0 else p.min_y_offset
+
+
+func _update_body_y_offset(dt:float) -> void:
+	var p := player
 
 	var average_y = _calculate_average_target_y()
 	if average_y == null:
 		return
 
-	var goal_y = average_y + p.body_y_offset
+	var goal_y = average_y + body_y_offset
 	var current_y = p.global_position.y
 	var height_error = goal_y - current_y
 	var target_y_vel = height_error * p.hover_speed
