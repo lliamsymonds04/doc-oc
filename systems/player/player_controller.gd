@@ -30,9 +30,9 @@ class_name PlayerController
 @export var air_speed: float = 5.0
 
 @export_category("Jump")
-@export var jump_vertical_velocity = 20.0
+@export var jump_vertical_velocity = 25.0
 @export var jump_horizontal_velocity = 30.0
-@export var max_jump_hold_time = 1.2
+@export var max_jump_hold_time = 0.6
 @export var min_jump_charge = 0.5
 
 @onready var arms: Array[BasicArm] = []

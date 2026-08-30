@@ -83,7 +83,7 @@ func physics_update(dt: float) -> void:
 		var jump_charge = lerp(p.min_jump_charge, 1.0, charge_f)
 
 		p.velocity.y = p.jump_vertical_velocity * jump_charge
-		p.velocity += direction * p.jump_horizontal_velocity * jump_charge
+		p.velocity += direction * p.jump_horizontal_velocity
 		p.set_state(p.StateID.AIR)
 
 func _update_tilt(dt: float) -> void:

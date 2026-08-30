@@ -8,6 +8,7 @@ const TILT_PIVOT_ROTATION_SPEED: float = 60.0
 const TILT_PIVOT_ROTATION_SCALE : float = 0.02
 const TILT_FORWARD_LIMIT: float = deg_to_rad(30.0)
 const TILT_BACKWARD_LIMIT: float = deg_to_rad(30.0)
+const TILT_SIDEWAYS_LIMIT: float = deg_to_rad(20.0)
 
 func enter() -> void:
 	var p := player
@@ -28,6 +29,24 @@ func physics_update(dt: float) -> void:
 
 	p.velocity += p.get_gravity() * dt
 
+	_update_tilt(dt)
+	_update_arms()
+
+	var direction := p.camera_controller.get_input_direction(input_dir)
+	if direction.length_squared() > 0.0:
+		var target := direction * p.air_speed
+		p.velocity.x = lerp(p.velocity.x, target.x, dt * p.air_accel)
+		p.velocity.z = lerp(p.velocity.z, target.z, dt * p.air_accel)
+
+	var is_grounded = _check_grounded()
+	if is_grounded:
+		return
+
+	p.mount_prober.try_mount_wall(input_dir, p.velocity)
+
+func _update_tilt(dt: float) -> void:
+	var p := player
+
 	var velocityRotation := p.velocity.y * TILT_PIVOT_ROTATION_SCALE
 
 	if velocityRotation < -TILT_FORWARD_LIMIT:
@@ -42,21 +61,22 @@ func physics_update(dt: float) -> void:
 	var new_rot_x = lerp(current_rot_x, velocityRotation, dt * TILT_PIVOT_ROTATION_SPEED)
 	p.tilt_pivot.rotation.x = new_rot_x
 
+	# sideways tilt
+	var right: Vector3 = p.global_transform.basis.x
+	var side_speed: float = p.velocity.dot(right)
+	var current_rot_z := p.tilt_pivot.rotation.z
+	var target_rot_z = min(-side_speed * TILT_PIVOT_ROTATION_SCALE, TILT_SIDEWAYS_LIMIT)
+	var new_rot_z = lerp(current_rot_z, target_rot_z, dt * TILT_PIVOT_ROTATION_SPEED)
+	p.tilt_pivot.rotation.z = new_rot_z
+
+func _update_arms() -> void:
+	var p := player
+
 	var hand_velocity_offset = calculate_hand_velocity_offset(p.velocity)
 	for mount in p.all_mounts():
 		mount.arm.target = mount.compute_idle_target() + hand_velocity_offset
 
-	var direction := p.camera_controller.get_input_direction(input_dir)
-	if direction.length_squared() > 0.0:
-		var target := direction * p.air_speed
-		p.velocity.x = lerp(p.velocity.x, target.x, dt * p.air_accel)
-		p.velocity.z = lerp(p.velocity.z, target.z, dt * p.air_accel)
 
-	var is_grounded = _check_grounded()
-	if is_grounded:
-		return
-
-	p.mount_prober.try_mount_wall(input_dir, p.velocity)
 
 func _check_grounded() -> bool:
 	var p := player
