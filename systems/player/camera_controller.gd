@@ -13,3 +13,13 @@ func _input(event: InputEvent) -> void:
 		rotation_degrees.y -= event.relative.x * sensitivity
 		rotation_degrees.x -= event.relative.y * sensitivity
 		rotation_degrees.x = clampf(rotation_degrees.x, -70, 70)
+
+func get_flat_basis() -> Basis:
+	return Basis(Vector3.UP, global_rotation.y)
+
+func get_input_direction(input_dir: Vector2) -> Vector3:
+	var b := get_flat_basis()
+	var direction := b.x * input_dir.x + b.z * input_dir.y
+	if direction.length_squared() > 0.0:
+		return direction.normalized()
+	return direction

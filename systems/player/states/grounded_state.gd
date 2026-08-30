@@ -34,11 +34,7 @@ func physics_update(dt: float) -> void:
 	if not p.is_on_floor():
 		p.velocity += p.get_gravity() * dt
 
-	var cam_yaw := p.rotation.y
-	var forward := Vector3(-sin(cam_yaw), 0, -cos(cam_yaw))
-	var right := Vector3(cos(cam_yaw), 0, -sin(cam_yaw))
-
-	var direction := forward * -input_dir.y + right * input_dir.x
+	var direction := p.camera_controller.get_input_direction(input_dir)
 	if direction.length_squared() > 0.0:
 		direction = direction.normalized()
 		p.velocity.x = direction.x * p.speed

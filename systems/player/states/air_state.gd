@@ -46,13 +46,8 @@ func physics_update(dt: float) -> void:
 	for mount in p.all_mounts():
 		mount.arm.target = mount.compute_idle_target() + hand_velocity_offset
 
-	var cam_yaw := p.rotation.y
-	var forward := Vector3(-sin(cam_yaw), 0, -cos(cam_yaw))
-	var right := Vector3(cos(cam_yaw), 0, -sin(cam_yaw))
-
-	var direction := forward * -input_dir.y + right * input_dir.x
+	var direction := p.camera_controller.get_input_direction(input_dir)
 	if direction.length_squared() > 0.0:
-		direction = direction.normalized()
 		var target := direction * p.air_speed
 		p.velocity.x = lerp(p.velocity.x, target.x, dt * p.air_accel)
 		p.velocity.z = lerp(p.velocity.z, target.z, dt * p.air_accel)
