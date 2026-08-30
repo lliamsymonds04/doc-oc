@@ -1,0 +1,70 @@
+[gd_scene format=3 uid="uid://brn1hvq3t07v6"]
+
+[ext_resource type="Texture2D" uid="uid://bj1ednj8w4fkv" path="res://assets/textures/trace_02_a.png" id="1_63tqh"]
+[ext_resource type="Script" uid="uid://didvyshe4wbbi" path="res://assets/vfx/step_vfx.gd" id="2_vfxscr"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pftr6"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("1_63tqh")
+
+[sub_resource type="Curve" id="Curve_10kn5"]
+_limits = [0.0, 3.0, 0.0, 1.0]
+_data = [Vector2(0.010273971, 1.3363638), 0.0, 0.0, 0, 0, Vector2(0.5582192, 2.1272728), 0.0, 0.0, 0, 0, Vector2(1, 1.3909092), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_vhwxj"]
+curve = SubResource("Curve_10kn5")
+
+[sub_resource type="Curve" id="Curve_63tqh"]
+_data = [Vector2(0, 0.39999998), 0.0, 0.0, 0, 0, Vector2(0.37671235, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_87ajm"]
+curve = SubResource("Curve_63tqh")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_m2c1y"]
+particle_flag_align_y = true
+direction = Vector3(0, 1, 0)
+spread = 80.0
+initial_velocity_min = 3.0
+initial_velocity_max = 4.0
+gravity = Vector3(0, 0, 0)
+damping_min = 4.0
+damping_max = 6.0000005
+scale_min = 0.19999999
+scale_max = 0.29999998
+scale_curve = SubResource("CurveTexture_87ajm")
+color = Color(1, 0.49411765, 0.05882353, 1)
+emission_curve = SubResource("CurveTexture_vhwxj")
+hue_variation_min = -0.010000022
+hue_variation_max = 0.039999977
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_e3s00"]
+orientation = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wdtcy"]
+albedo_color = Color(0.47058824, 1, 1, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_6ylhy"]
+
+[node name="Spark" type="Node3D" unique_id=424724070]
+script = ExtResource("2_vfxscr")
+
+[node name="Spark" type="GPUParticles3D" parent="." unique_id=202357383]
+material_override = SubResource("StandardMaterial3D_pftr6")
+emitting = false
+lifetime = 0.25
+one_shot = true
+explosiveness = 0.9
+fixed_fps = 0
+process_material = SubResource("ParticleProcessMaterial_m2c1y")
+draw_pass_1 = SubResource("PlaneMesh_e3s00")
+
+[node name="Bean" type="MeshInstance3D" parent="." unique_id=199948215]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0040846, 3.1733131)
+visible = false
+material_override = SubResource("StandardMaterial3D_wdtcy")
+mesh = SubResource("CapsuleMesh_6ylhy")

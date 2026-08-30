@@ -22,6 +22,7 @@ class_name ArmMount
 
 var raycast_config: ArmRaycastConfig
 var player: PlayerController
+var _vfx: StepVFX
 var _cast_sphere: SphereShape3D
 var arm: BasicArm
 var step_target: Variant
@@ -34,7 +35,7 @@ var _cached_target_world: Vector3
 func _process(delta: float) -> void:
 	_sway_time += delta
 
-func init() -> BasicArm:
+func init(step_vfx: PackedScene) -> BasicArm:
 	if vertical_mount == null or horizontal_mount == null:
 		push_error("vertical and horizontal mount must be set")
 		return null
@@ -49,6 +50,13 @@ func init() -> BasicArm:
 
 	_cast_sphere = SphereShape3D.new()
 	_cast_sphere.radius = raycast_config.shape_cast_radius
+
+	if step_vfx != null:
+		_vfx = step_vfx.instantiate() as StepVFX
+		_vfx.top_level = true
+		add_child(_vfx)
+		arm.step_landed.connect(_vfx.play)
+
 
 	return arm
 

@@ -1,6 +1,8 @@
 extends Node3D
 class_name BasicArm
 
+signal step_landed(pos: Vector3, normal: Vector3)
+
 @export var num_limbs: int = 3
 @export var limb_length: float = 2.0
 @export var limb_radius: float = 0.15
@@ -86,6 +88,7 @@ func advance_step(dt: float) -> void:
 
 	if step_progress >= 1.0:
 		is_stepping = false
+		step_landed.emit(step_end, step_normal)
 
 
 ## private methods

@@ -7,6 +7,7 @@ class_name PlayerController
 @export var arm_mounts: Array[ArmMount] = []
 @export var leg_mounts: Array[ArmMount] = []
 @export var raycast_config: ArmRaycastConfig
+@export var step_vfx: PackedScene
 
 @export_category("Hover")
 @export var hover_speed = 3.0
@@ -56,7 +57,7 @@ func _ready() -> void:
 		mount.player = self
 		mount.is_leg = leg_mounts.has(mount)
 		mount.raycast_config = raycast_config
-		var arm = mount.init()
+		var arm = mount.init(step_vfx)
 		arms.append(arm)
 
 	mount_prober = MountProber.new()
