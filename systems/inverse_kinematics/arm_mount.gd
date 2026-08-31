@@ -73,7 +73,7 @@ func init(p: PlayerController) -> BasicArm:
 func _play_audio(pos, _normal) -> void:
 	_audio_player.reset_physics_interpolation()
 	_audio_player.position = pos
-	_audio_player.play()
+	AudioUtil.play_with_pitch(_audio_player)
 
 func compute_idle_target() -> Vector3:
 	if idle_target == null:
