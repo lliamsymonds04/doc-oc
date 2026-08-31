@@ -26,6 +26,7 @@ var step_end: Vector3
 var step_normal: Vector3 = Vector3.UP
 var step_progress: float = 0.0
 
+var _should_emit_landed: bool = true
 var solver: FabrikSolver
 var limb_meshes: Array[MeshInstance3D] = []
 var joint_meshes: Array[MeshInstance3D] = []
@@ -64,8 +65,9 @@ func is_fully_extended(length_percent: float = 1.0) -> bool:
 	var distance := (mount_pos - target_pos).length()
 	return distance > solver.total_length * length_percent
 
-func start_step(to: Vector3, delay := 0.0, surface_normal := Vector3.UP) -> void:
+func start_step(to: Vector3, delay := 0.0, surface_normal := Vector3.UP, emit_landed := true) -> void:
 	is_stepping = true
+	_should_emit_landed = emit_landed
 	step_start = to_global(solver.get_end_effector())
 	step_end = to
 	step_progress = -maxf(delay, 0.0) / step_duration
@@ -88,7 +90,9 @@ func advance_step(dt: float) -> void:
 
 	if step_progress >= 1.0:
 		is_stepping = false
-		step_landed.emit(step_end, step_normal)
+		if _should_emit_landed:
+			step_landed.emit(step_end, step_normal)
+		_should_emit_landed = true
 
 
 ## private methods

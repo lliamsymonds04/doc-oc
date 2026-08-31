@@ -32,7 +32,7 @@ func enter() -> void:
 			var end_effector_pos := mount.arm.solver.get_end_effector()
 			var dist := (idle_pos - end_effector_pos).length()
 			if dist > 1.0:
-				mount.arm.start_step(mount.to_global(idle_pos))
+				mount.arm.start_step(mount.to_global(idle_pos), 0.0, Vector3.UP, false)
 			else:
 				mount.sync_from_arm()
 
