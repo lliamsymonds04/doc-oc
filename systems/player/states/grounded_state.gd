@@ -5,11 +5,15 @@ const GROUNDED_DEBOUNCE_TIME := 1.2
 const WALK_TILT_X := deg_to_rad(10)
 const WALK_TILT_Z := deg_to_rad(10)
 const TILT_SPEED := 1.0
+const ALIGN_ANGLE := deg_to_rad(1.0)
+const DISALIGN_ANGLE := deg_to_rad(2.0)
+const CAMERA_RETURN_SPEED := 4.0
 
 var grounded_debounce := 0.0
 var is_holding_jump := false
 var jump_hold_time := 0.0
 var body_y_offset := 0.0
+var is_camera_aligned := false
 
 func enter() -> void:
 	var p := player
@@ -18,6 +22,7 @@ func enter() -> void:
 	jump_hold_time = 0.0
 	is_holding_jump = false
 	body_y_offset = (p.min_y_offset + p.max_y_offset) / 2.0
+	is_camera_aligned = absf(p.camera_controller.rotation.y) <= ALIGN_ANGLE
 
 	for mount in p.leg_mounts:
 		mount.set_apply_floor(true)
@@ -35,9 +40,6 @@ func enter() -> void:
 func physics_update(dt: float) -> void:
 	var p := player
 
-	p.rotation.y = p.camera_controller.global_rotation.y
-	p.camera_controller.rotation.y = 0
-
 	if not p.is_on_floor():
 		p.velocity += p.get_gravity() * dt
 
@@ -49,6 +51,8 @@ func physics_update(dt: float) -> void:
 	else:
 		p.velocity.x = move_toward(p.velocity.x, 0, p.speed * dt)
 		p.velocity.z = move_toward(p.velocity.z, 0, p.speed * dt)
+
+	_update_camera_alignment(dt, direction.length_squared() > 0.0)
 
 	_update_tilt(dt)
 
@@ -73,6 +77,26 @@ func physics_update(dt: float) -> void:
 		_calculate_y_body_offset()
 
 	_update_body_y_offset(dt)
+	_handle_jump(direction)
+
+
+func _update_camera_alignment(dt: float, is_moving: bool) -> void:
+	var p := player
+
+	if is_moving:
+		if is_camera_aligned:
+			p.rotation.y = p.camera_controller.global_rotation.y
+			p.camera_controller.rotation.y = 0
+		else:
+			p.camera_controller.rotation.y = lerp_angle(p.camera_controller.rotation.y, 0.0, dt * CAMERA_RETURN_SPEED)
+			if absf(p.camera_controller.rotation.y) <= ALIGN_ANGLE:
+				is_camera_aligned = true
+	elif absf(p.camera_controller.rotation.y) >= DISALIGN_ANGLE:
+		is_camera_aligned = false
+
+
+func _handle_jump(direction: Vector3):
+	var p := player
 
 	if Input.is_action_just_pressed("jump"):
 		is_holding_jump = true

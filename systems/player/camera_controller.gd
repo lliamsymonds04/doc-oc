@@ -13,6 +13,7 @@ func _input(event: InputEvent) -> void:
 		rotation_degrees.y -= event.relative.x * sensitivity
 		rotation_degrees.x -= event.relative.y * sensitivity
 		rotation_degrees.x = clampf(rotation_degrees.x, -70, 70)
+		rotation.y = wrapf(rotation.y, -PI, PI)
 
 func get_flat_basis() -> Basis:
 	return Basis(Vector3.UP, global_rotation.y)
