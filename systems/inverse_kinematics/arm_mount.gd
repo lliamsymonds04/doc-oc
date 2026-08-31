@@ -7,6 +7,9 @@ class_name ArmMount
 # the mount to the side of this
 @export var horizontal_mount: ArmMount
 
+@export var footstep_volume: float = -5.0
+@export var footstep_debounce: float = 0.15
+
 @export_category("Idle targeting")
 # @export var idle_target: Node3D
 @export var idle_sway_x: float = 0.0
@@ -20,6 +23,7 @@ class_name ArmMount
 @onready var wall_probe: Node3D = $WallProbe
 @onready var idle_target: Node3D = $IdleTarget
 
+var diagonal_mount: ArmMount
 var raycast_config: ArmRaycastConfig
 var player: PlayerController
 var arm: BasicArm
@@ -31,12 +35,15 @@ var _audio_player: AudioStreamPlayer3D
 var step_target: Variant
 var wall_surface_normal: Vector3 = Vector3.ZERO
 var _sway_time: float = 0.0
+var sound_debounce: float = 0.0
 
 var target_world: Vector3
 var _cached_target_world: Vector3
 
-func _process(delta: float) -> void:
-	_sway_time += delta
+func _process(dt: float) -> void:
+	_sway_time += dt
+	if sound_debounce > 0.0:
+		sound_debounce -= dt
 
 func init(p: PlayerController) -> BasicArm:
 	if vertical_mount == null or horizontal_mount == null:
@@ -67,12 +74,19 @@ func init(p: PlayerController) -> BasicArm:
 		add_child(_audio_player)
 		arm.step_landed.connect(_play_audio)
 
+	diagonal_mount = horizontal_mount.vertical_mount
 
 	return arm
 
 func _play_audio(pos, _normal) -> void:
+	if diagonal_mount.sound_debounce > 0.0:
+		return
+
 	_audio_player.reset_physics_interpolation()
 	_audio_player.position = pos
+	_audio_player.volume_db = footstep_volume
+	sound_debounce = footstep_debounce
+
 	AudioUtil.play_with_pitch(_audio_player)
 
 func compute_idle_target() -> Vector3:
