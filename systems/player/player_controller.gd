@@ -98,3 +98,12 @@ func _physics_process(dt: float) -> void:
 	_current.physics_update(dt)
 
 	move_and_slide()
+
+func _process(_dt: float) -> void:
+	var horizontal_velocity = velocity * Vector3(1,0,1)
+	var hs := horizontal_velocity.length()
+
+	if _current.input_dir.length() == 0 and _current != _states[StateID.AIR]:
+		hs = 0.0
+
+	camera_controller.set_current_speed(hs)
