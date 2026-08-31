@@ -42,6 +42,9 @@ class_name PlayerController
 @export var step_vfx: PackedScene
 @export var step_trauma: float = 0.3
 
+@export_category("Audio")
+@export var step_sound: AudioStreamOggVorbis
+
 @onready var arms: Array[BasicArm] = []
 @onready var tilt_pivot: Node3D = $TiltPivot
 @onready var Bean: Node3D = $TiltPivot/Bean
@@ -60,7 +63,7 @@ func _ready() -> void:
 		mount.player = self
 		mount.is_leg = leg_mounts.has(mount)
 		mount.raycast_config = raycast_config
-		var arm = mount.init(step_vfx)
+		var arm = mount.init(self)
 		arms.append(arm)
 
 		mount.arm.step_landed.connect(func(_pos, _normal):

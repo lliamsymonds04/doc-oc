@@ -22,9 +22,12 @@ class_name ArmMount
 
 var raycast_config: ArmRaycastConfig
 var player: PlayerController
+var arm: BasicArm
 var _vfx: StepVFX
 var _cast_sphere: SphereShape3D
-var arm: BasicArm
+var _audio_player: AudioStreamPlayer3D
+
+
 var step_target: Variant
 var wall_surface_normal: Vector3 = Vector3.ZERO
 var _sway_time: float = 0.0
@@ -35,7 +38,7 @@ var _cached_target_world: Vector3
 func _process(delta: float) -> void:
 	_sway_time += delta
 
-func init(step_vfx: PackedScene) -> BasicArm:
+func init(p: PlayerController) -> BasicArm:
 	if vertical_mount == null or horizontal_mount == null:
 		push_error("vertical and horizontal mount must be set")
 		return null
@@ -51,14 +54,26 @@ func init(step_vfx: PackedScene) -> BasicArm:
 	_cast_sphere = SphereShape3D.new()
 	_cast_sphere.radius = raycast_config.shape_cast_radius
 
-	if step_vfx != null:
-		_vfx = step_vfx.instantiate() as StepVFX
+	if p.step_vfx != null:
+		_vfx = p.step_vfx.instantiate() as StepVFX
 		_vfx.top_level = true
 		add_child(_vfx)
 		arm.step_landed.connect(_vfx.play)
 
+	if p.step_sound != null:
+		_audio_player = AudioStreamPlayer3D.new()
+		_audio_player.stream = p.step_sound
+		_audio_player.top_level = true
+		add_child(_audio_player)
+		arm.step_landed.connect(_play_audio)
+
 
 	return arm
+
+func _play_audio(pos, _normal) -> void:
+	_audio_player.reset_physics_interpolation()
+	_audio_player.position = pos
+	_audio_player.play()
 
 func compute_idle_target() -> Vector3:
 	if idle_target == null:
