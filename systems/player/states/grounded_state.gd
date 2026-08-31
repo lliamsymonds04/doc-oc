@@ -7,7 +7,6 @@ const WALK_TILT_Z := deg_to_rad(10)
 const TILT_SPEED := 1.0
 const ALIGN_ANGLE := deg_to_rad(1.0)
 const DISALIGN_ANGLE := deg_to_rad(2.0)
-const CAMERA_RETURN_SPEED := 4.0
 
 var grounded_debounce := 0.0
 var is_holding_jump := false
@@ -88,7 +87,15 @@ func _update_camera_alignment(dt: float, is_moving: bool) -> void:
 			p.rotation.y = p.camera_controller.global_rotation.y
 			p.camera_controller.rotation.y = 0
 		else:
-			p.camera_controller.rotation.y = lerp_angle(p.camera_controller.rotation.y, 0.0, dt * CAMERA_RETURN_SPEED)
+			var target_yaw := p.camera_controller.global_rotation.y
+			var new_yaw := lerp_angle(p.rotation.y, target_yaw, p.turn_speed * dt)
+			var delta := angle_difference(p.rotation.y, new_yaw)
+
+			p.rotation.y = new_yaw
+			# cancel the body's rotation in the camera's local yaw so its
+			# world-space direction stays fixed while the body turns under it
+			p.camera_controller.rotation.y -= delta
+
 			if absf(p.camera_controller.rotation.y) <= ALIGN_ANGLE:
 				is_camera_aligned = true
 	elif absf(p.camera_controller.rotation.y) >= DISALIGN_ANGLE:
