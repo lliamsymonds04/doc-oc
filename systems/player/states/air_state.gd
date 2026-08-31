@@ -9,6 +9,7 @@ const TILT_PIVOT_ROTATION_SCALE : float = 0.02
 const TILT_FORWARD_LIMIT: float = deg_to_rad(30.0)
 const TILT_BACKWARD_LIMIT: float = deg_to_rad(30.0)
 const TILT_SIDEWAYS_LIMIT: float = deg_to_rad(20.0)
+const LANDING_TRAUMA: float = 0.8
 
 func enter() -> void:
 	var p := player
@@ -97,8 +98,6 @@ func _update_arms() -> void:
 	for mount in p.all_mounts():
 		mount.arm.target = mount.compute_idle_target() + hand_velocity_offset
 
-
-
 func _check_grounded() -> bool:
 	var p := player
 
@@ -117,6 +116,7 @@ func _check_grounded() -> bool:
 			mount.set_target(mount.compute_idle_target())
 
 		p.set_state(p.StateID.GROUNDED)
+		p.camera_controller.add_trauma(LANDING_TRAUMA)
 		return true
 
 	return false

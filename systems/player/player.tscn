@@ -42,7 +42,9 @@ spring_length = 7.0
 script = ExtResource("1_2anqx")
 sensitivity = 0.04
 
-[node name="Camera3D" type="Camera3D" parent="CameraController" unique_id=1441241849]
+[node name="CameraShakePivot" type="Node3D" parent="CameraController"]
+
+[node name="Camera3D" type="Camera3D" parent="CameraController/CameraShakePivot" unique_id=1441241849]
 
 [node name="TiltPivot" type="Node3D" parent="." unique_id=566898379]
 

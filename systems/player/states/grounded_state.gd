@@ -3,7 +3,7 @@ extends PlayerState
 
 const GROUNDED_DEBOUNCE_TIME := 1.2
 const WALK_TILT_X := deg_to_rad(10)
-const WALK_TILT_Z := deg_to_rad(10)
+const WALK_TILT_Z := deg_to_rad(5)
 const TILT_SPEED := 1.0
 const ALIGN_ANGLE := deg_to_rad(1.0)
 const DISALIGN_ANGLE := deg_to_rad(2.0)

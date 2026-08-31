@@ -7,7 +7,6 @@ class_name PlayerController
 @export var arm_mounts: Array[ArmMount] = []
 @export var leg_mounts: Array[ArmMount] = []
 @export var raycast_config: ArmRaycastConfig
-@export var step_vfx: PackedScene
 
 @export_category("Hover")
 @export var hover_speed = 3.0
@@ -39,6 +38,10 @@ class_name PlayerController
 @export var max_jump_hold_time = 0.6
 @export var min_jump_charge = 0.5
 
+@export_category("visuals")
+@export var step_vfx: PackedScene
+@export var step_trauma: float = 0.3
+
 @onready var arms: Array[BasicArm] = []
 @onready var tilt_pivot: Node3D = $TiltPivot
 @onready var Bean: Node3D = $TiltPivot/Bean
@@ -59,6 +62,10 @@ func _ready() -> void:
 		mount.raycast_config = raycast_config
 		var arm = mount.init(step_vfx)
 		arms.append(arm)
+
+		mount.arm.step_landed.connect(func(_pos, _normal):
+			camera_controller.add_trauma(0.3)
+		)
 
 	mount_prober = MountProber.new()
 	mount_prober.init(self)

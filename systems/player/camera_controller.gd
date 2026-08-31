@@ -2,10 +2,32 @@ extends SpringArm3D
 class_name CameraController
 
 @export var sensitivity: float = 0.02
+@export var max_trauma_offset: float = 0.05
+@export var max_trauma_roll: float = 1.4
+
+@onready var cam: Camera3D = $CameraShakePivot/Camera3D
+
+var trauma: float = 0.0
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
+func add_trauma(amount: float) -> void:
+	trauma = min(trauma + amount, 1.0)
+
+func _process(dt: float) -> void:
+	if trauma > 0:
+		trauma = max(trauma-dt*2.5, 0.0)
+		var shake = trauma * trauma
+		cam.position = Vector3(
+			randf_range(-1,1) * max_trauma_offset * shake,
+			randf_range(-1,1) * max_trauma_offset * shake,
+			0
+		)
+		cam.rotation_degrees.z = randf_range(-1,1) * max_trauma_roll * shake
+	else:
+		cam.position = Vector3.ZERO
+		cam.rotation_degrees.z = 0
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _input(event: InputEvent) -> void:
