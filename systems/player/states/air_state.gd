@@ -9,17 +9,19 @@ const TILT_PIVOT_ROTATION_SCALE : float = 0.02
 const TILT_FORWARD_LIMIT: float = deg_to_rad(30.0)
 const TILT_BACKWARD_LIMIT: float = deg_to_rad(30.0)
 const TILT_SIDEWAYS_LIMIT: float = deg_to_rad(20.0)
-const LANDING_TRAUMA: float = 0.8
+const LANDING_TRAUMA: float = 0.6
+const HARD_LANDING_SPEED: float = -15.0
+const HARD_LANDING_TRAUMA_MULTIPLIER: float = 1.5
 
 var _audio_player: AudioStreamPlayer3D
-var land_sound := preload("res://assets/audio/light_landing.ogg")
+var light_landing_sound := preload("res://assets/audio/light_landing.ogg")
+var hard_landing_sound := preload("res://assets/audio/hard_landing.ogg")
 
 func _init(p: PlayerController) -> void:
 	super._init(p)
 
 	# create sound player
 	_audio_player = AudioStreamPlayer3D.new()
-	_audio_player.stream = land_sound
 	_audio_player.top_level = true
 	p.add_child(_audio_player)
 
@@ -136,5 +138,13 @@ func _check_grounded() -> bool:
 func _transition_to_grounded() -> void:
 	var p := player
 	p.set_state(p.StateID.GROUNDED)
-	p.camera_controller.add_trauma(LANDING_TRAUMA)
+
+	var trauma := LANDING_TRAUMA
+	if p.velocity.y <= HARD_LANDING_SPEED:
+		_audio_player.stream = hard_landing_sound
+		trauma *= HARD_LANDING_TRAUMA_MULTIPLIER
+	else:
+		_audio_player.stream = light_landing_sound
 	AudioUtil.play_with_pitch(_audio_player)
+
+	p.camera_controller.add_trauma(trauma)
