@@ -11,6 +11,18 @@ const TILT_BACKWARD_LIMIT: float = deg_to_rad(30.0)
 const TILT_SIDEWAYS_LIMIT: float = deg_to_rad(20.0)
 const LANDING_TRAUMA: float = 0.8
 
+var _audio_player: AudioStreamPlayer3D
+var land_sound := preload("res://assets/audio/light_landing.ogg")
+
+func _init(p: PlayerController) -> void:
+	super._init(p)
+
+	# create sound player
+	_audio_player = AudioStreamPlayer3D.new()
+	_audio_player.stream = land_sound
+	_audio_player.top_level = true
+	p.add_child(_audio_player)
+
 func enter() -> void:
 	var p := player
 
@@ -115,8 +127,14 @@ func _check_grounded() -> bool:
 		for mount in p.arm_mounts:
 			mount.set_target(mount.compute_idle_target())
 
-		p.set_state(p.StateID.GROUNDED)
-		p.camera_controller.add_trauma(LANDING_TRAUMA)
+		_transition_to_grounded()
+
 		return true
 
 	return false
+
+func _transition_to_grounded() -> void:
+	var p := player
+	p.set_state(p.StateID.GROUNDED)
+	p.camera_controller.add_trauma(LANDING_TRAUMA)
+	AudioUtil.play_with_pitch(_audio_player)
