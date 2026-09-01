@@ -10,15 +10,15 @@ func init(p: PlayerController):
 	player = p
 
 
-func try_mount_wall(input: Vector2, player_velocity: Vector3) -> void:
+func try_mount_wall(input: Vector2, player_velocity: Vector3) -> bool:
 	var p := player
 
 	if p.wall_climb_debounce > 0.0 and player_velocity.y > FALL_SPEED_WALL_DEBOUNCE_BYPASS:
-		return
+		return false
 
 	# Player must be holding forwards
 	if input.y >= 0.0:
-		return
+		return false
 
 	var wall_detection_count = 0
 	var wall_hits := {}
@@ -43,6 +43,10 @@ func try_mount_wall(input: Vector2, player_velocity: Vector3) -> void:
 			if hit != null:
 				mount.arm.start_step(hit.position)
 				mount.wall_surface_normal = hit.normal
+
+		return true
+
+	return false
 
 func get_leg_probe_hits() -> Dictionary:
 	var probe_hits := {}

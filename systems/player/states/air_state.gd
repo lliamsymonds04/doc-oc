@@ -10,7 +10,7 @@ const TILT_FORWARD_LIMIT: float = deg_to_rad(30.0)
 const TILT_BACKWARD_LIMIT: float = deg_to_rad(30.0)
 const TILT_SIDEWAYS_LIMIT: float = deg_to_rad(20.0)
 const LANDING_TRAUMA: float = 0.6
-const HARD_LANDING_SPEED: float = -15.0
+const HARD_LANDING_SPEED: float = 17.0
 const HARD_LANDING_TRAUMA_MULTIPLIER: float = 1.5
 
 var _audio_player: AudioStreamPlayer3D
@@ -78,7 +78,9 @@ func physics_update(dt: float) -> void:
 	if is_grounded:
 		return
 
-	p.mount_prober.try_mount_wall(input_dir, p.velocity)
+	var wall_mounted = p.mount_prober.try_mount_wall(input_dir, p.velocity)
+	if wall_mounted:
+		_play_landed_effect()
 
 func _update_tilt(dt: float) -> void:
 	var p := player
@@ -129,22 +131,24 @@ func _check_grounded() -> bool:
 		for mount in p.arm_mounts:
 			mount.set_target(mount.compute_idle_target())
 
-		_transition_to_grounded()
+		p.set_state(p.StateID.GROUNDED)
+		_play_landed_effect()
 
 		return true
 
 	return false
 
-func _transition_to_grounded() -> void:
+func _play_landed_effect() -> void:
 	var p := player
-	p.set_state(p.StateID.GROUNDED)
 
 	var trauma := LANDING_TRAUMA
-	if p.velocity.y <= HARD_LANDING_SPEED:
+	var speed = p.velocity.length()
+
+	if speed >= HARD_LANDING_SPEED:
 		_audio_player.stream = hard_landing_sound
 		trauma *= HARD_LANDING_TRAUMA_MULTIPLIER
 	else:
 		_audio_player.stream = light_landing_sound
-	AudioUtil.play_with_pitch(_audio_player)
 
+	AudioUtil.play_with_pitch(_audio_player)
 	p.camera_controller.add_trauma(trauma)
