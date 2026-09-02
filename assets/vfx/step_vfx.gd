@@ -9,7 +9,9 @@ func play(global_pos: Vector3, normal := Vector3.UP) -> void:
 		var fwd := global_basis.z
 		var right := fwd.cross(normal).normalized()
 		fwd = normal.cross(right).normalized()
-		global_basis = Basis(right, normal, fwd) * Basis(Vector3.RIGHT, 0)
+		global_basis = Basis(right, normal, fwd)
+	else:
+		global_basis = Basis.IDENTITY
 
 	reset_physics_interpolation()
 
