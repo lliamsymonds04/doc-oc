@@ -30,7 +30,7 @@ var diagonal_mount: ArmMount
 var raycast_config: ArmRaycastConfig
 var player: PlayerController
 var arm: BasicArm
-var _vfx: StepVFX
+var _vfx: ImpactVFX
 var _cast_sphere: SphereShape3D
 var _audio_player: AudioStreamPlayer3D
 var _servo_player: AudioStreamPlayer3D
@@ -66,7 +66,7 @@ func init(p: PlayerController) -> BasicArm:
 	_cast_sphere.radius = raycast_config.shape_cast_radius
 
 	if p.step_vfx != null:
-		_vfx = p.step_vfx.instantiate() as StepVFX
+		_vfx = p.step_vfx.instantiate() as ImpactVFX
 		_vfx.top_level = true
 		add_child(_vfx)
 		arm.step_landed.connect(_vfx.play)

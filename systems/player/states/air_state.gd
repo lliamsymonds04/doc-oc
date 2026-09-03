@@ -19,7 +19,7 @@ var light_landing_sound := preload("res://assets/audio/light_landing.ogg")
 var hard_landing_sound := preload("res://assets/audio/hard_landing.ogg")
 
 var landing_vfx_scene := preload("res://assets/vfx/landing_vfx.tscn")
-var _landing_vfx: StepVFX
+var _landing_vfx: ImpactVFX
 
 func _init(p: PlayerController) -> void:
 	super._init(p)
@@ -30,7 +30,7 @@ func _init(p: PlayerController) -> void:
 	p.add_child(_audio_player)
 
 	# create landing vfx
-	_landing_vfx = landing_vfx_scene.instantiate() as StepVFX
+	_landing_vfx = landing_vfx_scene.instantiate() as ImpactVFX
 	_landing_vfx.top_level = true
 	p.add_child(_landing_vfx)
 
