@@ -12,10 +12,14 @@ const TILT_SIDEWAYS_LIMIT: float = deg_to_rad(20.0)
 const LANDING_TRAUMA: float = 0.6
 const HARD_LANDING_SPEED: float = 17.0
 const HARD_LANDING_TRAUMA_MULTIPLIER: float = 1.5
+const LANDING_VFX_RAYCAST_DISTANCE: float = 5.0
 
 var _audio_player: AudioStreamPlayer3D
 var light_landing_sound := preload("res://assets/audio/light_landing.ogg")
 var hard_landing_sound := preload("res://assets/audio/hard_landing.ogg")
+
+var landing_vfx_scene := preload("res://assets/vfx/landing_vfx.tscn")
+var _landing_vfx: StepVFX
 
 func _init(p: PlayerController) -> void:
 	super._init(p)
@@ -24,6 +28,11 @@ func _init(p: PlayerController) -> void:
 	_audio_player = AudioStreamPlayer3D.new()
 	_audio_player.top_level = true
 	p.add_child(_audio_player)
+
+	# create landing vfx
+	_landing_vfx = landing_vfx_scene.instantiate() as StepVFX
+	_landing_vfx.top_level = true
+	p.add_child(_landing_vfx)
 
 func enter() -> void:
 	var p := player
@@ -143,8 +152,9 @@ func _play_landed_effect() -> void:
 
 	var trauma := LANDING_TRAUMA
 	var speed = p.velocity.length()
+	var is_hard_landing = speed >= HARD_LANDING_SPEED
 
-	if speed >= HARD_LANDING_SPEED:
+	if is_hard_landing:
 		_audio_player.stream = hard_landing_sound
 		trauma *= HARD_LANDING_TRAUMA_MULTIPLIER
 	else:
@@ -152,3 +162,13 @@ func _play_landed_effect() -> void:
 
 	AudioUtil.play_with_pitch(_audio_player)
 	p.camera_controller.add_trauma(trauma)
+
+	var v_dir := p.velocity.normalized()
+	# cast from the player in direction of velocity
+	var space_state = p.get_world_3d().direct_space_state
+	var player_pos := p.position
+	var query := PhysicsRayQueryParameters3D.create(player_pos, player_pos + v_dir * LANDING_VFX_RAYCAST_DISTANCE, ~2)
+	var result = space_state.intersect_ray(query)
+
+	if result:
+		_landing_vfx.play(result.position, result.normal)
