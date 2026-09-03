@@ -2,6 +2,7 @@ extends Node3D
 class_name BasicArm
 
 signal step_landed(pos: Vector3, normal: Vector3)
+signal step_started(pos: Vector3, normal: Vector3)
 
 @export var num_limbs: int = 3
 @export var limb_length: float = 2.0
@@ -73,6 +74,7 @@ func start_step(to: Vector3, delay := 0.0, surface_normal := Vector3.UP, emit_la
 	step_progress = -maxf(delay, 0.0) / step_duration
 	step_normal = surface_normal
 	solver.floor_normal = _to_local_dir(surface_normal)
+	step_started.emit(step_start, surface_normal)
 
 func advance_step(dt: float) -> void:
 	step_progress += dt / step_duration

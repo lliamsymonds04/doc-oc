@@ -10,6 +10,9 @@ class_name ArmMount
 @export var footstep_volume: float = -5.0
 @export var footstep_debounce: float = 0.15
 
+@export var servo_volume: float = -10.0
+@export var servo_debounce: float = 0.1
+
 @export_category("Idle targeting")
 # @export var idle_target: Node3D
 @export var idle_sway_x: float = 0.0
@@ -30,6 +33,7 @@ var arm: BasicArm
 var _vfx: StepVFX
 var _cast_sphere: SphereShape3D
 var _audio_player: AudioStreamPlayer3D
+var _servo_player: AudioStreamPlayer3D
 
 
 var step_target: Variant
@@ -74,6 +78,12 @@ func init(p: PlayerController) -> BasicArm:
 		add_child(_audio_player)
 		arm.step_landed.connect(_play_audio)
 
+	if p.servo_sound != null:
+		_servo_player = AudioStreamPlayer3D.new()
+		_servo_player.stream = p.servo_sound
+		add_child(_servo_player)
+		arm.step_started.connect(_play_servo)
+
 	diagonal_mount = horizontal_mount.vertical_mount
 
 	return arm
@@ -88,6 +98,15 @@ func _play_audio(pos, _normal) -> void:
 	sound_debounce = footstep_debounce
 
 	AudioUtil.play_with_pitch(_audio_player)
+
+func _play_servo(_pos, _normal) -> void:
+	if diagonal_mount.sound_debounce > 0.0:
+		return
+
+	_servo_player.volume_db = servo_volume
+	sound_debounce = servo_debounce
+
+	AudioUtil.play_with_pitch(_servo_player)
 
 func compute_idle_target() -> Vector3:
 	if idle_target == null:

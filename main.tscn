@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://80w2bs0a2buc" path="res://assets/textures/purple_grid.png" id="3_h2yge"]
 [ext_resource type="PackedScene" uid="uid://brn1hvq3t07v6" path="res://assets/vfx/step.tscn" id="3_lquwl"]
 [ext_resource type="AudioStream" uid="uid://1sxmmmntjnfy" path="res://assets/audio/footstep.ogg" id="4_7mycd"]
+[ext_resource type="AudioStream" uid="uid://i3cgbpcxm2xh" path="res://assets/audio/small_servo.ogg" id="5_3rvo"]
 [ext_resource type="Script" uid="uid://c34dnohk30mk" path="res://systems/util/debug_ray_drawer.gd" id="9_dbg"]
 
 [sub_resource type="StandardMaterial3D" id="FloorMat"]
@@ -140,6 +141,7 @@ material = SubResource("BoxMat_purple")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.682001, 0.08204651, 21.104301)
 step_vfx = ExtResource("3_lquwl")
 step_sound = ExtResource("4_7mycd")
+servo_sound = ExtResource("5_3rvo")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=415060811]
 environment = SubResource("Environment_m2c1y")

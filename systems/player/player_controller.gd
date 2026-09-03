@@ -44,6 +44,7 @@ class_name PlayerController
 
 @export_category("Audio")
 @export var step_sound: AudioStreamOggVorbis
+@export var servo_sound: AudioStreamOggVorbis
 
 @onready var arms: Array[BasicArm] = []
 @onready var tilt_pivot: Node3D = $TiltPivot
