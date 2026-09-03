@@ -116,6 +116,7 @@ func _handle_jump(direction: Vector3):
 		p.velocity.y = p.jump_vertical_velocity * jump_charge
 		p.velocity += direction * p.jump_horizontal_velocity
 		p.set_state(p.StateID.AIR)
+		p.play_jump_effects(jump_charge)
 
 func _update_tilt(dt: float) -> void:
 	var p := player

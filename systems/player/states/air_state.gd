@@ -171,4 +171,4 @@ func _play_landed_effect() -> void:
 	var result = space_state.intersect_ray(query)
 
 	if result:
-		_landing_vfx.play(result.position, result.normal)
+		_landing_vfx.play(result.position, -v_dir)

@@ -57,6 +57,7 @@ var _states: Dictionary = {}
 var _current: PlayerState
 
 var mount_prober: MountProber
+var _jump_audio_player: AudioStreamPlayer3D
 
 func _ready() -> void:
 	for mount in arm_mounts + leg_mounts:
@@ -77,6 +78,11 @@ func _ready() -> void:
 	_states[StateID.WALL_CLIMB] = WallClimbState.new(self)
 	_states[StateID.AIR] = AirState.new(self)
 	_current = _states[StateID.GROUNDED]
+
+	## create jump audio stream
+	_jump_audio_player = AudioStreamPlayer3D.new()
+	_jump_audio_player.stream = preload("res://assets/audio/robot_jump.ogg")
+	add_child(_jump_audio_player)
 
 func all_mounts() -> Array[ArmMount]:
 	return leg_mounts + arm_mounts
@@ -110,3 +116,7 @@ func _process(_dt: float) -> void:
 		hs = 0.0
 
 	camera_controller.set_current_speed(hs)
+
+func play_jump_effects(strength: float) -> void:
+	AudioUtil.play_with_pitch(_jump_audio_player)
+	camera_controller.add_trauma(strength * strength)

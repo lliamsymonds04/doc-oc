@@ -72,6 +72,7 @@ func physics_update(dt: float) -> void:
 			p.velocity = Vector3.ZERO
 
 		p.set_state(p.StateID.AIR)
+		p.play_jump_effects(0.5)
 
 func _update_average_normal() -> bool:
 	average_normal = Vector3.ZERO

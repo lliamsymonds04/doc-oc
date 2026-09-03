@@ -1,57 +1,7 @@
 [gd_scene format=3 uid="uid://cx6neuu3typ8d"]
 
 [ext_resource type="Script" uid="uid://didvyshe4wbbi" path="res://assets/vfx/step_vfx.gd" id="1_ce056"]
-[ext_resource type="Texture2D" uid="uid://b7kp44cj13elq" path="res://assets/textures/smoke_03_a.png" id="1_qxneu"]
-[ext_resource type="Texture2D" uid="uid://cqer3a08pntve" path="res://assets/textures/circle_04_a.png" id="3_p6ida"]
 [ext_resource type="Texture2D" uid="uid://bj1ednj8w4fkv" path="res://assets/textures/trace_02_a.png" id="4_v1blk"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e3s00"]
-transparency = 1
-cull_mode = 2
-shading_mode = 0
-vertex_color_use_as_albedo = true
-albedo_texture = ExtResource("1_qxneu")
-billboard_mode = 2
-billboard_keep_scale = true
-
-[sub_resource type="Curve" id="Curve_e3s00"]
-_data = [Vector2(0, 0.55454546), 0.0, 0.0, 0, 0, Vector2(0.29794523, 0.8181819), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
-point_count = 3
-
-[sub_resource type="CurveTexture" id="CurveTexture_pftr6"]
-curve = SubResource("Curve_e3s00")
-
-[sub_resource type="Curve" id="Curve_eqeow"]
-_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.2910959, 1), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
-point_count = 3
-
-[sub_resource type="CurveTexture" id="CurveTexture_m2c1y"]
-curve = SubResource("Curve_eqeow")
-
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_pftr6"]
-particle_flag_align_y = true
-emission_shape = 6
-emission_ring_axis = Vector3(0, 1, 0)
-emission_ring_height = 0.1
-emission_ring_radius = 2.5
-emission_ring_inner_radius = 0.0
-emission_ring_cone_angle = 90.0
-angle_min = -179.99998
-angle_max = 180.00002
-direction = Vector3(0, 3, 0)
-spread = 30.0
-initial_velocity_min = 3.0
-initial_velocity_max = 6.0
-angular_velocity_min = -30.000015
-angular_velocity_max = 29.999983
-scale_min = 0.79999995
-scale_max = 1.1999999
-scale_curve = SubResource("CurveTexture_m2c1y")
-color = Color(0.38039216, 0.4509804, 0.4509804, 1)
-alpha_curve = SubResource("CurveTexture_pftr6")
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_m2c1y"]
-orientation = 2
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u57ka"]
 albedo_color = Color(0.47058824, 1, 1, 1)
@@ -95,35 +45,6 @@ color = Color(0, 0.25155094, 0.25301698, 1)
 alpha_curve = SubResource("CurveTexture_gkid1")
 
 [sub_resource type="BoxMesh" id="BoxMesh_m2c1y"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_m2c1y"]
-transparency = 1
-shading_mode = 0
-vertex_color_use_as_albedo = true
-albedo_texture = ExtResource("3_p6ida")
-
-[sub_resource type="Curve" id="Curve_3pj25"]
-_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
-point_count = 2
-
-[sub_resource type="CurveTexture" id="CurveTexture_1lbye"]
-curve = SubResource("Curve_3pj25")
-
-[sub_resource type="Curve" id="Curve_v1blk"]
-_data = [Vector2(0, 0.20909083), 0.0, 1.137662, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
-point_count = 2
-
-[sub_resource type="CurveTexture" id="CurveTexture_xjhbw"]
-curve = SubResource("Curve_v1blk")
-
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_r7nec"]
-gravity = Vector3(0, 0, 0)
-scale_min = 7.0
-scale_max = 7.0
-scale_curve = SubResource("CurveTexture_xjhbw")
-alpha_curve = SubResource("CurveTexture_1lbye")
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_oi67n"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gkid1"]
 transparency = 1
@@ -173,18 +94,6 @@ orientation = 2
 [node name="Node3D" type="Node3D" unique_id=229729881]
 script = ExtResource("1_ce056")
 
-[node name="Smoke" type="GPUParticles3D" parent="." unique_id=1422405733]
-transform = Transform3D(1, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0)
-visible = false
-material_override = SubResource("StandardMaterial3D_e3s00")
-emitting = false
-amount = 24
-one_shot = true
-explosiveness = 0.8
-fixed_fps = 0
-process_material = SubResource("ParticleProcessMaterial_pftr6")
-draw_pass_1 = SubResource("PlaneMesh_m2c1y")
-
 [node name="Bean" type="MeshInstance3D" parent="." unique_id=1752005080]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0040846, 0)
 visible = false
@@ -202,19 +111,6 @@ explosiveness = 0.86
 fixed_fps = 0
 process_material = SubResource("ParticleProcessMaterial_e3s00")
 draw_pass_1 = SubResource("BoxMesh_m2c1y")
-
-[node name="Shockwave" type="GPUParticles3D" parent="." unique_id=1995045896]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
-visible = false
-material_override = SubResource("StandardMaterial3D_m2c1y")
-emitting = false
-amount = 1
-lifetime = 0.9
-one_shot = true
-explosiveness = 1.0
-fixed_fps = 0
-process_material = SubResource("ParticleProcessMaterial_r7nec")
-draw_pass_1 = SubResource("PlaneMesh_oi67n")
 
 [node name="Spark" type="GPUParticles3D" parent="." unique_id=1003498388]
 material_override = SubResource("StandardMaterial3D_gkid1")
