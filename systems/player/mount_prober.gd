@@ -1,9 +1,6 @@
 extends RefCounted
 class_name MountProber
 
-const WALL_MOUNT_MAX_ANGLE_DEG := 60.0
-const FALL_SPEED_WALL_DEBOUNCE_BYPASS := -0.2
-
 var player: PlayerController
 
 func init(p: PlayerController):
@@ -13,7 +10,7 @@ func init(p: PlayerController):
 func try_mount_wall(input: Vector2, player_velocity: Vector3) -> bool:
 	var p := player
 
-	if p.wall_climb_debounce > 0.0 and player_velocity.y > FALL_SPEED_WALL_DEBOUNCE_BYPASS:
+	if p.wall_climb_debounce > 0.0 and player_velocity.y > p.wall_climb.fall_speed_wall_debounce_bypass:
 		return false
 
 	# Player must be holding forwards
@@ -29,7 +26,7 @@ func try_mount_wall(input: Vector2, player_velocity: Vector3) -> bool:
 			var hit = mount.get_wall_hit_pos(Vector3.ZERO)
 			wall_hits[mount] = hit
 
-			if hit != null and (hit.normal as Vector3).dot(p.basis.z) > cos(deg_to_rad(WALL_MOUNT_MAX_ANGLE_DEG)):
+			if hit != null and (hit.normal as Vector3).dot(p.basis.z) > cos(deg_to_rad(p.wall_climb.wall_mount_max_angle_deg)):
 				wall_detection_count += 1
 
 	if wall_detection_count > 1:

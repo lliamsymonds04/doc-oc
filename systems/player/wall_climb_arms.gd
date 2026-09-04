@@ -7,19 +7,15 @@ enum CorneringType {
 	OUTSIDE,
 }
 
-const INSIDE_CORNER_DURATION := 1.0
-const OUTSIDE_CORNER_DURATION := 0.7
-const CORNERING_DURATIONS: Dictionary = {
-	CorneringType.INSIDE: INSIDE_CORNER_DURATION,
-	CorneringType.OUTSIDE: OUTSIDE_CORNER_DURATION,
-}
-const CORNER_STEP_MIN_DISPLACEMENT := 0.5
-const OUTSIDE_CORNER_RAY_LATERAL_OFFSET := 1.0
-const OUTSIDE_CORNER_RAY_REACH := 2.5
-const OUTSIDE_CORNER_RAY_DEPTH := 3.0
-const INSIDE_CORNER_MIN_NORMAL_DIFF_DOT := cos(deg_to_rad(70))
-const OUTSIDE_CORNER_MIN_SIDE_DOT := cos(deg_to_rad(65))
-const OUTSIDE_CORNER_MAX_PARALLEL_DOT := cos(deg_to_rad(45))
+var inside_corner_duration: float
+var outside_corner_duration: float
+var corner_step_min_displacement: float
+var outside_corner_ray_lateral_offset: float
+var outside_corner_ray_reach: float
+var outside_corner_ray_depth: float
+var inside_corner_min_normal_diff_dot: float
+var outside_corner_min_side_dot: float
+var outside_corner_max_parallel_dot: float
 
 var player: PlayerController
 
@@ -34,6 +30,17 @@ var debounces: Dictionary = {}
 
 func _init(p: PlayerController) -> void:
 	player = p
+	var c := p.wall_climb
+	inside_corner_duration = c.inside_corner_duration
+	outside_corner_duration = c.outside_corner_duration
+	corner_step_min_displacement = c.corner_step_min_displacement
+	outside_corner_ray_lateral_offset = c.outside_corner_ray_lateral_offset
+	outside_corner_ray_reach = c.outside_corner_ray_reach
+	outside_corner_ray_depth = c.outside_corner_ray_depth
+	inside_corner_min_normal_diff_dot = cos(deg_to_rad(c.inside_corner_min_normal_diff_angle_deg))
+	outside_corner_min_side_dot = cos(deg_to_rad(c.outside_corner_min_side_angle_deg))
+	outside_corner_max_parallel_dot = cos(deg_to_rad(c.outside_corner_max_parallel_angle_deg))
+
 	for mount in player.all_mounts():
 		debounces[mount] = 0
 
@@ -156,7 +163,7 @@ func _try_inside_corner(mount: ArmMount, side_dir: Vector3, best_dist: float):
 	var new_normal: Vector3 = side_result["normal"]
 	var current_normal: Vector3 = mount.wall_surface_normal
 	# only use surfaces angled differently from the current one
-	if new_normal.dot(current_normal) >= INSIDE_CORNER_MIN_NORMAL_DIFF_DOT:
+	if new_normal.dot(current_normal) >= inside_corner_min_normal_diff_dot:
 		return null
 
 	# reject hits on surfaces buried inside another wall (overlap seams)
@@ -166,15 +173,15 @@ func _try_inside_corner(mount: ArmMount, side_dir: Vector3, best_dist: float):
 	# set the target even if this candidate loses — the normal-step fallthrough
 	# below reads mount.step_target, so a rejected corner becomes a plain step
 	mount.step_target = side_result["position"]
-	return _pick(mount, side_result, CORNER_STEP_MIN_DISPLACEMENT, CorneringType.INSIDE, best_dist)
+	return _pick(mount, side_result, corner_step_min_displacement, CorneringType.INSIDE, best_dist)
 
 func _try_outside_corner(mount: ArmMount, side_dir: Vector3, average_normal: Vector3, best_dist: float):
 	var p := player
 	var space := p.get_world_3d().direct_space_state
 
-	var d := OUTSIDE_CORNER_RAY_LATERAL_OFFSET
+	var d := outside_corner_ray_lateral_offset
 	var ray_origin := mount.wall_probe.global_position + side_dir * d
-	var motion := -side_dir * (d + OUTSIDE_CORNER_RAY_REACH) - average_normal * OUTSIDE_CORNER_RAY_DEPTH
+	var motion := -side_dir * (d + outside_corner_ray_reach) - average_normal * outside_corner_ray_depth
 
 	# only cast if the ray origin is actually visible from the mount
 	var visible_query := PhysicsRayQueryParameters3D.create(mount.global_position, ray_origin, ~2)
@@ -185,7 +192,7 @@ func _try_outside_corner(mount: ArmMount, side_dir: Vector3, average_normal: Vec
 		return null
 
 	var hit_normal: Vector3 = side_result["normal"]
-	if hit_normal.dot(side_dir) <= OUTSIDE_CORNER_MIN_SIDE_DOT or wall_normal.dot(hit_normal) >= OUTSIDE_CORNER_MAX_PARALLEL_DOT:
+	if hit_normal.dot(side_dir) <= outside_corner_min_side_dot or wall_normal.dot(hit_normal) >= outside_corner_max_parallel_dot:
 		return null
 
 	# reject hits on surfaces buried inside another wall (overlap seams)
@@ -193,7 +200,7 @@ func _try_outside_corner(mount: ArmMount, side_dir: Vector3, average_normal: Vec
 		return null
 
 	mount.step_target = side_result["position"]
-	return _pick(mount, side_result, CORNER_STEP_MIN_DISPLACEMENT, CorneringType.OUTSIDE, best_dist)
+	return _pick(mount, side_result, corner_step_min_displacement, CorneringType.OUTSIDE, best_dist)
 
 # line-of-sight test from the mount to the hit: surfaces buried inside another
 # wall's collider (overlapping CSG shells) are always occluded along that line,
@@ -208,13 +215,13 @@ func _commit_step(best_mount: ArmMount, best_hit, cornering_mode: CorneringType)
 	var p := player
 
 	if cornering_mode != CorneringType.NONE:
-		var debounce_time = CORNERING_DURATIONS[cornering_mode]
+		var debounce_time = inside_corner_duration if cornering_mode == CorneringType.INSIDE else outside_corner_duration
 		debounces[best_mount] = debounce_time
 		if not is_cornering:
 			is_cornering = true
 			cornering_timer = debounce_time
 			cornering_target_normal = -best_hit.normal
-			cornering_target_pos = best_mount.step_target + best_hit.normal * p.wall_offset
+			cornering_target_pos = best_mount.step_target + best_hit.normal * p.wall_climb.wall_offset
 			cornering_target_pos.y = p.position.y
 
 	best_mount.arm.start_step(best_mount.step_target, 0.0, best_hit.normal)

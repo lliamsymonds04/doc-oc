@@ -1,12 +1,12 @@
 class_name GroundedState
 extends PlayerState
 
-const GROUNDED_DEBOUNCE_TIME := 1.2
-const WALK_TILT_X := deg_to_rad(10)
-const WALK_TILT_Z := deg_to_rad(5)
-const TILT_SPEED := 1.0
-const ALIGN_ANGLE := deg_to_rad(1.0)
-const DISALIGN_ANGLE := deg_to_rad(2.0)
+var grounded_debounce_time: float
+var walk_tilt_x: float
+var walk_tilt_z: float
+var tilt_speed: float
+var align_angle: float
+var disalign_angle: float
 
 var grounded_debounce := 0.0
 var is_holding_jump := false
@@ -14,14 +14,24 @@ var jump_hold_time := 0.0
 var body_y_offset := 0.0
 var is_camera_aligned := false
 
+func _init(p: PlayerController) -> void:
+	super._init(p)
+	var c := p.grounded
+	grounded_debounce_time = c.grounded_debounce_time
+	walk_tilt_x = deg_to_rad(c.walk_tilt_x_deg)
+	walk_tilt_z = deg_to_rad(c.walk_tilt_z_deg)
+	tilt_speed = c.tilt_speed
+	align_angle = deg_to_rad(c.align_angle_deg)
+	disalign_angle = deg_to_rad(c.disalign_angle_deg)
+
 func enter() -> void:
 	var p := player
 
-	grounded_debounce = GROUNDED_DEBOUNCE_TIME
+	grounded_debounce = grounded_debounce_time
 	jump_hold_time = 0.0
 	is_holding_jump = false
-	body_y_offset = (p.min_y_offset + p.max_y_offset) / 2.0
-	is_camera_aligned = absf(p.camera_controller.rotation.y) <= ALIGN_ANGLE
+	body_y_offset = (p.hover.min_y_offset + p.hover.max_y_offset) / 2.0
+	is_camera_aligned = absf(p.camera_controller.rotation.y) <= align_angle
 
 	for mount in p.leg_mounts:
 		mount.set_apply_floor(true)
@@ -45,11 +55,11 @@ func physics_update(dt: float) -> void:
 	var direction := p.camera_controller.get_input_direction(input_dir)
 	if direction.length_squared() > 0.0:
 		direction = direction.normalized()
-		p.velocity.x = direction.x * p.speed
-		p.velocity.z = direction.z * p.speed
+		p.velocity.x = direction.x * p.movement.speed
+		p.velocity.z = direction.z * p.movement.speed
 	else:
-		p.velocity.x = move_toward(p.velocity.x, 0, p.speed * dt)
-		p.velocity.z = move_toward(p.velocity.z, 0, p.speed * dt)
+		p.velocity.x = move_toward(p.velocity.x, 0, p.movement.speed * dt)
+		p.velocity.z = move_toward(p.velocity.z, 0, p.movement.speed * dt)
 
 	_update_camera_alignment(dt, direction.length_squared() > 0.0)
 
@@ -88,7 +98,7 @@ func _update_camera_alignment(dt: float, is_moving: bool) -> void:
 			p.camera_controller.rotation.y = 0
 		else:
 			var target_yaw := p.camera_controller.global_rotation.y
-			var new_yaw := lerp_angle(p.rotation.y, target_yaw, p.turn_speed * dt)
+			var new_yaw := lerp_angle(p.rotation.y, target_yaw, p.movement.turn_speed * dt)
 			var delta := angle_difference(p.rotation.y, new_yaw)
 
 			p.rotation.y = new_yaw
@@ -96,9 +106,9 @@ func _update_camera_alignment(dt: float, is_moving: bool) -> void:
 			# world-space direction stays fixed while the body turns under it
 			p.camera_controller.rotation.y -= delta
 
-			if absf(p.camera_controller.rotation.y) <= ALIGN_ANGLE:
+			if absf(p.camera_controller.rotation.y) <= align_angle:
 				is_camera_aligned = true
-	elif absf(p.camera_controller.rotation.y) >= DISALIGN_ANGLE:
+	elif absf(p.camera_controller.rotation.y) >= disalign_angle:
 		is_camera_aligned = false
 
 
@@ -110,11 +120,11 @@ func _handle_jump(direction: Vector3):
 		jump_hold_time = 0.0
 
 	if Input.is_action_just_released("jump"):
-		var charge_f = min(jump_hold_time/p.max_jump_hold_time, 1.0)
-		var jump_charge = lerp(p.min_jump_charge, 1.0, charge_f)
+		var charge_f = min(jump_hold_time/p.jump.max_jump_hold_time, 1.0)
+		var jump_charge = lerp(p.jump.min_jump_charge, 1.0, charge_f)
 
-		p.velocity.y = p.jump_vertical_velocity * jump_charge
-		p.velocity += direction * p.jump_horizontal_velocity
+		p.velocity.y = p.jump.jump_vertical_velocity * jump_charge
+		p.velocity += direction * p.jump.jump_horizontal_velocity
 		p.set_state(p.StateID.AIR)
 		p.play_jump_effects(jump_charge)
 
@@ -128,11 +138,11 @@ func _update_tilt(dt: float) -> void:
 	var current_tilt_x := p.tilt_pivot.rotation.x
 	var current_tilt_z := p.tilt_pivot.rotation.z
 
-	var target_tilt_x := dir.y * WALK_TILT_X
-	var target_tilt_z := -dir.x * WALK_TILT_Z
+	var target_tilt_x := dir.y * walk_tilt_x
+	var target_tilt_z := -dir.x * walk_tilt_z
 
-	var tilted_x = lerp(current_tilt_x, target_tilt_x, dt * TILT_SPEED)
-	var tilted_z = lerp(current_tilt_z, target_tilt_z, dt * TILT_SPEED)
+	var tilted_x = lerp(current_tilt_x, target_tilt_x, dt * tilt_speed)
+	var tilted_z = lerp(current_tilt_z, target_tilt_z, dt * tilt_speed)
 
 	p.tilt_pivot.rotation.x = tilted_x
 	p.tilt_pivot.rotation.z = tilted_z
@@ -192,9 +202,9 @@ func _calculate_y_body_offset() -> void:
 	var p := player
 
 	var camera_pitch = p.camera_controller.rotation_degrees.x
-	var effective_pitch = camera_pitch - p.neutral_pitch
-	if abs(effective_pitch) > p.min_height_change_look_threshold:
-		body_y_offset = p.max_y_offset if effective_pitch > 0 else p.min_y_offset
+	var effective_pitch = camera_pitch - p.hover.neutral_pitch
+	if abs(effective_pitch) > p.hover.min_height_change_look_threshold:
+		body_y_offset = p.hover.max_y_offset if effective_pitch > 0 else p.hover.min_y_offset
 
 
 func _update_body_y_offset(dt:float) -> void:
@@ -207,5 +217,5 @@ func _update_body_y_offset(dt:float) -> void:
 	var goal_y = average_y + body_y_offset
 	var current_y = p.global_position.y
 	var height_error = goal_y - current_y
-	var target_y_vel = height_error * p.hover_speed
-	p.velocity.y = lerp(p.velocity.y, target_y_vel, dt*p.hover_speed)
+	var target_y_vel = height_error * p.hover.hover_speed
+	p.velocity.y = lerp(p.velocity.y, target_y_vel, dt*p.hover.hover_speed)

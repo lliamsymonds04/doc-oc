@@ -2,41 +2,15 @@ extends CharacterBody3D
 class_name PlayerController
 
 
-@export var speed = 5.0
-@export var turn_speed = 10.0
+@export var movement: MovementConfig
+@export var hover: HoverConfig
+@export var grounded: GroundedConfig
+@export var air: AirConfig
+@export var jump: JumpConfig
+@export var wall_climb: WallClimbConfig
 @export var arm_mounts: Array[ArmMount] = []
 @export var leg_mounts: Array[ArmMount] = []
 @export var raycast_config: ArmRaycastConfig
-
-@export_category("Hover")
-@export var hover_speed = 3.0
-@export var min_y_offset = 2.5
-@export var max_y_offset = 4.0
-@export var min_height_change_look_threshold = 10.0
-@export var height_change_rate = 1.0
-@export var neutral_pitch = -5.0
-
-@export_category("Wall Climb")
-@export var wall_offset: float = 2.0
-@export var wall_raycast_dist: float = 5.0
-@export var ledge_ray_offset: float = 3.0
-@export var ledge_ray_length: float = 5.0
-@export var wall_climb_debounce_time: float = 0.5
-@export var mount_velocity_impulse: float = 5.0
-@export var wall_offset_correction_rate: float = 10.0
-
-@export_category("Air")
-@export var air_accel: float = 2.0
-@export var air_speed: float = 5.0
-@export var air_turn_speed: float = 4.0
-@export var min_turn_authority: float = 0.15
-@export var air_drag: float = 5.0
-
-@export_category("Jump")
-@export var jump_vertical_velocity = 25.0
-@export var jump_horizontal_velocity = 12.0
-@export var max_jump_hold_time = 0.6
-@export var min_jump_charge = 0.5
 
 @export_category("visuals")
 @export var step_vfx: PackedScene
@@ -59,6 +33,20 @@ var _current: PlayerState
 
 var mount_prober: MountProber
 var _jump_audio_player: AudioStreamPlayer3D
+
+func _init() -> void:
+	if movement == null:
+		movement = MovementConfig.new()
+	if hover == null:
+		hover = HoverConfig.new()
+	if grounded == null:
+		grounded = GroundedConfig.new()
+	if air == null:
+		air = AirConfig.new()
+	if jump == null:
+		jump = JumpConfig.new()
+	if wall_climb == null:
+		wall_climb = WallClimbConfig.new()
 
 func _ready() -> void:
 	for mount in arm_mounts + leg_mounts:

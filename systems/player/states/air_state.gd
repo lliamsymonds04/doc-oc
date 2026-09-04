@@ -1,19 +1,6 @@
 class_name AirState
 extends PlayerState
 
-const HAND_VELOCITY_OFFSET_SCALE: float = 0.05
-const HAND_VELOCITY_OFFSET_MAX: float = 1.0
-
-const TILT_PIVOT_ROTATION_SPEED: float = 60.0
-const TILT_PIVOT_ROTATION_SCALE : float = 0.02
-const TILT_FORWARD_LIMIT: float = deg_to_rad(30.0)
-const TILT_BACKWARD_LIMIT: float = deg_to_rad(30.0)
-const TILT_SIDEWAYS_LIMIT: float = deg_to_rad(20.0)
-const LANDING_TRAUMA: float = 0.6
-const HARD_LANDING_SPEED: float = 17.0
-const HARD_LANDING_TRAUMA_MULTIPLIER: float = 1.5
-const LANDING_VFX_RAYCAST_DISTANCE: float = 5.0
-
 var _audio_player: AudioStreamPlayer3D
 var light_landing_sound := preload("res://assets/audio/light_landing.ogg")
 var hard_landing_sound := preload("res://assets/audio/hard_landing.ogg")
@@ -44,8 +31,9 @@ func enter() -> void:
 		mount.set_apply_floor(false)
 
 func calculate_hand_velocity_offset(velocity: Vector3) -> Vector3:
+	var c := player.air
 	var mag = velocity.length()
-	var new_mag = min(mag * HAND_VELOCITY_OFFSET_SCALE, HAND_VELOCITY_OFFSET_MAX)
+	var new_mag = min(mag * c.hand_velocity_offset_scale, c.hand_velocity_offset_max)
 	return velocity.normalized() * new_mag
 
 func physics_update(dt: float) -> void:
@@ -61,24 +49,24 @@ func physics_update(dt: float) -> void:
 	var hvel := Vector3(p.velocity.x, 0.0, p.velocity.z)
 	var speed := hvel.length()
 
-	if speed > p.air_speed:
+	if speed > p.air.air_speed:
 		# Fast: bleed off excess speed, then steer with what's left.
-		if p.air_drag > 0.0:
-			var new_speed := move_toward(speed, p.air_speed, p.air_drag * dt)
+		if p.air.air_drag > 0.0:
+			var new_speed := move_toward(speed, p.air.air_speed, p.air.air_drag * dt)
 			hvel *= new_speed / speed
 			speed = new_speed
 		if direction.length_squared() > 0.0:
 			# Heavy feel: turn authority fades as speed rises above air_speed.
-			var authority: float = clampf(p.air_speed / speed, p.min_turn_authority, 1.0)
+			var authority: float = clampf(p.air.air_speed / speed, p.air.min_turn_authority, 1.0)
 			var angle := hvel.signed_angle_to(direction, Vector3.UP)
-			var turn: float = minf(p.air_turn_speed * authority * dt, absf(angle))
+			var turn: float = minf(p.air.air_turn_speed * authority * dt, absf(angle))
 			hvel = hvel.rotated(Vector3.UP, signf(angle) * turn)
 	else:
 		# Slow: normal control.
 		if direction.length_squared() > 0.0:
-			hvel = hvel.lerp(direction * p.air_speed, dt * p.air_accel)
+			hvel = hvel.lerp(direction * p.air.air_speed, dt * p.air.air_accel)
 		else:
-			hvel = hvel.lerp(Vector3.ZERO, dt * p.air_accel)
+			hvel = hvel.lerp(Vector3.ZERO, dt * p.air.air_accel)
 
 	p.velocity.x = hvel.x
 	p.velocity.z = hvel.z
@@ -94,26 +82,29 @@ func physics_update(dt: float) -> void:
 func _update_tilt(dt: float) -> void:
 	var p := player
 
-	var velocityRotation := p.velocity.y * TILT_PIVOT_ROTATION_SCALE
+	var velocityRotation := p.velocity.y * p.air.air_tilt_rotation_scale
+	var forward_limit := deg_to_rad(p.air.air_tilt_forward_limit_deg)
+	var backward_limit := deg_to_rad(p.air.air_tilt_backward_limit_deg)
 
-	if velocityRotation < -TILT_FORWARD_LIMIT:
-		velocityRotation = -TILT_FORWARD_LIMIT
-	if velocityRotation > TILT_BACKWARD_LIMIT:
-		velocityRotation = TILT_BACKWARD_LIMIT
+	if velocityRotation < -forward_limit:
+		velocityRotation = -forward_limit
+	if velocityRotation > backward_limit:
+		velocityRotation = backward_limit
 
 	p.rotation.y = p.camera_controller.global_rotation.y
 	p.camera_controller.rotation.y = 0
 
 	var current_rot_x := p.tilt_pivot.rotation.x
-	var new_rot_x = lerp(current_rot_x, velocityRotation, dt * TILT_PIVOT_ROTATION_SPEED)
+	var new_rot_x = lerp(current_rot_x, velocityRotation, dt * p.air.air_tilt_rotation_speed)
 	p.tilt_pivot.rotation.x = new_rot_x
 
 	# sideways tilt
 	var right: Vector3 = p.global_transform.basis.x
 	var side_speed: float = p.velocity.dot(right)
+	var sideways_limit := deg_to_rad(p.air.air_tilt_sideways_limit_deg)
 	var current_rot_z := p.tilt_pivot.rotation.z
-	var target_rot_z = min(-side_speed * TILT_PIVOT_ROTATION_SCALE, TILT_SIDEWAYS_LIMIT)
-	var new_rot_z = lerp(current_rot_z, target_rot_z, dt * TILT_PIVOT_ROTATION_SPEED)
+	var target_rot_z = min(-side_speed * p.air.air_tilt_rotation_scale, sideways_limit)
+	var new_rot_z = lerp(current_rot_z, target_rot_z, dt * p.air.air_tilt_rotation_speed)
 	p.tilt_pivot.rotation.z = new_rot_z
 
 func _update_arms() -> void:
@@ -150,13 +141,13 @@ func _check_grounded() -> bool:
 func _play_landed_effect() -> void:
 	var p := player
 
-	var trauma := LANDING_TRAUMA
+	var trauma := p.air.landing_trauma
 	var speed = p.velocity.length()
-	var is_hard_landing = speed >= HARD_LANDING_SPEED
+	var is_hard_landing = speed >= p.air.hard_landing_speed
 
 	if is_hard_landing:
 		_audio_player.stream = hard_landing_sound
-		trauma *= HARD_LANDING_TRAUMA_MULTIPLIER
+		trauma *= p.air.hard_landing_trauma_multiplier
 	else:
 		_audio_player.stream = light_landing_sound
 
@@ -167,7 +158,7 @@ func _play_landed_effect() -> void:
 	# cast from the player in direction of velocity
 	var space_state = p.get_world_3d().direct_space_state
 	var player_pos := p.position
-	var query := PhysicsRayQueryParameters3D.create(player_pos, player_pos + v_dir * LANDING_VFX_RAYCAST_DISTANCE, ~2)
+	var query := PhysicsRayQueryParameters3D.create(player_pos, player_pos + v_dir * p.air.landing_vfx_raycast_distance, ~2)
 	var result = space_state.intersect_ray(query)
 
 	if result:
