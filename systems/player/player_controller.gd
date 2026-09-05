@@ -92,6 +92,7 @@ func _physics_process(dt: float) -> void:
 	_current.physics_update(dt)
 
 	move_and_slide()
+	camera_controller.update_motion(dt,velocity)
 
 func _process(_dt: float) -> void:
 	var horizontal_velocity = velocity * Vector3(1,0,1)

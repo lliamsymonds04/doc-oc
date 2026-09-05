@@ -13,10 +13,19 @@ class_name CameraController
 @export var fov_change_rate: float = 2.0
 @export_range(0.1,4.0,0.05) var fov_curve_exponent: float = 0.5
 
+@export_category("Trail")
+@export var trail_strength: float = 0.06    # forward/back (local Z)
+@export var trail_strength_side: float = 0.1   # strafing (local X)
+@export var trail_strength_vert: float = 0.02   # jumping/falling (local Y)
+@export var trail_rate: float = 5.0
+@export var max_trail: float = 0.8
+@export var max_trail_side: float = 1.0
+@export var max_trail_vert: float = 0.3
 @onready var cam: Camera3D = $CameraShakePivot/Camera3D
 
 var _trauma: float = 0.0
 var _current_speed: float = 0.0
+var _trail := Vector3.ZERO
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -27,6 +36,17 @@ func add_trauma(amount: float) -> void:
 
 func set_current_speed(value: float) -> void:
 	_current_speed = max(value, 0.0)
+
+func update_motion(dt: float, velocity: Vector3) -> void:
+	var local_vel: Vector3 = global_transform.basis.inverse() * velocity
+
+	var target := Vector3(
+		clampf(-local_vel.x * trail_strength_side, -max_trail_side, max_trail_side),
+		clampf(-local_vel.y * trail_strength_vert, -max_trail_vert, max_trail_vert),
+		clampf(-local_vel.z * trail_strength, -max_trail, max_trail)
+	)
+	_trail = _trail.lerp(target, 1.0 - exp(-trail_rate * dt))
+	$CameraShakePivot.position = _trail
 
 func _process(dt: float) -> void:
 	if _trauma > 0:
