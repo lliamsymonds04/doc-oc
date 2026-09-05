@@ -13,6 +13,7 @@ var is_holding_jump := false
 var jump_hold_time := 0.0
 var body_y_offset := 0.0
 var is_camera_aligned := false
+var is_sprinting := false
 
 func _init(p: PlayerController) -> void:
 	super._init(p)
@@ -46,20 +47,27 @@ func enter() -> void:
 			else:
 				mount.sync_from_arm()
 
+func exit() -> void:
+	_set_arms_as_legs(false)
+
 func physics_update(dt: float) -> void:
 	var p := player
 
 	if not p.is_on_floor():
 		p.velocity += p.get_gravity() * dt
 
+	var speed := p.movement.speed
+	if is_sprinting:
+		speed *= p.grounded.sprint_multiplier
+
 	var direction := p.camera_controller.get_input_direction(input_dir)
 	if direction.length_squared() > 0.0:
 		direction = direction.normalized()
-		p.velocity.x = direction.x * p.movement.speed
-		p.velocity.z = direction.z * p.movement.speed
+		p.velocity.x = direction.x * speed
+		p.velocity.z = direction.z * speed
 	else:
-		p.velocity.x = move_toward(p.velocity.x, 0, p.movement.speed * dt)
-		p.velocity.z = move_toward(p.velocity.z, 0, p.movement.speed * dt)
+		p.velocity.x = move_toward(p.velocity.x, 0, speed * dt)
+		p.velocity.z = move_toward(p.velocity.z, 0, speed * dt)
 
 	_update_camera_alignment(dt, direction.length_squared() > 0.0)
 
@@ -87,6 +95,14 @@ func physics_update(dt: float) -> void:
 
 	_update_body_y_offset(dt)
 	_handle_jump(direction)
+
+	var want_sprint := Input.is_action_pressed("sprint")
+	if want_sprint and !is_sprinting:
+		is_sprinting = true
+		_set_arms_as_legs(true)
+	elif is_sprinting and !want_sprint:
+		is_sprinting = false
+		_set_arms_as_legs(false)
 
 
 func _update_camera_alignment(dt: float, is_moving: bool) -> void:
@@ -154,10 +170,22 @@ func _update_legs(dt: float) -> void:
 	var furthest_distance := 0.0
 	var best_arm_hit_pos := Vector3.ZERO
 
-	for mount in p.leg_mounts:
+	var mounts: Array[ArmMount] = p.leg_mounts
+	if is_sprinting:
+		mounts = p.all_mounts()
+
+	for mount in mounts:
 		mount.update_step(p.velocity, dt)
+		var other_mounts_grounded := false
+		var is_horizontal_mount_grounded := mount.horizontal_mount.arm.is_grounded()
+		if is_sprinting:
+			var is_diagonal_grounded := mount.diagonal_mount.arm.is_grounded()
+			other_mounts_grounded = is_horizontal_mount_grounded and is_diagonal_grounded
+		else:
+			other_mounts_grounded = is_horizontal_mount_grounded
+
 		var can_step: bool = mount.step_target != null and ((mount.arm.is_grounded()
-			and mount.horizontal_mount.arm.is_grounded()) or mount.arm.is_fully_extended())
+			and other_mounts_grounded) or mount.arm.is_fully_extended())
 
 		if can_step:
 			var dist = mount.get_step_distance()
@@ -174,6 +202,9 @@ func _update_legs(dt: float) -> void:
 		p.set_state(p.StateID.AIR)
 
 func _update_arms(dt: float) -> void:
+	if is_sprinting:
+		return
+
 	var p := player
 	for mount in p.arm_mounts:
 		mount.update_step(p.velocity, dt)
@@ -219,3 +250,15 @@ func _update_body_y_offset(dt:float) -> void:
 	var height_error = goal_y - current_y
 	var target_y_vel = height_error * p.hover.hover_speed
 	p.velocity.y = lerp(p.velocity.y, target_y_vel, dt*p.hover.hover_speed)
+
+func _set_arms_as_legs(active: bool) -> void:
+	for mount in player.arm_mounts:
+		mount.is_leg = active
+		if not active:
+			mount.arm.start_step(mount.to_global(mount.compute_idle_target()),0.0, Vector3.UP, false)
+
+		else:
+			mount.update_ground_step_target(player.velocity)
+			var step_target = mount.step_target
+			if step_target:
+				mount.arm.start_step(step_target)

@@ -12,3 +12,6 @@ extends Resource
 @export_group("Camera Alignment")
 @export var align_angle_deg: float = 1.0
 @export var disalign_angle_deg: float = 2.0
+
+@export_group("Sprint")
+@export var sprint_multiplier: float = 2.0

@@ -10,11 +10,10 @@ class_name ArmMount
 @export var footstep_volume: float = -5.0
 @export var footstep_debounce: float = 0.15
 
-@export var servo_volume: float = -10.0
+@export var servo_volume: float = -15.0
 @export var servo_debounce: float = 0.1
 
 @export_category("Idle targeting")
-# @export var idle_target: Node3D
 @export var idle_sway_x: float = 0.0
 @export var idle_sway_y: float = 0.0
 @export var idle_sway_speed: float = 1.0
@@ -120,6 +119,20 @@ func compute_idle_target() -> Vector3:
 		idle_pos += Vector3.UP * sin(t * idle_sway_y_mult + sway_phase) * idle_sway_y
 	return idle_pos
 
+func update_ground_step_target(velocity: Vector3) -> void:
+	step_target = null
+
+	_cached_target_world = target_world
+	var velocity_xz := Vector3(velocity.x, 0, velocity.z) * raycast_config.anchor_lead_time
+	var probe_pos := ground_probe.global_position + velocity_xz
+	var hit = get_surface_hit(probe_pos, Vector3.DOWN, raycast_config.step_raycast_distance)
+	if hit != null:
+		var hit_pos: Vector3 = hit.position
+		var disp := (hit_pos - _cached_target_world).length()
+		if disp > raycast_config.max_target_displacement:
+			step_target = hit_pos
+	set_target(_cached_target_world)
+
 func update_step(velocity: Vector3, dt: float) -> void:
 	step_target = null
 
@@ -129,16 +142,7 @@ func update_step(velocity: Vector3, dt: float) -> void:
 		return
 
 	if is_leg:
-		_cached_target_world = target_world
-		var velocity_xz := Vector3(velocity.x, 0, velocity.z) * raycast_config.anchor_lead_time
-		var probe_pos := ground_probe.global_position + velocity_xz
-		var hit = get_surface_hit(probe_pos, Vector3.DOWN, raycast_config.step_raycast_distance)
-		if hit != null:
-			var hit_pos: Vector3 = hit.position
-			var disp := (hit_pos - _cached_target_world).length()
-			if disp > raycast_config.max_target_displacement:
-				step_target = hit_pos
-		set_target(_cached_target_world)
+		update_ground_step_target(velocity)
 	elif idle_target != null:
 		arm.target = compute_idle_target()
 
