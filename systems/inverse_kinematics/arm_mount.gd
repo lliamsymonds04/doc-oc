@@ -13,6 +13,8 @@ class_name ArmMount
 @export var servo_volume: float = -15.0
 @export var servo_debounce: float = 0.1
 
+const EFFECT_SAME_BEAT_WINDOW: float = 0.15
+
 @export_category("Idle targeting")
 @export var idle_sway_x: float = 0.0
 @export var idle_sway_y: float = 0.0
@@ -39,6 +41,7 @@ var step_target: Variant
 var wall_surface_normal: Vector3 = Vector3.ZERO
 var _sway_time: float = 0.0
 var step_effect_debounce: float = 0.0
+var last_effect_time: float = -INF
 
 var target_world: Vector3
 var _cached_target_world: Vector3
@@ -75,7 +78,7 @@ func init(p: PlayerController) -> BasicArm:
 		_audio_player.stream = p.step_sound
 		_audio_player.top_level = true
 		add_child(_audio_player)
-		arm.step_landed.connect(_play_audio)
+		arm.step_landed.connect(_play_landed_sound)
 
 	arm.step_landed.connect(_shake_camera)
 
@@ -89,32 +92,44 @@ func init(p: PlayerController) -> BasicArm:
 
 	return arm
 
-func _play_audio(pos, _normal) -> void:
-	if diagonal_mount.step_effect_debounce > 0.0:
+func _step_effect_suppressed() -> bool:
+	var now := Time.get_ticks_msec() / 1000.0
+	return now - horizontal_mount.last_effect_time < EFFECT_SAME_BEAT_WINDOW \
+		or now - diagonal_mount.last_effect_time < EFFECT_SAME_BEAT_WINDOW
+
+func _stamp_effect() -> void:
+	last_effect_time = Time.get_ticks_msec() / 1000.0
+
+func _play_landed_sound(pos, _normal) -> void:
+	if _step_effect_suppressed():
 		return
 
 	_audio_player.reset_physics_interpolation()
 	_audio_player.position = pos
 	_audio_player.volume_db = footstep_volume
 	step_effect_debounce = footstep_effect_debounce
+	_stamp_effect()
 
 	AudioUtil.play_with_pitch(_audio_player)
 
 func _play_servo(_pos, _normal) -> void:
-	if diagonal_mount.step_effect_debounce > 0.0:
+	if _step_effect_suppressed():
 		return
 
 	_servo_player.volume_db = servo_volume
 	step_effect_debounce = servo_debounce
+	_stamp_effect()
 
 	AudioUtil.play_with_pitch(_servo_player)
 
 func _shake_camera(_pos: Vector3, _normal: Vector3) -> void:
-	if diagonal_mount.step_effect_debounce > 0.0:
+	if _step_effect_suppressed():
 		return
 
 	step_effect_debounce = footstep_effect_debounce
-	player.camera_controller.add_trauma(player.step_trauma)
+	_stamp_effect()
+	var trauma = player.sprint_step_trauma if player.is_sprinting() else player.step_trauma
+	player.camera_controller.add_trauma(trauma)
 
 func compute_idle_target() -> Vector3:
 	if idle_target == null:

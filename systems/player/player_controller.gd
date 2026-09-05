@@ -15,6 +15,7 @@ class_name PlayerController
 @export_category("visuals")
 @export var step_vfx: PackedScene
 @export var step_trauma: float = 0.3
+@export var sprint_step_trauma: float = 0.15
 
 @export_category("Audio")
 @export var step_sound: AudioStreamOggVorbis
@@ -71,6 +72,9 @@ func _ready() -> void:
 
 func all_mounts() -> Array[ArmMount]:
 	return leg_mounts + arm_mounts
+
+func is_sprinting() -> bool:
+	return _current is GroundedState and _current.is_sprinting
 
 func set_state(id: StateID) -> void:
 	if _current == _states[id]:
