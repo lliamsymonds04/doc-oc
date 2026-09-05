@@ -97,7 +97,7 @@ func physics_update(dt: float) -> void:
 		jump_hold_time += dt
 		body_y_offset = 0.5
 	else:
-		_calculate_y_body_offset()
+		_calculate_y_body_offset(dt)
 
 	_update_body_y_offset(dt)
 	_handle_jump(direction)
@@ -246,13 +246,13 @@ func _calculate_average_target_y() -> Variant:
 
 	return total_y / grounded_legs
 
-func _calculate_y_body_offset() -> void:
+func _calculate_y_body_offset(dt: float) -> void:
 	var p := player
 
-	var camera_pitch = p.camera_controller.rotation_degrees.x
-	var effective_pitch = camera_pitch - p.hover.neutral_pitch
-	if abs(effective_pitch) > p.hover.min_height_change_look_threshold:
-		body_y_offset = p.hover.max_y_offset if effective_pitch > 0 else p.hover.min_y_offset
+	if Input.is_action_pressed("up"):
+		body_y_offset = min(body_y_offset + p.hover.target_change_rate * dt, p.hover.max_y_offset)
+	if Input.is_action_pressed("down"):
+		body_y_offset = max(body_y_offset - p.hover.target_change_rate * dt, p.hover.min_y_offset)
 
 
 func _update_body_y_offset(dt:float) -> void:
