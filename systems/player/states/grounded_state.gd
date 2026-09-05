@@ -67,11 +67,13 @@ func physics_update(dt: float) -> void:
 	var direction := p.camera_controller.get_input_direction(input_dir)
 	if direction.length_squared() > 0.0:
 		direction = direction.normalized()
-		p.velocity.x = direction.x * speed
-		p.velocity.z = direction.z * speed
-	else:
-		p.velocity.x = move_toward(p.velocity.x, 0, speed * dt)
-		p.velocity.z = move_toward(p.velocity.z, 0, speed * dt)
+
+	# ramp toward the target velocity so acceleration is a real, sustained
+	# signal instead of an instantaneous step (feeds the camera's pitch/trail)
+	var w := 1.0 - exp(-p.movement.accel * dt)
+	var target := direction * speed
+	p.velocity.x = lerpf(p.velocity.x, target.x, w)
+	p.velocity.z = lerpf(p.velocity.z, target.z, w)
 
 	_update_camera_alignment(dt, direction.length_squared() > 0.0)
 
@@ -163,7 +165,9 @@ func _update_tilt(dt: float) -> void:
 	var target_tilt_z := -dir.x * walk_tilt_z
 
 	if is_sprinting:
-		target_tilt_x = target_tilt_x * c.sprint_tilt_multiplier + sprint_tilt_x
+		target_tilt_x *= c.sprint_tilt_multiplier
+		if dir.y <= 0.0:
+			target_tilt_x += sprint_tilt_x
 		target_tilt_z *= c.sprint_tilt_multiplier
 
 	var tilted_x = lerp(current_tilt_x, target_tilt_x, dt * tilt_speed)

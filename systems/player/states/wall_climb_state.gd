@@ -107,11 +107,15 @@ func _apply_movement(dt: float) -> void:
 	var b := WallClimbArms.wall_basis(average_normal)
 	var direction := b.y * -input_dir.y + b.x * input_dir.x
 	if direction.length_squared() > 0.0:
-		p.velocity = direction.normalized() * p.movement.speed
-	else:
-		p.velocity.x = move_toward(p.velocity.x, 0, p.movement.speed * dt)
-		p.velocity.z = move_toward(p.velocity.z, 0, p.movement.speed * dt)
-		p.velocity.y = move_toward(p.velocity.y, 0, p.movement.speed * dt)
+		direction = direction.normalized()
+
+	# ramp toward the target velocity like the grounded state so acceleration
+	# and deceleration are smoothed instead of an instantaneous step
+	var w := 1.0 - exp(-p.movement.accel * dt)
+	var target := direction * p.movement.speed
+	p.velocity.x = lerpf(p.velocity.x, target.x, w)
+	p.velocity.y = lerpf(p.velocity.y, target.y, w)
+	p.velocity.z = lerpf(p.velocity.z, target.z, w)
 
 	# wall offset still corrects toward gripped wall (after movement so it isn't overwritten)
 	if not result.is_empty():
