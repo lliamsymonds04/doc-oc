@@ -14,6 +14,8 @@ class_name ArmMount
 @export var servo_debounce: float = 0.1
 
 const EFFECT_SAME_BEAT_WINDOW: float = 0.15
+# how far off straight-up a ground surface normal can be and still count as ground
+const MAX_GROUND_NORMAL_ANGLE: float = deg_to_rad(60.0)
 
 @export_category("Idle targeting")
 @export var idle_sway_x: float = 0.0
@@ -150,7 +152,7 @@ func update_ground_step_target(velocity: Vector3) -> void:
 	var velocity_xz := Vector3(velocity.x, 0, velocity.z) * raycast_config.anchor_lead_time
 	var probe_pos := ground_probe.global_position + velocity_xz
 	var hit = get_surface_hit(probe_pos, Vector3.DOWN, raycast_config.step_raycast_distance)
-	if hit != null:
+	if hit != null and hit.normal.angle_to(Vector3.UP) <= MAX_GROUND_NORMAL_ANGLE:
 		var hit_pos: Vector3 = hit.position
 		var disp := (hit_pos - _cached_target_world).length()
 		if disp > raycast_config.max_target_displacement:
