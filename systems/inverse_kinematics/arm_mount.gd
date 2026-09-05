@@ -8,7 +8,7 @@ class_name ArmMount
 @export var horizontal_mount: ArmMount
 
 @export var footstep_volume: float = -5.0
-@export var footstep_debounce: float = 0.15
+@export var footstep_effect_debounce: float = 0.15
 
 @export var servo_volume: float = -15.0
 @export var servo_debounce: float = 0.1
@@ -38,15 +38,15 @@ var _servo_player: AudioStreamPlayer3D
 var step_target: Variant
 var wall_surface_normal: Vector3 = Vector3.ZERO
 var _sway_time: float = 0.0
-var sound_debounce: float = 0.0
+var step_effect_debounce: float = 0.0
 
 var target_world: Vector3
 var _cached_target_world: Vector3
 
 func _process(dt: float) -> void:
 	_sway_time += dt
-	if sound_debounce > 0.0:
-		sound_debounce -= dt
+	if step_effect_debounce > 0.0:
+		step_effect_debounce -= dt
 
 func init(p: PlayerController) -> BasicArm:
 	if vertical_mount == null or horizontal_mount == null:
@@ -77,6 +77,8 @@ func init(p: PlayerController) -> BasicArm:
 		add_child(_audio_player)
 		arm.step_landed.connect(_play_audio)
 
+	arm.step_landed.connect(_shake_camera)
+
 	if p.servo_sound != null:
 		_servo_player = AudioStreamPlayer3D.new()
 		_servo_player.stream = p.servo_sound
@@ -88,24 +90,31 @@ func init(p: PlayerController) -> BasicArm:
 	return arm
 
 func _play_audio(pos, _normal) -> void:
-	if diagonal_mount.sound_debounce > 0.0:
+	if diagonal_mount.step_effect_debounce > 0.0:
 		return
 
 	_audio_player.reset_physics_interpolation()
 	_audio_player.position = pos
 	_audio_player.volume_db = footstep_volume
-	sound_debounce = footstep_debounce
+	step_effect_debounce = footstep_effect_debounce
 
 	AudioUtil.play_with_pitch(_audio_player)
 
 func _play_servo(_pos, _normal) -> void:
-	if diagonal_mount.sound_debounce > 0.0:
+	if diagonal_mount.step_effect_debounce > 0.0:
 		return
 
 	_servo_player.volume_db = servo_volume
-	sound_debounce = servo_debounce
+	step_effect_debounce = servo_debounce
 
 	AudioUtil.play_with_pitch(_servo_player)
+
+func _shake_camera(_pos: Vector3, _normal: Vector3) -> void:
+	if diagonal_mount.step_effect_debounce > 0.0:
+		return
+
+	step_effect_debounce = footstep_effect_debounce
+	player.camera_controller.add_trauma(player.step_trauma)
 
 func compute_idle_target() -> Vector3:
 	if idle_target == null:

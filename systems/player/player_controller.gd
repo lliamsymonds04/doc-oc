@@ -56,10 +56,6 @@ func _ready() -> void:
 		var arm = mount.init(self)
 		arms.append(arm)
 
-		mount.arm.step_landed.connect(func(_pos, _normal):
-			camera_controller.add_trauma(0.3)
-		)
-
 	mount_prober = MountProber.new()
 	mount_prober.init(self)
 
