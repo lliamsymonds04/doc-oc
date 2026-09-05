@@ -14,4 +14,5 @@ extends Resource
 @export var disalign_angle_deg: float = 2.0
 
 @export_group("Sprint")
-@export var sprint_multiplier: float = 2.0
+@export var sprint_multiplier: float = 1.6
+@export var sprint_speed_step_multiplier: float = 1.4

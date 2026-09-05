@@ -48,7 +48,9 @@ func enter() -> void:
 				mount.sync_from_arm()
 
 func exit() -> void:
-	_set_arms_as_legs(false)
+	if is_sprinting:
+		is_sprinting = false
+		_set_arms_as_legs(false)
 
 func physics_update(dt: float) -> void:
 	var p := player
@@ -195,7 +197,11 @@ func _update_legs(dt: float) -> void:
 				best_arm_hit_pos = mount.step_target
 
 	if best_arm != null:
-		best_arm.start_step(best_arm_hit_pos)
+		var step_speed_mult := 1.0
+		if is_sprinting:
+			step_speed_mult = p.grounded.sprint_speed_step_multiplier
+
+		best_arm.start_step(best_arm_hit_pos, 0.0, Vector3.UP, true, step_speed_mult)
 
 	var probe_hits := p.mount_prober.get_leg_probe_hits()
 	if probe_hits.size() == 0  and grounded_debounce <= 0.0:

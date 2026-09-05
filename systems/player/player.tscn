@@ -4,17 +4,12 @@
 [ext_resource type="Script" uid="uid://bx1hb1phl5tnq" path="res://systems/player/player_controller.gd" id="1_ktl23"]
 [ext_resource type="Script" uid="uid://bba0h6wxddaoe" path="res://systems/inverse_kinematics/arm_mount.gd" id="2_fqfg4"]
 [ext_resource type="Script" uid="uid://ci0k2wv8n3bhd" path="res://systems/inverse_kinematics/arm_raycast_config.gd" id="2_q27vv"]
-[ext_resource type="Script" path="res://systems/player/config/movement_config.gd" id="4_mv"]
-[ext_resource type="Script" path="res://systems/player/config/hover_config.gd" id="5_hv"]
-[ext_resource type="Script" path="res://systems/player/config/grounded_config.gd" id="6_gr"]
-[ext_resource type="Script" path="res://systems/player/config/air_config.gd" id="7_air"]
-[ext_resource type="Script" path="res://systems/player/config/jump_config.gd" id="8_jmp"]
-[ext_resource type="Script" path="res://systems/player/config/wall_climb_config.gd" id="10_wc"]
-
-[sub_resource type="Resource" id="Resource_dwurs"]
-script = ExtResource("2_q27vv")
-wall_raycast_distance = 3.5
-metadata/_custom_type_script = "uid://ci0k2wv8n3bhd"
+[ext_resource type="Script" uid="uid://e7i48fc1qy5y" path="res://systems/player/config/movement_config.gd" id="4_mv"]
+[ext_resource type="Script" uid="uid://0id6ded7pmn5" path="res://systems/player/config/hover_config.gd" id="5_hv"]
+[ext_resource type="Script" uid="uid://cpgw28xtxlxan" path="res://systems/player/config/grounded_config.gd" id="6_gr"]
+[ext_resource type="Script" uid="uid://m80ltc0jpisw" path="res://systems/player/config/air_config.gd" id="7_air"]
+[ext_resource type="Script" uid="uid://buqeh3cy7x7lh" path="res://systems/player/config/jump_config.gd" id="8_jmp"]
+[ext_resource type="Script" uid="uid://cyvpqtaweo6au" path="res://systems/player/config/wall_climb_config.gd" id="10_wc"]
 
 [sub_resource type="Resource" id="Resource_movement"]
 script = ExtResource("4_mv")
@@ -34,6 +29,11 @@ script = ExtResource("8_jmp")
 [sub_resource type="Resource" id="Resource_wallclimb"]
 script = ExtResource("10_wc")
 
+[sub_resource type="Resource" id="Resource_dwurs"]
+script = ExtResource("2_q27vv")
+wall_raycast_distance = 3.5
+metadata/_custom_type_script = "uid://ci0k2wv8n3bhd"
+
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m2c1y"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ktl23"]
@@ -51,7 +51,6 @@ height = 0.2
 [node name="Player" type="CharacterBody3D" unique_id=1831706131 node_paths=PackedStringArray("arm_mounts", "leg_mounts")]
 collision_layer = 2
 script = ExtResource("1_ktl23")
-jump_velocity = 1000.0
 movement = SubResource("Resource_movement")
 hover = SubResource("Resource_hover")
 grounded = SubResource("Resource_grounded")
@@ -72,7 +71,8 @@ spring_length = 7.0
 script = ExtResource("1_2anqx")
 sensitivity = 0.04
 
-[node name="CameraShakePivot" type="Node3D" parent="CameraController"]
+[node name="CameraShakePivot" type="Node3D" parent="CameraController" unique_id=214600169]
+physics_interpolation_mode = 2
 
 [node name="Camera3D" type="Camera3D" parent="CameraController/CameraShakePivot" unique_id=1441241849]
 

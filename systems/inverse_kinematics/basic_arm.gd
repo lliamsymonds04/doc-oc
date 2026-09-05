@@ -26,6 +26,7 @@ var step_start: Vector3
 var step_end: Vector3
 var step_normal: Vector3 = Vector3.UP
 var step_progress: float = 0.0
+var step_speed_multiplier: float = 1.0
 
 var _should_emit_landed: bool = true
 var solver: FabrikSolver
@@ -66,18 +67,19 @@ func is_fully_extended(length_percent: float = 1.0) -> bool:
 	var distance := (mount_pos - target_pos).length()
 	return distance > solver.total_length * length_percent
 
-func start_step(to: Vector3, delay := 0.0, surface_normal := Vector3.UP, emit_landed := true) -> void:
+func start_step(to: Vector3, delay := 0.0, surface_normal := Vector3.UP, emit_landed := true, speed_multiplier := 1.0) -> void:
 	is_stepping = true
 	_should_emit_landed = emit_landed
 	step_start = to_global(solver.get_end_effector())
 	step_end = to
-	step_progress = -maxf(delay, 0.0) / step_duration
+	step_progress = -maxf(delay, 0.0) * speed_multiplier / step_duration
 	step_normal = surface_normal
 	solver.floor_normal = _to_local_dir(surface_normal)
 	step_started.emit(step_start, surface_normal)
+	step_speed_multiplier = speed_multiplier
 
 func advance_step(dt: float) -> void:
-	step_progress += dt / step_duration
+	step_progress += dt / step_duration * step_speed_multiplier
 	if step_progress < 0.0:
 		target = to_local(step_start)
 		target_world = step_start
