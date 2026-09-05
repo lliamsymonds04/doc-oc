@@ -4,6 +4,7 @@ extends PlayerState
 var grounded_debounce_time: float
 var walk_tilt_x: float
 var walk_tilt_z: float
+var sprint_tilt_x: float
 var tilt_speed: float
 var align_angle: float
 var disalign_angle: float
@@ -21,6 +22,7 @@ func _init(p: PlayerController) -> void:
 	grounded_debounce_time = c.grounded_debounce_time
 	walk_tilt_x = deg_to_rad(c.walk_tilt_x_deg)
 	walk_tilt_z = deg_to_rad(c.walk_tilt_z_deg)
+	sprint_tilt_x = -deg_to_rad(c.sprint_tilt_x_deg)
 	tilt_speed = c.tilt_speed
 	align_angle = deg_to_rad(c.align_angle_deg)
 	disalign_angle = deg_to_rad(c.disalign_angle_deg)
@@ -148,6 +150,7 @@ func _handle_jump(direction: Vector3):
 
 func _update_tilt(dt: float) -> void:
 	var p := player
+	var c := p.grounded
 
 	var dir := input_dir
 	if dir.length_squared() > 0.0:
@@ -158,6 +161,10 @@ func _update_tilt(dt: float) -> void:
 
 	var target_tilt_x := dir.y * walk_tilt_x
 	var target_tilt_z := -dir.x * walk_tilt_z
+
+	if is_sprinting:
+		target_tilt_x = target_tilt_x * c.sprint_tilt_multiplier + sprint_tilt_x
+		target_tilt_z *= c.sprint_tilt_multiplier
 
 	var tilted_x = lerp(current_tilt_x, target_tilt_x, dt * tilt_speed)
 	var tilted_z = lerp(current_tilt_z, target_tilt_z, dt * tilt_speed)

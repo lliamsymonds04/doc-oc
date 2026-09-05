@@ -7,7 +7,9 @@ extends Resource
 @export_group("Tilt")
 @export var walk_tilt_x_deg: float = 10.0
 @export var walk_tilt_z_deg: float = 5.0
-@export var tilt_speed: float = 1.0
+@export var tilt_speed: float = 2.0
+@export var sprint_tilt_x_deg: float = 20.0
+@export var sprint_tilt_multiplier: float = 2.0
 
 @export_group("Camera Alignment")
 @export var align_angle_deg: float = 1.0
