@@ -106,9 +106,11 @@ func physics_update(dt: float) -> void:
 	if want_sprint and !is_sprinting:
 		is_sprinting = true
 		_set_arms_as_legs(true)
+		p.camera_controller.set_sprinting(true)
 	elif is_sprinting and !want_sprint:
 		is_sprinting = false
 		_set_arms_as_legs(false)
+		p.camera_controller.set_sprinting(false)
 
 
 func _update_camera_alignment(dt: float, is_moving: bool) -> void:

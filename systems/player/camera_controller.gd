@@ -21,11 +21,23 @@ class_name CameraController
 @export var max_trail: float = 0.8
 @export var max_trail_side: float = 1.0
 @export var max_trail_vert: float = 0.3
-@onready var cam: Camera3D = $CameraShakePivot/Camera3D
+# CameraOffset exists so the SpringArm can own its transform (it repositions
+# direct children every physics tick); CameraShakePivot below it is free for
+# per-frame trail/sprint offsets.
+@onready var camera_pivot: Node3D = $CameraOffset/CameraShakePivot
+@onready var cam: Camera3D = $CameraOffset/CameraShakePivot/Camera3D
+
+@export_category("Sprint")
+@export var sprint_blend_rate: float = 5.0
+@export var sprint_y_offset: float = 2.0
+@export var sprint_pitch_offset_deg = 12.0
 
 var _trauma: float = 0.0
 var _current_speed: float = 0.0
 var _trail := Vector3.ZERO
+
+var _sprinting: bool = false
+var _sprint_weight: float = 0.0
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -37,6 +49,10 @@ func add_trauma(amount: float) -> void:
 func set_current_speed(value: float) -> void:
 	_current_speed = max(value, 0.0)
 
+func set_sprinting(active: bool) -> void:
+	_sprinting = active
+
+
 func update_motion(dt: float, velocity: Vector3) -> void:
 	var local_vel: Vector3 = global_transform.basis.inverse() * velocity
 
@@ -46,7 +62,9 @@ func update_motion(dt: float, velocity: Vector3) -> void:
 		clampf(-local_vel.z * trail_strength, -max_trail, max_trail)
 	)
 	_trail = _trail.lerp(target, 1.0 - exp(-trail_rate * dt))
-	$CameraShakePivot.position = _trail
+
+	var world_offset := Vector3.UP * sprint_y_offset * _sprint_weight
+	camera_pivot.position = _trail + global_transform.basis.inverse() * world_offset
 
 func _process(dt: float) -> void:
 	if _trauma > 0:
@@ -68,6 +86,11 @@ func _process(dt: float) -> void:
 	var target_fov = lerpf(base_fov, max_fov, speed_float)
 	var current_fov = cam.fov
 	cam.fov = lerpf(current_fov, target_fov, dt*fov_change_rate)
+
+	_sprint_weight = lerpf(_sprint_weight, 1.0 if _sprinting else 0.0, 1.0 - exp(-sprint_blend_rate*dt))
+
+	cam.rotation_degrees.x = -sprint_pitch_offset_deg * _sprint_weight
+
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _input(event: InputEvent) -> void:

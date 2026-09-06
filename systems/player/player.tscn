@@ -66,15 +66,19 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.99949986, 0)
 shape = SubResource("CapsuleShape3D_m2c1y")
 
 [node name="CameraController" type="SpringArm3D" parent="." unique_id=889996896]
+physics_interpolation_mode = 2
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1461957, 0)
 spring_length = 7.0
 script = ExtResource("1_2anqx")
 sensitivity = 0.04
 
-[node name="CameraShakePivot" type="Node3D" parent="CameraController" unique_id=214600169]
-physics_interpolation_mode = 2
+[node name="CameraOffset" type="Node3D" parent="CameraController" unique_id=359982155]
 
-[node name="Camera3D" type="Camera3D" parent="CameraController/CameraShakePivot" unique_id=1441241849]
+[node name="CameraShakePivot" type="Node3D" parent="CameraController/CameraOffset" unique_id=214600169]
+physics_interpolation_mode = 1
+
+[node name="Camera3D" type="Camera3D" parent="CameraController/CameraOffset/CameraShakePivot" unique_id=1441241849]
+physics_interpolation_mode = 2
 
 [node name="TiltPivot" type="Node3D" parent="." unique_id=566898379]
 
