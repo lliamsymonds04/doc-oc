@@ -9,3 +9,4 @@ class_name ArmRaycastConfig
 @export var wall_inside_cornering_raycast_distance: float = 4.0
 @export var wall_outside_ray_lead: float = 3.0
 @export var shape_cast_radius: float = 0.1
+@export var probe_vertical_offset: float = 2.0

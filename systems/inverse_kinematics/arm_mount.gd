@@ -150,8 +150,9 @@ func update_ground_step_target(velocity: Vector3) -> void:
 
 	_cached_target_world = target_world
 	var velocity_xz := Vector3(velocity.x, 0, velocity.z) * raycast_config.anchor_lead_time
-	var probe_pos := ground_probe.global_position + velocity_xz
-	var hit = get_surface_hit(probe_pos, Vector3.DOWN, raycast_config.step_raycast_distance)
+	var probe_pos: Vector3 = ground_probe.global_position + velocity_xz + Vector3.UP * raycast_config.probe_vertical_offset
+	var hit = get_surface_hit(probe_pos, Vector3.DOWN, raycast_config.step_raycast_distance + raycast_config.probe_vertical_offset)
+
 	if hit != null and hit.normal.angle_to(Vector3.UP) <= MAX_GROUND_NORMAL_ANGLE:
 		var hit_pos: Vector3 = hit.position
 		var max_disp := raycast_config.max_target_displacement

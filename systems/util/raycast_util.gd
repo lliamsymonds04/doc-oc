@@ -64,7 +64,12 @@ static func shape_cast(space: PhysicsDirectSpaceState3D, shape: Shape3D, origin:
 	params.transform = Transform3D(Basis.IDENTITY, origin + motion * safe)
 	var rest := space.get_rest_info(params)
 	if rest.is_empty():
-		params.transform = Transform3D(Basis.IDENTITY, origin + motion * minf(safe + 0.02, 1.0))
+		# absolute nudge: 0.02 world units past the safe point, not 0.02 of the motion,
+		# so a longer cast can't push the shape center through a (concave) surface
+		params.transform = Transform3D(
+			Basis.IDENTITY,
+			origin + motion * safe + motion.normalized() * 0.02
+		)
 		rest = space.get_rest_info(params)
 	if rest.is_empty():
 		return null
