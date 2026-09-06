@@ -154,8 +154,11 @@ func update_ground_step_target(velocity: Vector3) -> void:
 	var hit = get_surface_hit(probe_pos, Vector3.DOWN, raycast_config.step_raycast_distance)
 	if hit != null and hit.normal.angle_to(Vector3.UP) <= MAX_GROUND_NORMAL_ANGLE:
 		var hit_pos: Vector3 = hit.position
+		var max_disp := raycast_config.max_target_displacement
+		if player.is_sprinting():
+			max_disp *= raycast_config.sprint_displacement_mult
 		var disp := (hit_pos - _cached_target_world).length()
-		if disp > raycast_config.max_target_displacement:
+		if disp > max_disp:
 			step_target = hit_pos
 	set_target(_cached_target_world)
 
