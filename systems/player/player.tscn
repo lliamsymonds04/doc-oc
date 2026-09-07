@@ -41,13 +41,6 @@ albedo_color = Color(0.47058824, 1, 1, 1)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_m2c1y"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pftr6"]
-albedo_color = Color(1, 0, 1, 1)
-
-[sub_resource type="SphereMesh" id="SphereMesh_m2c1y"]
-radius = 0.1
-height = 0.2
-
 [node name="Player" type="CharacterBody3D" unique_id=1831706131 node_paths=PackedStringArray("arm_mounts", "leg_mounts")]
 collision_layer = 2
 script = ExtResource("1_ktl23")
@@ -67,7 +60,7 @@ shape = SubResource("CapsuleShape3D_m2c1y")
 
 [node name="CameraController" type="SpringArm3D" parent="." unique_id=889996896]
 physics_interpolation_mode = 2
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1461957, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 spring_length = 7.0
 script = ExtResource("1_2anqx")
 sensitivity = 0.04
@@ -108,10 +101,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5615735, 2.7539291, -1.196
 [node name="WallProbe" type="Node3D" parent="TiltPivot/ArmTopLeft" unique_id=2115885880]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.553, 0)
 
-[node name="DebugMesh" type="MeshInstance3D" parent="TiltPivot/ArmTopLeft/WallProbe" unique_id=1488078873]
-material_override = SubResource("StandardMaterial3D_pftr6")
-mesh = SubResource("SphereMesh_m2c1y")
-
 [node name="ArmTopRight" type="Node3D" parent="TiltPivot" unique_id=2058179573 node_paths=PackedStringArray("vertical_mount", "horizontal_mount")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 1.5054998, 0.377)
 script = ExtResource("2_fqfg4")
@@ -134,10 +123,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.336801, 2.787157, -0.931212
 [node name="WallProbe" type="Node3D" parent="TiltPivot/ArmTopRight" unique_id=696696143]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 1.553, 0)
 
-[node name="DebugMesh" type="MeshInstance3D" parent="TiltPivot/ArmTopRight/WallProbe" unique_id=1285604622]
-material_override = SubResource("StandardMaterial3D_pftr6")
-mesh = SubResource("SphereMesh_m2c1y")
-
 [node name="ArmLeft" type="Node3D" parent="TiltPivot" unique_id=241021393 node_paths=PackedStringArray("vertical_mount", "horizontal_mount")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 1.0994998, 0.377)
 script = ExtResource("2_fqfg4")
@@ -157,10 +142,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.253, 0.2, 0.577)
 [node name="WallProbe" type="Node3D" parent="TiltPivot/ArmLeft" unique_id=964169628]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.283, -0.5, 0)
 
-[node name="DebugMesh" type="MeshInstance3D" parent="TiltPivot/ArmLeft/WallProbe" unique_id=1384942331]
-material_override = SubResource("StandardMaterial3D_pftr6")
-mesh = SubResource("SphereMesh_m2c1y")
-
 [node name="ArmRight" type="Node3D" parent="TiltPivot" unique_id=714455465 node_paths=PackedStringArray("vertical_mount", "horizontal_mount")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.353, 1.0994998, 0.377)
 script = ExtResource("2_fqfg4")
@@ -179,7 +160,3 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.253, 0.2, 0.577)
 
 [node name="WallProbe" type="Node3D" parent="TiltPivot/ArmRight" unique_id=1227139099]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.254, -0.5, 0)
-
-[node name="DebugMesh" type="MeshInstance3D" parent="TiltPivot/ArmRight/WallProbe" unique_id=1864961534]
-material_override = SubResource("StandardMaterial3D_pftr6")
-mesh = SubResource("SphereMesh_m2c1y")
