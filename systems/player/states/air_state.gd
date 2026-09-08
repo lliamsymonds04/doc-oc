@@ -112,7 +112,8 @@ func _update_arms() -> void:
 
 	var hand_velocity_offset = calculate_hand_velocity_offset(p.velocity)
 	for mount in p.all_mounts():
-		mount.arm.target = mount.compute_idle_target() + hand_velocity_offset
+		var local_offset: Vector3 = mount.global_transform.basis.inverse() * hand_velocity_offset
+		mount.arm.target = mount.compute_idle_target() + local_offset
 
 func _check_grounded() -> bool:
 	var p := player
@@ -129,7 +130,7 @@ func _check_grounded() -> bool:
 				mount.sync_from_arm()
 
 		for mount in p.arm_mounts:
-			mount.set_target(mount.compute_idle_target())
+			mount.set_target(mount.to_global(mount.compute_idle_target()))
 
 		p.set_state(p.StateID.GROUNDED)
 		_play_landed_effect()

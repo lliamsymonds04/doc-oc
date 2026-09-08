@@ -35,6 +35,7 @@ class_name CameraController
 var _trauma: float = 0.0
 var _current_speed: float = 0.0
 var _trail := Vector3.ZERO
+var _pending_mouse := Vector2.ZERO
 
 var _sprinting: bool = false
 var _sprint_weight: float = 0.0
@@ -92,13 +93,16 @@ func _process(dt: float) -> void:
 	cam.rotation_degrees.x = -sprint_pitch_offset_deg * _sprint_weight
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
-		rotation_degrees.y -= event.relative.x * sensitivity
-		rotation_degrees.x -= event.relative.y * sensitivity
-		rotation_degrees.x = clampf(rotation_degrees.x, -70, 70)
-		rotation.y = wrapf(rotation.y, -PI, PI)
+		_pending_mouse += event.relative
+
+func _physics_process(_dt: float) -> void:
+	rotation_degrees.y -= _pending_mouse.x * sensitivity
+	rotation_degrees.x -= _pending_mouse.y * sensitivity
+	rotation_degrees.x = clampf(rotation_degrees.x, -70, 70)
+	rotation.y = wrapf(rotation.y, -PI, PI)
+	_pending_mouse = Vector2.ZERO
 
 func get_flat_basis() -> Basis:
 	return Basis(Vector3.UP, global_rotation.y)

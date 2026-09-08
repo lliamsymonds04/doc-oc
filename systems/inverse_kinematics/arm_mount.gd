@@ -52,6 +52,24 @@ func _process(dt: float) -> void:
 	_sway_time += dt
 	if step_effect_debounce > 0.0:
 		step_effect_debounce -= dt
+	if arm == null or arm.is_stepping or idle_target == null or player == null:
+		return
+	if player.is_wall_climbing():
+		return
+	if is_leg and not player.is_airborne():
+		# planted feet: keep world anchor fixed while body turns/interpolates
+		arm.target = arm.to_local(arm.target_world)
+		return
+	var offset := Vector3.ZERO
+	if player.is_airborne():
+		offset = get_air_offset_local()
+	arm.target = compute_idle_target() + offset
+
+func get_air_offset_local() -> Vector3:
+	var world_offset: Vector3 = player.get_air_idle_offset_world()
+	if world_offset == Vector3.ZERO:
+		return Vector3.ZERO
+	return global_transform.basis.inverse() * world_offset
 
 func init(p: PlayerController) -> BasicArm:
 	if vertical_mount == null or horizontal_mount == null:
@@ -173,8 +191,8 @@ func update_step(velocity: Vector3, dt: float) -> void:
 
 	if is_leg:
 		update_ground_step_target(velocity)
-	elif idle_target != null:
-		arm.target = compute_idle_target()
+	# idle (non-leg grounded, all mounts airborne) is owned by _process
+	# so it updates at render rate; physics must not overwrite it here.
 
 func get_step_distance() -> float:
 	if step_target == null:

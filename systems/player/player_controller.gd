@@ -76,6 +76,22 @@ func all_mounts() -> Array[ArmMount]:
 func is_sprinting() -> bool:
 	return _current is GroundedState and _current.is_sprinting
 
+func current_state() -> PlayerState:
+	return _current
+
+func is_airborne() -> bool:
+	return _current is AirState
+
+func is_wall_climbing() -> bool:
+	return _current is WallClimbState
+
+func get_air_idle_offset_world() -> Vector3:
+	var mag := velocity.length()
+	if mag < 0.001:
+		return Vector3.ZERO
+	var new_mag: float = min(mag * air.hand_velocity_offset_scale, air.hand_velocity_offset_max)
+	return velocity.normalized() * new_mag
+
 func set_state(id: StateID) -> void:
 	if _current == _states[id]:
 		return

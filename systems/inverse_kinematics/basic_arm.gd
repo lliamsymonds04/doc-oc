@@ -100,7 +100,9 @@ func advance_step(dt: float) -> void:
 
 
 ## private methods
-func _physics_process(_delta: float) -> void:
+func _process(_delta: float) -> void:
+	if solver == null or pole == null:
+		return
 	var solved := solver.solve(target, Vector3.ZERO, pole.position)
 	_update_visualizer(solved)
 
