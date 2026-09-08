@@ -42,6 +42,7 @@ func physics_update(dt: float) -> void:
 	p.velocity += p.get_gravity() * dt
 
 	_update_tilt(dt)
+	_update_camera_alignment(dt)
 	_update_arms()
 
 	var direction := p.camera_controller.get_input_direction(input_dir)
@@ -79,6 +80,15 @@ func physics_update(dt: float) -> void:
 	if wall_mounted:
 		_play_landed_effect()
 
+func _update_camera_alignment(dt: float) -> void:
+	var p := player
+	var target_yaw := p.camera_controller.global_rotation.y
+	var new_yaw := lerp_angle(p.rotation.y, target_yaw, p.air.air_turn_speed * dt)
+	var delta := angle_difference(p.rotation.y, new_yaw)
+
+	p.rotation.y = new_yaw
+	p.camera_controller.rotation.y -= delta
+
 func _update_tilt(dt: float) -> void:
 	var p := player
 
@@ -91,8 +101,6 @@ func _update_tilt(dt: float) -> void:
 	if velocityRotation > backward_limit:
 		velocityRotation = backward_limit
 
-	p.rotation.y = p.camera_controller.global_rotation.y
-	p.camera_controller.rotation.y = 0
 
 	var current_rot_x := p.tilt_pivot.rotation.x
 	var new_rot_x = lerp(current_rot_x, velocityRotation, dt * p.air.air_tilt_rotation_speed)
