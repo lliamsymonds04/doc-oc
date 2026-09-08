@@ -63,7 +63,10 @@ func _process(dt: float) -> void:
 	var offset := Vector3.ZERO
 	if player.is_airborne():
 		offset = get_air_offset_local()
-	arm.target = compute_idle_target() + offset
+		var desired := compute_idle_target() + offset
+		arm.target = arm.target.lerp(desired, player.air.arm_target_speed * dt)
+	else:
+		arm.target = compute_idle_target()
 
 func get_air_offset_local() -> Vector3:
 	var world_offset: Vector3 = player.get_air_idle_offset_world()

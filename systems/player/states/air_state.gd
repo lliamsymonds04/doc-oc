@@ -25,9 +25,6 @@ func enter() -> void:
 	var p := player
 
 	for mount in p.all_mounts():
-		var idle_pos = mount.compute_idle_target()
-
-		mount.arm.target = idle_pos
 		mount.set_apply_floor(false)
 
 func calculate_hand_velocity_offset(velocity: Vector3) -> Vector3:
@@ -43,7 +40,7 @@ func physics_update(dt: float) -> void:
 
 	_update_tilt(dt)
 	_update_camera_alignment(dt)
-	_update_arms()
+	_update_arms(dt)
 
 	var direction := p.camera_controller.get_input_direction(input_dir)
 
@@ -115,13 +112,14 @@ func _update_tilt(dt: float) -> void:
 	var new_rot_z = lerp(current_rot_z, target_rot_z, dt * p.air.air_tilt_rotation_speed)
 	p.tilt_pivot.rotation.z = new_rot_z
 
-func _update_arms() -> void:
+func _update_arms(dt: float) -> void:
 	var p := player
 
 	var hand_velocity_offset = calculate_hand_velocity_offset(p.velocity)
 	for mount in p.all_mounts():
 		var local_offset: Vector3 = mount.global_transform.basis.inverse() * hand_velocity_offset
-		mount.arm.target = mount.compute_idle_target() + local_offset
+		var desired: Vector3 = mount.compute_idle_target() + local_offset
+		mount.arm.target = mount.arm.target.lerp(desired, p.air.arm_target_speed * dt)
 
 func _check_grounded() -> bool:
 	var p := player

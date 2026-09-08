@@ -9,6 +9,7 @@ extends Resource
 @export var air_drag: float = 5.0
 
 @export_group("Arms")
+@export var arm_target_speed: float = 8.0
 @export var hand_velocity_offset_scale: float = 0.05
 @export var hand_velocity_offset_max: float = 1.0
 
