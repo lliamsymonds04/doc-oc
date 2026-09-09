@@ -277,7 +277,7 @@ func _set_arms_as_legs(active: bool) -> void:
 			mount.arm.start_step(mount.to_global(mount.compute_idle_target()),0.0, Vector3.UP, false)
 
 		else:
-			mount.update_ground_step_target(player.velocity)
+			mount.update_ground_step_target(player.velocity, true)
 			var step_target = mount.step_target
 			if step_target:
 				mount.arm.start_step(step_target)

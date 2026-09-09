@@ -148,6 +148,16 @@ servo_sound = ExtResource("5_3rvo")
 environment = SubResource("Environment_m2c1y")
 
 [node name="CSGCombiner3D" type="CSGCombiner3D" parent="." unique_id=428718861]
+use_collision = true
+
+[node name="CSGBox3D" type="CSGBox3D" parent="CSGCombiner3D" unique_id=109554206]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.685452, 4.2101984, 53.41301)
+size = Vector3(13.8984375, 6.654175, 33.50659)
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="CSGCombiner3D" unique_id=1291569865]
+transform = Transform3D(1, 0, 0, 0, 0.9493963, 0.3140807, 0, -0.3140807, 0.9493963, -4.790811, 8.420397, 49.674313)
+operation = 2
+size = Vector3(16.32312, 6.654175, 33.50659)
 
 [node name="WallB" type="CSGBox3D" parent="." unique_id=1669438976]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 10, 11.69043)

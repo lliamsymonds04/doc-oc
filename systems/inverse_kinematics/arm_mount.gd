@@ -166,7 +166,7 @@ func compute_idle_target() -> Vector3:
 		idle_pos += Vector3.UP * sin(t * idle_sway_y_mult + sway_phase) * idle_sway_y
 	return idle_pos
 
-func update_ground_step_target(velocity: Vector3) -> void:
+func update_ground_step_target(velocity: Vector3, force := false) -> void:
 	step_target = null
 
 	_cached_target_world = target_world
@@ -180,7 +180,7 @@ func update_ground_step_target(velocity: Vector3) -> void:
 		if player.is_sprinting():
 			max_disp *= raycast_config.sprint_displacement_mult
 		var disp := (hit_pos - _cached_target_world).length()
-		if disp > max_disp:
+		if disp > max_disp or force:
 			step_target = hit_pos
 	set_target(_cached_target_world)
 
