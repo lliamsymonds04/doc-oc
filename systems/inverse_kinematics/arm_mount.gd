@@ -8,10 +8,8 @@ class_name ArmMount
 @export var horizontal_mount: ArmMount
 
 @export var footstep_volume: float = -5.0
-@export var footstep_effect_debounce: float = 0.15
 
 @export var servo_volume: float = -15.0
-@export var servo_debounce: float = 0.1
 
 const EFFECT_SAME_BEAT_WINDOW: float = 0.15
 # how far off straight-up a ground surface normal can be and still count as ground
@@ -42,16 +40,14 @@ var _servo_player: AudioStreamPlayer3D
 var step_target: Variant
 var wall_surface_normal: Vector3 = Vector3.ZERO
 var _sway_time: float = 0.0
-var step_effect_debounce: float = 0.0
-var last_effect_time: float = -INF
+var last_landed_time: float = -INF
+var last_servo_time: float = -INF
 
 var target_world: Vector3
 var _cached_target_world: Vector3
 
 func _process(dt: float) -> void:
 	_sway_time += dt
-	if step_effect_debounce > 0.0:
-		step_effect_debounce -= dt
 	if arm == null or arm.is_stepping or idle_target == null or player == null:
 		return
 	if player.is_wall_climbing():
@@ -115,42 +111,45 @@ func init(p: PlayerController) -> BasicArm:
 
 	return arm
 
-func _step_effect_suppressed() -> bool:
+func _step_effect_suppressed(is_servo: bool) -> bool:
 	var now := Time.get_ticks_msec() / 1000.0
-	return now - horizontal_mount.last_effect_time < EFFECT_SAME_BEAT_WINDOW \
-		or now - diagonal_mount.last_effect_time < EFFECT_SAME_BEAT_WINDOW
+	if is_servo:
+		return now - horizontal_mount.last_servo_time < EFFECT_SAME_BEAT_WINDOW \
+			or now - diagonal_mount.last_servo_time < EFFECT_SAME_BEAT_WINDOW
+	return now - horizontal_mount.last_landed_time < EFFECT_SAME_BEAT_WINDOW \
+		or now - diagonal_mount.last_landed_time < EFFECT_SAME_BEAT_WINDOW
 
-func _stamp_effect() -> void:
-	last_effect_time = Time.get_ticks_msec() / 1000.0
+func _stamp_landed() -> void:
+	last_landed_time = Time.get_ticks_msec() / 1000.0
+
+func _stamp_servo() -> void:
+	last_servo_time = Time.get_ticks_msec() / 1000.0
 
 func _play_landed_sound(pos, _normal) -> void:
-	if _step_effect_suppressed():
+	if _step_effect_suppressed(false):
 		return
 
 	_audio_player.reset_physics_interpolation()
 	_audio_player.position = pos
 	_audio_player.volume_db = footstep_volume
-	step_effect_debounce = footstep_effect_debounce
-	_stamp_effect()
+	_stamp_landed()
 
 	AudioUtil.play_with_pitch(_audio_player)
 
 func _play_servo(_pos, _normal) -> void:
-	if _step_effect_suppressed():
+	if _step_effect_suppressed(true):
 		return
 
 	_servo_player.volume_db = servo_volume
-	step_effect_debounce = servo_debounce
-	_stamp_effect()
+	_stamp_servo()
 
 	AudioUtil.play_with_pitch(_servo_player)
 
 func _shake_camera(_pos: Vector3, _normal: Vector3) -> void:
-	if _step_effect_suppressed():
+	if _step_effect_suppressed(false):
 		return
 
-	step_effect_debounce = footstep_effect_debounce
-	_stamp_effect()
+	_stamp_landed()
 	var trauma = player.sprint_step_trauma if player.is_sprinting() else player.step_trauma
 	player.camera_controller.add_trauma(trauma)
 
