@@ -15,3 +15,6 @@ func exit() -> void:
 
 func physics_update(_dt: float) -> void:
 	pass
+
+func frame_update(_dt: float) -> void:
+	pass

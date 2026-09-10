@@ -85,12 +85,6 @@ func is_airborne() -> bool:
 func is_wall_climbing() -> bool:
 	return _current is WallClimbState
 
-func get_air_idle_offset_world() -> Vector3:
-	var mag := velocity.length()
-	if mag < 0.001:
-		return Vector3.ZERO
-	var new_mag: float = min(mag * air.hand_velocity_offset_scale, air.hand_velocity_offset_max)
-	return velocity.normalized() * new_mag
 
 func set_state(id: StateID) -> void:
 	if _current == _states[id]:
@@ -114,7 +108,10 @@ func _physics_process(dt: float) -> void:
 	move_and_slide()
 	camera_controller.update_motion(dt,velocity)
 
-func _process(_dt: float) -> void:
+func _process(dt: float) -> void:
+	if _current:
+		_current.frame_update(dt)
+
 	var horizontal_velocity = velocity * Vector3(1,0,1)
 	var hs := horizontal_velocity.length()
 

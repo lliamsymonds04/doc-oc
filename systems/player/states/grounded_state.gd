@@ -113,6 +113,13 @@ func physics_update(dt: float) -> void:
 		p.camera_controller.set_sprinting(false)
 
 
+func frame_update(dt: float) -> void:
+	for mount in player.all_mounts():
+		if mount.is_leg:
+			mount.update_planted_target()
+		else:
+			mount.update_idle_target(dt)
+
 func _update_camera_alignment(dt: float, is_moving: bool) -> void:
 	var p := player
 

@@ -48,27 +48,21 @@ var _cached_target_world: Vector3
 
 func _process(dt: float) -> void:
 	_sway_time += dt
-	if arm == null or arm.is_stepping or idle_target == null or player == null:
-		return
-	if player.is_wall_climbing():
-		return
-	if is_leg and not player.is_airborne():
-		# planted feet: keep world anchor fixed while body turns/interpolates
-		arm.target = arm.to_local(arm.target_world)
-		return
-	var offset := Vector3.ZERO
-	if player.is_airborne():
-		offset = get_air_offset_local()
-		var desired := compute_idle_target() + offset
-		arm.target = arm.target.lerp(desired, player.air.arm_target_speed * dt)
-	else:
-		arm.target = compute_idle_target()
 
-func get_air_offset_local() -> Vector3:
-	var world_offset: Vector3 = player.get_air_idle_offset_world()
-	if world_offset == Vector3.ZERO:
-		return Vector3.ZERO
-	return global_transform.basis.inverse() * world_offset
+func update_idle_target(dt: float, lerp_speed := 0.0, world_offset := Vector3.ZERO) -> void:
+	if arm == null or arm.is_stepping:
+		return
+	var desired := compute_idle_target()
+	if world_offset != Vector3.ZERO:
+		desired += global_transform.basis.inverse() * world_offset
+	if lerp_speed > 0.0:
+		arm.target = arm.target.lerp(desired, lerp_speed * dt)
+	else:
+		arm.target = desired
+func update_planted_target() -> void:
+	if arm == null or arm.is_stepping:
+		return
+	arm.target = arm.to_local(arm.target_world)
 
 func init(p: PlayerController) -> BasicArm:
 	if vertical_mount == null or horizontal_mount == null:
@@ -193,8 +187,6 @@ func update_step(velocity: Vector3, dt: float) -> void:
 
 	if is_leg:
 		update_ground_step_target(velocity)
-	# idle (non-leg grounded, all mounts airborne) is owned by _process
-	# so it updates at render rate; physics must not overwrite it here.
 
 func get_step_distance() -> float:
 	if step_target == null:
