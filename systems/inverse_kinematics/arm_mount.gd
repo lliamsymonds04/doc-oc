@@ -49,21 +49,6 @@ var _cached_target_world: Vector3
 func _process(dt: float) -> void:
 	_sway_time += dt
 
-func update_idle_target(dt: float, lerp_speed := 0.0, world_offset := Vector3.ZERO) -> void:
-	if arm == null or arm.is_stepping:
-		return
-	var desired := compute_idle_target()
-	if world_offset != Vector3.ZERO:
-		desired += global_transform.basis.inverse() * world_offset
-	if lerp_speed > 0.0:
-		arm.target = arm.target.lerp(desired, lerp_speed * dt)
-	else:
-		arm.target = desired
-func update_planted_target() -> void:
-	if arm == null or arm.is_stepping:
-		return
-	arm.target = arm.to_local(arm.target_world)
-
 func init(p: PlayerController) -> BasicArm:
 	if vertical_mount == null or horizontal_mount == null:
 		push_error("vertical and horizontal mount must be set")
@@ -104,6 +89,68 @@ func init(p: PlayerController) -> BasicArm:
 	diagonal_mount = horizontal_mount.vertical_mount
 
 	return arm
+
+func update_idle_target(dt: float, lerp_speed := 0.0, world_offset := Vector3.ZERO) -> void:
+	if arm == null or arm.is_stepping:
+		return
+
+	var desired := compute_idle_target()
+	if world_offset != Vector3.ZERO:
+		desired += global_transform.basis.inverse() * world_offset
+
+	if lerp_speed > 0.0:
+		arm.target = arm.target.lerp(desired, lerp_speed * dt)
+	else:
+		arm.target = desired
+
+	arm.target_world = to_global(arm.target)
+	_cached_target_world = arm.target_world
+
+func update_planted_target() -> void:
+	if arm == null or arm.is_stepping:
+		return
+	arm.target = arm.to_local(arm.target_world)
+
+func compute_idle_target() -> Vector3:
+	if idle_target == null:
+		return ground_probe.position
+
+	var idle_pos = idle_target.position
+	var t := _sway_time * idle_sway_speed
+	if idle_sway_x != 0.0:
+		idle_pos += Vector3.RIGHT * sin(t + sway_phase) * idle_sway_x
+	if idle_sway_y != 0.0:
+		idle_pos += Vector3.UP * sin(t * idle_sway_y_mult + sway_phase) * idle_sway_y
+	return idle_pos
+
+func update_ground_step_target(velocity: Vector3, force := false) -> void:
+	step_target = null
+
+	_cached_target_world = target_world
+	var velocity_xz := Vector3(velocity.x, 0, velocity.z) * raycast_config.anchor_lead_time
+	var probe_pos: Vector3 = ground_probe.global_position + velocity_xz + Vector3.UP * raycast_config.probe_vertical_offset
+	var hit = get_surface_hit(probe_pos, Vector3.DOWN, raycast_config.step_raycast_distance + raycast_config.probe_vertical_offset)
+
+	if hit != null and hit.normal.angle_to(Vector3.UP) <= MAX_GROUND_NORMAL_ANGLE:
+		var hit_pos: Vector3 = hit.position
+		var max_disp := raycast_config.max_target_displacement
+		if player.is_sprinting():
+			max_disp *= raycast_config.sprint_displacement_mult
+		var disp := (hit_pos - _cached_target_world).length()
+		if disp > max_disp or force:
+			step_target = hit_pos
+	set_target(_cached_target_world)
+
+func update_step(velocity: Vector3, dt: float) -> void:
+	step_target = null
+
+	if arm.is_stepping:
+		arm.advance_step(dt)
+		sync_from_arm()
+		return
+
+	if is_leg:
+		update_ground_step_target(velocity)
 
 func _step_effect_suppressed(is_servo: bool) -> bool:
 	var now := Time.get_ticks_msec() / 1000.0
@@ -146,47 +193,6 @@ func _shake_camera(_pos: Vector3, _normal: Vector3) -> void:
 	_stamp_landed()
 	var trauma = player.sprint_step_trauma if player.is_sprinting() else player.step_trauma
 	player.camera_controller.add_trauma(trauma)
-
-func compute_idle_target() -> Vector3:
-	if idle_target == null:
-		return ground_probe.position
-
-	var idle_pos = idle_target.position
-	var t := _sway_time * idle_sway_speed
-	if idle_sway_x != 0.0:
-		idle_pos += Vector3.RIGHT * sin(t + sway_phase) * idle_sway_x
-	if idle_sway_y != 0.0:
-		idle_pos += Vector3.UP * sin(t * idle_sway_y_mult + sway_phase) * idle_sway_y
-	return idle_pos
-
-func update_ground_step_target(velocity: Vector3, force := false) -> void:
-	step_target = null
-
-	_cached_target_world = target_world
-	var velocity_xz := Vector3(velocity.x, 0, velocity.z) * raycast_config.anchor_lead_time
-	var probe_pos: Vector3 = ground_probe.global_position + velocity_xz + Vector3.UP * raycast_config.probe_vertical_offset
-	var hit = get_surface_hit(probe_pos, Vector3.DOWN, raycast_config.step_raycast_distance + raycast_config.probe_vertical_offset)
-
-	if hit != null and hit.normal.angle_to(Vector3.UP) <= MAX_GROUND_NORMAL_ANGLE:
-		var hit_pos: Vector3 = hit.position
-		var max_disp := raycast_config.max_target_displacement
-		if player.is_sprinting():
-			max_disp *= raycast_config.sprint_displacement_mult
-		var disp := (hit_pos - _cached_target_world).length()
-		if disp > max_disp or force:
-			step_target = hit_pos
-	set_target(_cached_target_world)
-
-func update_step(velocity: Vector3, dt: float) -> void:
-	step_target = null
-
-	if arm.is_stepping:
-		arm.advance_step(dt)
-		sync_from_arm()
-		return
-
-	if is_leg:
-		update_ground_step_target(velocity)
 
 func get_step_distance() -> float:
 	if step_target == null:
