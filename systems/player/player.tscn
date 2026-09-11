@@ -90,7 +90,7 @@ idle_sway_y = 0.1
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
 [node name="GroundProbe" type="Marker3D" parent="TiltPivot/ArmTopLeft" unique_id=630538761]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.4220326, -1.513683)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, -1.422, -2.333)
 
 [node name="IdleTarget" type="Marker3D" parent="TiltPivot/ArmTopLeft" unique_id=1476587123]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.122, 1.4203327, -3.1366746)
@@ -112,7 +112,7 @@ sway_phase = 3.14159265358979
 metadata/_custom_type_script = "uid://bba0h6wxddaoe"
 
 [node name="GroundProbe" type="Marker3D" parent="TiltPivot/ArmTopRight" unique_id=1012489981]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.4184881, -1.5244104)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, -1.4184881, -2.3332615)
 
 [node name="IdleTarget" type="Marker3D" parent="TiltPivot/ArmTopRight" unique_id=1108706562]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1221828, 1.5599794, -2.9131262)

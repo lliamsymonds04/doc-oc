@@ -99,7 +99,6 @@ func update_arms(dt: float, input_dir: Vector2, average_normal: Vector3) -> void
 
 		if mount.arm.is_stepping:
 			mount.arm.advance_step(dt)
-			mount.target_world = mount.arm.target_world
 			continue
 
 		if not _can_step(mount):
@@ -147,7 +146,7 @@ func _can_step(mount: ArmMount) -> bool:
 func _pick(mount: ArmMount, hit, min_dist: float, mode: CorneringType, best_dist: float):
 	if mount.step_target == null:
 		return null
-	var dist: float = (mount.target_world - mount.step_target).length()
+	var dist: float = (mount.arm.target_world - mount.step_target).length()
 	if dist > best_dist and dist >= min_dist:
 		return {"mount": mount, "hit": hit, "mode": mode, "dist": dist}
 	return null

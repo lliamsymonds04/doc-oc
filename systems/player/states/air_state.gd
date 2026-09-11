@@ -129,9 +129,6 @@ func _check_grounded() -> bool:
 				if hit_pos:
 					mount.set_target(hit_pos)
 
-			else:
-				mount.sync_from_arm()
-
 		for mount in p.arm_mounts:
 			mount.set_target(mount.to_global(mount.compute_idle_target()))
 
