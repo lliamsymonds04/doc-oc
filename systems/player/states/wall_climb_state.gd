@@ -123,6 +123,7 @@ func _apply_movement(dt: float) -> void:
 		if surface_normal.dot(average_normal) >= max_wall_normal_deviation_dot:
 			var hit_pos: Vector3 = result["position"] as Vector3
 			var distance_from_wall: float = (hit_pos - p.position).length()
+			arms.player_distance_from_wall = distance_from_wall
 			var distance_error := distance_from_wall - p.wall_climb.wall_offset
 			var target_normal_vel: Vector3 = -average_normal * distance_error * p.wall_climb.wall_offset_correction_rate
 			var normal_comp := average_normal * p.velocity.dot(average_normal)

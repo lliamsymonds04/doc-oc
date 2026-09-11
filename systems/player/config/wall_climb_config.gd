@@ -46,3 +46,4 @@ extends Resource
 @export var inside_corner_min_normal_diff_angle_deg: float = 70.0
 @export var outside_corner_min_side_angle_deg: float = 65.0
 @export var outside_corner_max_parallel_angle_deg: float = 45.0
+@export var outside_cornering_min_edge_offset: float = 0.2

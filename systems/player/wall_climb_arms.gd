@@ -18,6 +18,7 @@ var outside_corner_min_side_dot: float
 var outside_corner_max_parallel_dot: float
 
 var player: PlayerController
+var player_distance_from_wall: float = 0.0
 
 # cornering machinery — owned here so selection and effects stay together
 var wall_normal: Vector3 = Vector3.ZERO
@@ -196,6 +197,12 @@ func _try_outside_corner(mount: ArmMount, side_dir: Vector3, average_normal: Vec
 
 	# reject hits on surfaces buried inside another wall (overlap seams)
 	if not _hit_is_exposed(mount, side_result):
+		return null
+
+	var hit_pos: Vector3 = side_result["position"]
+	var hit_pos_local: Vector3 = player.to_local(hit_pos)
+	var edge_distance := hit_pos_local.z + player_distance_from_wall
+	if edge_distance > -p.wall_climb.outside_cornering_min_edge_offset:
 		return null
 
 	mount.step_target = side_result["position"]
