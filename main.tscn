@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://b3un13prji6wu" path="res://assets/textures/dark_grid.png" id="1_h2yge"]
 [ext_resource type="PackedScene" uid="uid://cidasq88868wo" path="res://systems/player/player.tscn" id="1_ig7tw"]
 [ext_resource type="Texture2D" uid="uid://80w2bs0a2buc" path="res://assets/textures/purple_grid.png" id="3_h2yge"]
+[ext_resource type="Script" uid="uid://0id6ded7pmn5" path="res://systems/player/config/hover_config.gd" id="3_kek77"]
 [ext_resource type="PackedScene" uid="uid://brn1hvq3t07v6" path="res://assets/vfx/step.tscn" id="3_lquwl"]
 [ext_resource type="AudioStream" uid="uid://1sxmmmntjnfy" path="res://assets/audio/footstep.ogg" id="4_7mycd"]
 [ext_resource type="AudioStream" uid="uid://i3cgbpcxm2xh" path="res://assets/audio/small_servo.ogg" id="5_3rvo"]
@@ -42,6 +43,10 @@ roughness = 0.45
 [sub_resource type="StandardMaterial3D" id="BoxMat_purple"]
 albedo_color = Color(0.62, 0.33, 1, 1)
 roughness = 0.45
+
+[sub_resource type="Resource" id="Resource_b5y0m"]
+script = ExtResource("3_kek77")
+metadata/_custom_type_script = "uid://0id6ded7pmn5"
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.16, 0.38, 0.92, 1)
@@ -140,6 +145,7 @@ material = SubResource("BoxMat_purple")
 
 [node name="CharacterBody3D" parent="." unique_id=1831706131 instance=ExtResource("1_ig7tw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.682001, 0.08204651, 21.104301)
+hover = SubResource("Resource_b5y0m")
 step_vfx = ExtResource("3_lquwl")
 step_sound = ExtResource("4_7mycd")
 servo_sound = ExtResource("5_3rvo")

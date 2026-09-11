@@ -10,6 +10,7 @@ extends Resource
 @export var tilt_speed: float = 2.0
 @export var sprint_tilt_x_deg: float = 20.0
 @export var sprint_tilt_multiplier: float = 2.0
+@export var normal_smoothing_rate: float = 10.0
 
 @export_group("Camera Alignment")
 @export var align_angle_deg: float = 1.0

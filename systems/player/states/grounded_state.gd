@@ -15,6 +15,8 @@ var jump_hold_time := 0.0
 var body_y_offset := 0.0
 var is_camera_aligned := false
 var is_sprinting := false
+var leg_probe_hits: Dictionary = {}
+var floor_normal := Vector3.UP
 
 func _init(p: PlayerController) -> void:
 	super._init(p)
@@ -35,6 +37,7 @@ func enter() -> void:
 	is_holding_jump = false
 	body_y_offset = (p.hover.min_y_offset + p.hover.max_y_offset) / 2.0
 	is_camera_aligned = absf(p.camera_controller.rotation.y) <= align_angle
+	floor_normal = Vector3.UP
 
 	for mount in p.leg_mounts:
 		mount.set_apply_floor(true)
@@ -83,7 +86,7 @@ func physics_update(dt: float) -> void:
 	if not p.is_in_state(p.StateID.GROUNDED):
 		return
 
-	var mounted := p.mount_prober.try_mount_wall(input_dir, p.velocity)
+	var mounted = p.mount_prober.try_mount_wall(input_dir, p.velocity)
 	if mounted:
 		return
 
@@ -95,6 +98,8 @@ func physics_update(dt: float) -> void:
 		if grounded_debounce < 0.0:
 			for mount in p.arm_mounts:
 				mount.set_apply_floor(true)
+
+	_update_floor_normal(dt)
 
 	if is_holding_jump:
 		jump_hold_time += dt
@@ -226,8 +231,8 @@ func _update_legs(dt: float) -> void:
 
 		best_arm.start_step(best_arm_hit_pos, 0.0, Vector3.UP, true, step_speed_mult)
 
-	var probe_hits := p.mount_prober.get_leg_probe_hits()
-	if probe_hits.size() == 0  and grounded_debounce <= 0.0:
+	leg_probe_hits = p.mount_prober.get_leg_probe_hits()
+	if leg_probe_hits.size() == 0 and grounded_debounce <= 0.0:
 		p.set_state(p.StateID.AIR)
 
 func _update_arms(dt: float) -> void:
@@ -266,6 +271,20 @@ func _calculate_y_body_offset(dt: float) -> void:
 	if Input.is_action_pressed("down"):
 		body_y_offset = max(body_y_offset - p.hover.target_change_rate * dt, p.hover.min_y_offset)
 
+func _update_floor_normal(dt: float) -> void:
+	var p := player
+	var avg := Vector3.ZERO
+
+	var hits := leg_probe_hits.values()
+	if hits.size() == 0:
+		return
+
+	for hit in hits:
+		avg += hit.normal
+
+	avg = avg.normalized()
+	var w := 1.0 - exp(-p.grounded.normal_smoothing_rate * dt)
+	floor_normal = floor_normal.lerp(avg,w).normalized()
 
 func _update_body_y_offset(dt:float) -> void:
 	var p := player
@@ -277,8 +296,18 @@ func _update_body_y_offset(dt:float) -> void:
 	var goal_y = average_y + body_y_offset
 	var current_y = p.global_position.y
 	var height_error = goal_y - current_y
-	var target_y_vel = height_error * p.hover.hover_speed
-	p.velocity.y = lerp(p.velocity.y, target_y_vel, dt*p.hover.hover_speed)
+
+	var tracking := p.hover.hover_speed * p.hover.damping * 4.0 # 4 is critical damping factor here
+	var w := 1.0 - exp(-tracking * dt)
+
+	var gravity_ff := -p.get_gravity().y / tracking
+
+	var climb_ff := 0.0
+	if floor_normal.y > 0.2:
+		climb_ff = -(p.velocity.x * floor_normal.x + p.velocity.z * floor_normal.z)/floor_normal.y
+
+	var target_y_vel = height_error * p.hover.hover_speed + gravity_ff + climb_ff
+	p.velocity.y = lerp(p.velocity.y, target_y_vel, w)
 
 func _set_arms_as_legs(active: bool) -> void:
 	for mount in player.arm_mounts:
