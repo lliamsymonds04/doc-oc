@@ -25,3 +25,4 @@ extends Resource
 @export var hard_landing_speed: float = 17.0
 @export var hard_landing_trauma_multiplier: float = 1.5
 @export var landing_vfx_raycast_distance: float = 5.0
+@export var air_debounce: float = 0.2

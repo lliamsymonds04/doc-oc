@@ -80,7 +80,12 @@ func physics_update(dt: float) -> void:
 	_update_legs(dt)
 	_update_arms(dt)
 
-	p.mount_prober.try_mount_wall(input_dir, p.velocity)
+	if not p.is_in_state(p.StateID.GROUNDED):
+		return
+
+	var mounted := p.mount_prober.try_mount_wall(input_dir, p.velocity)
+	if mounted:
+		return
 
 	if p.wall_climb_debounce > 0.0:
 		p.wall_climb_debounce -= dt

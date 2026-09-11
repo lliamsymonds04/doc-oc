@@ -8,6 +8,8 @@ var hard_landing_sound := preload("res://assets/audio/hard_landing.ogg")
 var landing_vfx_scene := preload("res://assets/vfx/landing_vfx.tscn")
 var _landing_vfx: ImpactVFX
 
+var air_debounce := 0.0
+
 func _init(p: PlayerController) -> void:
 	super._init(p)
 
@@ -23,6 +25,7 @@ func _init(p: PlayerController) -> void:
 
 func enter() -> void:
 	var p := player
+	air_debounce = p.air.air_debounce
 
 	for mount in p.all_mounts():
 		mount.set_apply_floor(false)
@@ -68,9 +71,13 @@ func physics_update(dt: float) -> void:
 	p.velocity.x = hvel.x
 	p.velocity.z = hvel.z
 
-	var is_grounded = _check_grounded()
-	if is_grounded:
+	if air_debounce > 0.0:
+		air_debounce -= dt
 		return
+	else:
+		var is_grounded = _check_grounded()
+		if is_grounded:
+			return
 
 	var wall_mounted = p.mount_prober.try_mount_wall(input_dir, p.velocity)
 	if wall_mounted:

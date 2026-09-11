@@ -6,6 +6,7 @@ var player: PlayerController
 func init(p: PlayerController):
 	player = p
 
+const VERTICAL_SURFACE_NORMAL_CHECK := acos(deg_to_rad(45))
 
 func try_mount_wall(input: Vector2, player_velocity: Vector3) -> bool:
 	var p := player
@@ -52,6 +53,9 @@ func get_leg_probe_hits() -> Dictionary:
 		var probe_pos := mount.ground_probe.global_position
 		var hit = mount.get_surface_hit(probe_pos, Vector3.DOWN, player.raycast_config.step_raycast_distance)
 		if hit:
+			## check the surface normal
+			if (hit.normal as Vector3).dot(Vector3.UP) < VERTICAL_SURFACE_NORMAL_CHECK:
+				continue
 			probe_hits[mount] = hit
 
 	return probe_hits

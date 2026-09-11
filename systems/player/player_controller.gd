@@ -79,6 +79,9 @@ func is_sprinting() -> bool:
 func current_state() -> PlayerState:
 	return _current
 
+func is_in_state(id: StateID) -> bool:
+	return _current == _states[id]
+
 func is_airborne() -> bool:
 	return _current is AirState
 
