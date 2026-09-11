@@ -1,7 +1,15 @@
 [gd_scene format=3 uid="uid://fqe70d8uduc6"]
 
 [ext_resource type="PackedScene" uid="uid://d07l4xvcqt7ft" path="res://ui/crosshair.tscn" id="1_rbyyf"]
+[ext_resource type="Script" uid="uid://c1yy3j3seh5qc" path="res://ui/pause_menu.gd" id="2_276te"]
 
 [node name="Hud" type="CanvasLayer" unique_id=395865671]
 
 [node name="Crosshair" parent="." unique_id=682692616 instance=ExtResource("1_rbyyf")]
+
+[node name="Control" type="Control" parent="." unique_id=705611226]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("2_276te")
