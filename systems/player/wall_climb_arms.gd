@@ -66,6 +66,8 @@ func update_cornering(dt: float) -> void:
 	cornering_timer -= dt
 	if cornering_timer <= 0:
 		is_cornering = false
+		for mount in player.all_mounts():
+			mount.set_apply_floor(true)
 
 	var remaining := maxf(cornering_timer, dt)
 	var weight := dt / remaining
@@ -136,6 +138,9 @@ func update_arms(dt: float, input_dir: Vector2, average_normal: Vector3) -> void
 				cornering_mode = cand.mode
 
 	if best_mount != null:
+		if cornering_mode != CorneringType.NONE:
+			for mount in player.all_mounts():
+				mount.set_apply_floor(false)
 		_commit_step(best_mount, best_hit, cornering_mode)
 
 func _can_step(mount: ArmMount) -> bool:

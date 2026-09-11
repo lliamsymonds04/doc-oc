@@ -21,6 +21,11 @@ func exit() -> void:
 
 	arms.reset()
 
+func enter() -> void:
+	for mount in player.all_mounts():
+		mount.set_apply_floor(true)
+
+
 func _init(p: PlayerController) -> void:
 	super._init(p)
 	var c := p.wall_climb
