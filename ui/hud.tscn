@@ -2,6 +2,13 @@
 
 [ext_resource type="PackedScene" uid="uid://d07l4xvcqt7ft" path="res://ui/crosshair.tscn" id="1_rbyyf"]
 [ext_resource type="Script" uid="uid://c1yy3j3seh5qc" path="res://ui/pause_menu.gd" id="2_276te"]
+[ext_resource type="Shader" uid="uid://bu60as08yka86" path="res://shaders/blur.gdshader" id="3_546lt"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_m2c1y"]
+shader = ExtResource("3_546lt")
+shader_parameter/blur_amount = 3.0
+shader_parameter/mix_amount = 0.0
+shader_parameter/color_overlay = Color(0, 0, 0, 1)
 
 [node name="Hud" type="CanvasLayer" unique_id=395865671]
 
@@ -9,7 +16,21 @@
 
 [node name="Control" type="Control" parent="." unique_id=705611226]
 layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 script = ExtResource("2_276te")
+
+[node name="ColorRect" type="ColorRect" parent="Control" unique_id=1969772998]
+material = SubResource("ShaderMaterial_m2c1y")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.7411765, 1, 1, 1)
