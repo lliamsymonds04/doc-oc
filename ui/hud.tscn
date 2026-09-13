@@ -3,12 +3,30 @@
 [ext_resource type="PackedScene" uid="uid://d07l4xvcqt7ft" path="res://ui/crosshair.tscn" id="1_rbyyf"]
 [ext_resource type="Script" uid="uid://c1yy3j3seh5qc" path="res://ui/pause_menu.gd" id="2_276te"]
 [ext_resource type="Shader" uid="uid://bu60as08yka86" path="res://shaders/blur.gdshader" id="3_546lt"]
+[ext_resource type="PackedScene" uid="uid://cnd56v71x1mrb" path="res://ui/pause_menu_button.tscn" id="4_7ihmi"]
+[ext_resource type="Texture2D" uid="uid://dquvt5q36wrht" path="res://assets/ui/panel-border-025.png" id="5_en2x2"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_m2c1y"]
 shader = ExtResource("3_546lt")
 shader_parameter/blur_amount = 0.0
 shader_parameter/mix_amount = 0.0
-shader_parameter/color_overlay = Color(0.7764706, 1, 1, 1)
+shader_parameter/color_overlay = Color(0.5882353, 1, 1, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1v5rv"]
+texture = ExtResource("5_en2x2")
+texture_margin_left = 20.0
+texture_margin_top = 20.0
+texture_margin_right = 20.0
+texture_margin_bottom = 20.0
+modulate_color = Color(0.7, 0.7, 0.7, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_q43x7"]
+texture = ExtResource("5_en2x2")
+texture_margin_left = 20.0
+texture_margin_top = 20.0
+texture_margin_right = 20.0
+texture_margin_bottom = 20.0
+modulate_color = Color(1.25, 1.25, 1.25, 1)
 
 [node name="Hud" type="CanvasLayer" unique_id=395865671]
 
@@ -34,3 +52,20 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="Button" parent="PauseMenu" unique_id=1557939307 instance=ExtResource("4_7ihmi")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -30.0
+offset_right = 100.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/pressed = SubResource("StyleBoxTexture_1v5rv")
+theme_override_styles/hover = SubResource("StyleBoxTexture_q43x7")
+hover_tween_duration = null
