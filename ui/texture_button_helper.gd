@@ -11,8 +11,11 @@ class_name TextureButtonHelper
 @export var pressed_size_factor := 0.95
 
 @export_category("Sounds")
-@export var hover_sound: AudioStreamOggVorbis = null
+@export var hover_sound: AudioStreamOggVorbis
 @export var pressed_sound: AudioStreamOggVorbis
+@export_range(-10, 5) var hover_volume = -5.0
+@export_range(-10, 5) var pressed_volume = 0.0
+
 
 @onready var audio_player = $AudioStreamPlayer2D
 
@@ -46,15 +49,16 @@ func _animate_scale(t: float) -> void:
 	effect_tween = create_tween()
 	effect_tween.tween_property(self, "scale", Vector2(t, t), scale_tween_duration)
 
-func _play_sound(sound: AudioStreamOggVorbis) -> void:
+func _play_sound(sound: AudioStreamOggVorbis, volume: float) -> void:
 	if sound != null:
 		audio_player.stream = sound
-		audio_player.play()
+		audio_player.volume_db = volume
+		AudioUtil.play_with_pitch(audio_player)
 
 func _mouse_entered() -> void:
 	_animate_scale(hover_size_factor)
 	hovered = true
-	_play_sound(hover_sound)
+	_play_sound(hover_sound, hover_volume)
 
 func _mouse_exited() -> void:
 	_animate_scale(1.0)
@@ -62,7 +66,7 @@ func _mouse_exited() -> void:
 
 func _on_button_down() -> void:
 	_animate_scale(pressed_size_factor)
-	_play_sound(pressed_sound)
+	_play_sound(pressed_sound, pressed_volume)
 
 func _on_button_up() -> void:
 	_animate_scale(hover_size_factor if is_hovered else 1.0)

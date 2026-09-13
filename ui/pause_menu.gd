@@ -9,8 +9,14 @@ class_name PauseMenu
 @export_range(0.05, 2.0) var button_tween_duration := 0.5
 @export_range(0.05, 2.0) var button_fade_duration := 0.35
 
+@export_category("Sound")
+@export var open_sound: AudioStreamOggVorbis
+@export var close_sound: AudioStreamOggVorbis
+@export_range(-10.0, 5.0) var sound_volume: float = -5.0
+
 @onready var blur_rect = $BlurRect
 @onready var grid = $GridContainer
+@onready var audio_player = $AudioStreamPlayer2D
 
 var is_paused: bool = false
 var blur_tween: Tween
@@ -74,6 +80,11 @@ func _spawn_buttons() -> void:
 		wrapper.add_child(button)
 		buttons.append(button)
 
+func _play_sound(sound: AudioStreamOggVorbis) -> void:
+	if sound != null:
+		audio_player.stream = sound
+		audio_player.volume_db = sound_volume
+		AudioUtil.play_with_pitch(audio_player)
 
 func _diagonal_dir(i: int) -> Vector2:
 	var col := i % GRID_COLUMNS
@@ -82,6 +93,7 @@ func _diagonal_dir(i: int) -> Vector2:
 	return Vector2(col, row) * 2.0 - Vector2.ONE
 
 func _animate_buttons_in() -> void:
+	_play_sound(open_sound)
 	for i in buttons.size():
 		var button := buttons[i]
 
@@ -90,6 +102,7 @@ func _animate_buttons_in() -> void:
 		tw.tween_property(button, "modulate:a", 1.0, button_fade_duration)
 
 func _animate_buttons_out() -> void:
+	_play_sound(close_sound)
 	for i in buttons.size():
 		var button := buttons[i]
 		var dir := _diagonal_dir(i)

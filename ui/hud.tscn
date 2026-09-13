@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://c1yy3j3seh5qc" path="res://ui/pause_menu.gd" id="2_276te"]
 [ext_resource type="Shader" uid="uid://bu60as08yka86" path="res://shaders/blur.gdshader" id="3_546lt"]
 [ext_resource type="PackedScene" uid="uid://cnd56v71x1mrb" path="res://ui/pause_menu_button.tscn" id="4_7ihmi"]
+[ext_resource type="AudioStream" uid="uid://c6b43l5u6h3j5" path="res://assets/audio/ui/bookFlip2.ogg" id="4_en2x2"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_m2c1y"]
 shader = ExtResource("3_546lt")
@@ -27,6 +28,8 @@ size_flags_vertical = 3
 script = ExtResource("2_276te")
 blur_strength = 2.0
 button_scene = ExtResource("4_7ihmi")
+open_sound = ExtResource("4_en2x2")
+close_sound = ExtResource("4_en2x2")
 
 [node name="BlurRect" type="ColorRect" parent="PauseMenu" unique_id=1969772998]
 material = SubResource("ShaderMaterial_m2c1y")
@@ -53,3 +56,5 @@ grow_vertical = 2
 theme_override_constants/h_separation = 20
 theme_override_constants/v_separation = 20
 columns = 2
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="PauseMenu" unique_id=1119919063]
