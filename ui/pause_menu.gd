@@ -35,13 +35,35 @@ func _ready():
 	if button_scene:
 		_spawn_buttons()
 
+func toggle_pause(new: bool) -> void:
+	is_paused = new
+	get_tree().paused = is_paused
+
+	_blur_tween()
+
+func _placeholder() -> void:
+	pass
+
+func _resume():
+	toggle_pause(false)
+
+func _quit() -> void:
+	get_tree().quit()
+
+func _on_button_pressed(button_name: String) -> void:
+	match button_name:
+		"Resume":
+			_resume()
+		"Settings":
+			_placeholder()
+		"Main Menu":
+			_placeholder()
+		"Quit":
+			_quit()
+
 func _unhandled_input(event: InputEvent):
 	if event.is_action_pressed("pause"):
-		is_paused = not is_paused
-		get_tree().paused = is_paused
-
-		_blur_tween()
-
+		toggle_pause(not is_paused)
 		get_viewport().set_input_as_handled()
 
 func _blur_tween() -> void:
@@ -75,6 +97,8 @@ func _spawn_buttons() -> void:
 		var dir := _diagonal_dir(i)
 		button.position = dir * button_outset
 		button.modulate.a = 0.0
+
+		button.pressed.connect(_on_button_pressed.bind(BUTTON_NAMES[i]))
 
 		grid.add_child(wrapper)
 		wrapper.add_child(button)
