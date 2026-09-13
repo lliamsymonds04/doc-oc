@@ -34,6 +34,7 @@ modulate_color = Color(1.25, 1.25, 1.25, 1)
 custom_minimum_size = Vector2(200, 60)
 offset_right = 40.0
 offset_bottom = 40.0
+theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("1_nlakb")
 theme_override_styles/normal = SubResource("StyleBoxTexture_m2c1y")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_l10w8")
