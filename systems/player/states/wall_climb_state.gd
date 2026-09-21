@@ -173,10 +173,10 @@ func _dismount_to_ledge(ledge_result: Dictionary) -> void:
 		if surface != null:
 			foot_pos = (surface["position"] as Vector3)
 
+		var params := StepParams.new()
 		if step_count > 0:
-			mount.arm.start_step(foot_pos, ledge_dismount_foot_stagger * step_count)
-		else:
-			mount.arm.start_step(foot_pos)
+			params.delay = ledge_dismount_foot_stagger * step_count
+		mount.arm.start_step(foot_pos, params)
 
 		step_count += 1
 

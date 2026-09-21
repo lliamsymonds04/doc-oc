@@ -48,7 +48,9 @@ func enter() -> void:
 			var end_effector_pos := mount.arm.solver.get_end_effector()
 			var dist := (idle_pos - end_effector_pos).length()
 			if dist > 1.0:
-				mount.arm.start_step(mount.to_global(idle_pos), 0.0, Vector3.UP, false)
+				var params := StepParams.new()
+				params.emit_landed = false
+				mount.arm.start_step(mount.to_global(idle_pos), params)
 
 func exit() -> void:
 	if is_sprinting:
@@ -229,11 +231,10 @@ func _update_legs(dt: float) -> void:
 				best_arm_hit_pos = mount.step_target
 
 	if best_arm != null:
-		var step_speed_mult := 1.0
+		var params := StepParams.new()
 		if is_sprinting:
-			step_speed_mult = p.grounded.sprint_speed_step_multiplier
-
-		best_arm.start_step(best_arm_hit_pos, 0.0, Vector3.UP, true, step_speed_mult)
+			params.speed_multiplier = p.grounded.sprint_speed_step_multiplier
+		best_arm.start_step(best_arm_hit_pos, params)
 
 	leg_probe_hits = p.mount_prober.get_leg_probe_hits()
 	if leg_probe_hits.size() == 0 and grounded_debounce <= 0.0:
@@ -317,13 +318,16 @@ func _set_arms_as_legs(active: bool) -> void:
 	for mount in player.arm_mounts:
 		mount.is_leg = active
 		if not active:
-			mount.arm.start_step(mount.to_global(mount.compute_idle_target()),0.0, Vector3.UP, false)
-
+			var params := StepParams.new()
+			params.emit_landed = false
+			mount.arm.start_step(mount.to_global(mount.compute_idle_target()), params)
 		else:
 			mount.update_ground_step_target(player.velocity, true)
 			var step_target = mount.step_target
 			if step_target:
-				mount.arm.start_step(step_target, 0.0, Vector3.UP, true, 2.0)
+				var params := StepParams.new()
+				params.speed_multiplier = 2.0
+				mount.arm.start_step(step_target, params)
 
 var prev_attack_mount: ArmMount
 
@@ -340,7 +344,9 @@ func handle_attack() -> void:
 		var player_pos := p.global_position
 		var cam_dir = p.camera_controller.get_camera_direction()
 		var target = player_pos + cam_dir * 6.0
-		mount.arm.start_step(target, 0.0, Vector3.UP, false)
+		var params := StepParams.new()
+		params.emit_landed = false
+		mount.arm.start_step(target, params)
 
 		prev_attack_mount = mount
 		return

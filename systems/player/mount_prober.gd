@@ -38,7 +38,9 @@ func try_mount_wall(input: Vector2, player_velocity: Vector3) -> bool:
 
 			var hit = wall_hits[mount]
 			if hit != null:
-				mount.arm.start_step(hit.position, 0.0, hit.normal)
+				var params := StepParams.new()
+				params.surface_normal = hit.normal
+				mount.arm.start_step(hit.position, params)
 				mount.wall_surface_normal = hit.normal
 
 		return true

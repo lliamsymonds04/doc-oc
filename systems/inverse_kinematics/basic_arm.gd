@@ -108,17 +108,19 @@ func advance_move(dt: float) -> void:
 		is_moving = false
 		move_finished.emit(_move_end)
 
-func start_step(to: Vector3, delay := 0.0, surface_normal := Vector3.UP, emit_landed := true, speed_multiplier := 1.0) -> void:
+func start_step(to: Vector3, params: StepParams = null) -> void:
+	if params == null:
+		params = StepParams.new()
 	var profile := MotionProfile.new()
 	profile.duration = step_duration
-	profile.delay = delay
-	profile.speed_multiplier = speed_multiplier
+	profile.delay = params.delay
+	profile.speed_multiplier = params.speed_multiplier
 	profile.arc_height = lift_height
-	profile.arc_axis = surface_normal
-	profile.floor_normal = surface_normal
-	_emit_step_landed = emit_landed
+	profile.arc_axis = params.surface_normal
+	profile.floor_normal = params.surface_normal
+	_emit_step_landed = params.emit_landed
 	begin_move(to, profile)
-	step_started.emit(_move_start, surface_normal)
+	step_started.emit(_move_start, params.surface_normal)
 
 func _on_move_finished(pos: Vector3) -> void:
 	if _emit_step_landed:

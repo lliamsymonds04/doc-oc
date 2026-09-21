@@ -235,7 +235,9 @@ func _commit_step(best_mount: ArmMount, best_hit, cornering_mode: CorneringType)
 			cornering_target_pos = best_mount.step_target + best_hit.normal * p.wall_climb.wall_offset
 			cornering_target_pos.y = p.position.y
 
-	best_mount.arm.start_step(best_mount.step_target, 0.0, best_hit.normal)
+	var params := StepParams.new()
+	params.surface_normal = best_hit.normal
+	best_mount.arm.start_step(best_mount.step_target, params)
 	best_mount.wall_surface_normal = best_hit.normal
 
 static func wall_basis(normal: Vector3) -> Basis:
