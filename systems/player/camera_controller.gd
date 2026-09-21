@@ -32,6 +32,9 @@ class_name CameraController
 @export var sprint_y_offset: float = 2.0
 @export var sprint_pitch_offset_deg = 12.0
 
+@export_category("Hit")
+@export var cast_sphere_radius: float = 0.1
+
 var _trauma: float = 0.0
 var _current_speed: float = 0.0
 var _trail := Vector3.ZERO
@@ -40,9 +43,14 @@ var _pending_mouse := Vector2.ZERO
 var _sprinting: bool = false
 var _sprint_weight: float = 0.0
 
+var _cast_sphere: SphereShape3D
+
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	cam.fov = base_fov
+
+	_cast_sphere = SphereShape3D.new()
+	_cast_sphere.radius =  cast_sphere_radius
 
 func add_trauma(amount: float) -> void:
 	_trauma = min(_trauma + amount, 1.0)
@@ -54,7 +62,7 @@ func set_sprinting(active: bool) -> void:
 	_sprinting = active
 
 func get_camera_direction() -> Vector3:
-	return -global_transform.basis.z
+	return -cam.global_transform.basis.z
 
 func update_motion(dt: float, velocity: Vector3) -> void:
 	var local_vel: Vector3 = global_transform.basis.inverse() * velocity
@@ -68,6 +76,15 @@ func update_motion(dt: float, velocity: Vector3) -> void:
 
 	var world_offset := Vector3.UP * sprint_y_offset * _sprint_weight
 	camera_pivot.position = _trail + global_transform.basis.inverse() * world_offset
+
+func get_camera_center_hit(dist: float = 1000.0) -> Dictionary:
+	var cam_pos = cam.global_position
+	var dir = get_camera_direction()
+	var motion = dir * dist
+	var space := get_world_3d().direct_space_state
+	var hit_result = RaycastUtil.shape_cast(space, _cast_sphere, cam_pos, motion, ~2)
+
+	return hit_result if hit_result != null else {}
 
 func _process(dt: float) -> void:
 	if _trauma > 0:

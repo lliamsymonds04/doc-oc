@@ -334,15 +334,16 @@ func handle_attack() -> void:
 	if is_sprinting:
 		return
 
+	var cam_hit := p.camera_controller.get_camera_center_hit(15.0)
+	if cam_hit.is_empty():
+		return
+
+	var cam_hit_pos: Vector3 = cam_hit["position"]
 	for mount in player.arm_mounts:
 		if mount == prev_attack_mount:
 			continue
 
-		# calculate a target to move the arm towards
-		var player_pos := p.global_position
-		var cam_dir = p.camera_controller.get_camera_direction()
-		var target = player_pos + cam_dir * 10.0
-		mount.arm.start_punch(target)
+		mount.arm.start_punch(cam_hit_pos)
 
 		prev_attack_mount = mount
 		return
