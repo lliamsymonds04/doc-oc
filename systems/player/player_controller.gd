@@ -96,7 +96,7 @@ func set_state(id: StateID) -> void:
 		_current.exit()
 
 	for mount in all_mounts():
-		mount.arm.is_stepping = false
+		mount.arm.is_moving = false
 
 	_current = _states[id]
 	_current.enter()

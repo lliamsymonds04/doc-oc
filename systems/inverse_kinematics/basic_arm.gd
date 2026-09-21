@@ -1,6 +1,7 @@
 extends Node3D
 class_name BasicArm
 
+signal move_finished(pos: Vector3)
 signal step_landed(pos: Vector3, normal: Vector3)
 signal step_started(pos: Vector3, normal: Vector3)
 
@@ -20,15 +21,23 @@ var target_world: Vector3 = Vector3.ZERO
 var pole: Node3D
 var is_leg: bool = false
 
-## state
-var is_stepping = false
-var step_start: Vector3
-var step_end: Vector3
-var step_normal: Vector3 = Vector3.UP
-var step_progress: float = 0.0
-var step_speed_multiplier: float = 1.0
+class MotionProfile:
+	var duration: float = 0.25
+	var delay: float = 0.0 # hold at start position before moving
+	var speed_multiplier: float = 1.0
+	var arc_height: float = 0.0
+	var arc_axis: Vector3 = Vector3.UP
+	var ease_curve: float = 1.0 # Godot's ease(): 1.0 = linear
+	var floor_normal: Variant = null # null = don't touch solver.floor_normal
 
-var _should_emit_landed: bool = true
+## state
+var is_moving := false
+var _profile: MotionProfile
+var _move_start: Vector3
+var _move_end: Vector3
+var _move_progress: float = 0.0
+
+var _emit_step_landed := false
 var solver: FabrikSolver
 var limb_meshes: Array[MeshInstance3D] = []
 var joint_meshes: Array[MeshInstance3D] = []
@@ -45,6 +54,7 @@ func _ready() -> void:
 	solver = FabrikSolver.new(positions)
 	solver.floor_margin = floor_margin
 	solver.min_joint_angle = min_joint_angle
+	move_finished.connect(_on_move_finished)
 
 	for i in range(num_limbs - 1):
 		solver.hinge_axes.append(Vector3.RIGHT)
@@ -53,7 +63,7 @@ func _ready() -> void:
 
 ## public methods
 func is_grounded() -> bool:
-	if is_stepping:
+	if is_moving:
 		return false
 
 	var end_effector := solver.get_end_effector()
@@ -67,36 +77,53 @@ func is_fully_extended(length_percent: float = 1.0) -> bool:
 	var distance := (mount_pos - target_pos).length()
 	return distance > solver.total_length * length_percent
 
-func start_step(to: Vector3, delay := 0.0, surface_normal := Vector3.UP, emit_landed := true, speed_multiplier := 1.0) -> void:
-	is_stepping = true
-	_should_emit_landed = emit_landed
-	step_start = to_global(solver.get_end_effector())
-	step_end = to
-	step_progress = -maxf(delay, 0.0) * speed_multiplier / step_duration
-	step_normal = surface_normal
-	solver.floor_normal = _to_local_dir(surface_normal)
-	step_started.emit(step_start, surface_normal)
-	step_speed_multiplier = speed_multiplier
+func begin_move(to: Vector3, profile: MotionProfile) -> void:
+	is_moving = true
+	_profile = profile
+	_move_start = to_global(solver.get_end_effector())
+	_move_end = to
+	_move_progress = -maxf(profile.delay, 0.0) * profile.speed_multiplier / profile.duration
+	if profile.floor_normal != null:
+		solver.floor_normal = _to_local_dir(profile.floor_normal)
 
-func advance_step(dt: float) -> void:
-	step_progress += dt / step_duration * step_speed_multiplier
-	if step_progress < 0.0:
-		target = to_local(step_start)
-		target_world = step_start
+func advance_move(dt: float) -> void:
+	if not is_moving or _profile == null:
+		return
+
+	_move_progress += dt / _profile.duration * _profile.speed_multiplier
+	if _move_progress < 0.0:
+		target = to_local(_move_start)
+		target_world = _move_start
 		return  # waiting out the stagger delay; foot holds its start position
 
-	step_progress = minf(step_progress, 1.0)
-	var base := step_start.lerp(step_end, step_progress)
-	var height := lift_height * sin(step_progress * PI)
-	var step_pos = base + step_normal * height
-	target_world = step_pos
-	target = to_local(step_pos)
+	_move_progress = minf(_move_progress, 1.0)
+	var t := ease(_move_progress, _profile.ease_curve)
+	var base := _move_start.lerp(_move_end, t)
+	var height := _profile.arc_height * sin(_move_progress * PI)
+	var pos := base + _profile.arc_axis * height
+	target_world = pos
+	target = to_local(pos)
 
-	if step_progress >= 1.0:
-		is_stepping = false
-		if _should_emit_landed:
-			step_landed.emit(step_end, step_normal)
-		_should_emit_landed = true
+	if _move_progress >= 1.0:
+		is_moving = false
+		move_finished.emit(_move_end)
+
+func start_step(to: Vector3, delay := 0.0, surface_normal := Vector3.UP, emit_landed := true, speed_multiplier := 1.0) -> void:
+	var profile := MotionProfile.new()
+	profile.duration = step_duration
+	profile.delay = delay
+	profile.speed_multiplier = speed_multiplier
+	profile.arc_height = lift_height
+	profile.arc_axis = surface_normal
+	profile.floor_normal = surface_normal
+	_emit_step_landed = emit_landed
+	begin_move(to, profile)
+	step_started.emit(_move_start, surface_normal)
+
+func _on_move_finished(pos: Vector3) -> void:
+	if _emit_step_landed:
+		_emit_step_landed = false
+		step_landed.emit(pos, _profile.arc_axis)
 
 
 ## private methods

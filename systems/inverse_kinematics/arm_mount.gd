@@ -88,7 +88,7 @@ func init(p: PlayerController) -> BasicArm:
 	return arm
 
 func update_idle_target(dt: float, lerp_speed := 0.0, world_offset := Vector3.ZERO) -> void:
-	if arm == null or arm.is_stepping:
+	if arm == null or arm.is_moving:
 		return
 
 	var desired := compute_idle_target()
@@ -103,7 +103,7 @@ func update_idle_target(dt: float, lerp_speed := 0.0, world_offset := Vector3.ZE
 	arm.target_world = arm.to_global(arm.target)
 
 func update_planted_target() -> void:
-	if arm == null or arm.is_stepping:
+	if arm == null or arm.is_moving:
 		return
 	arm.target = arm.to_local(arm.target_world)
 
@@ -138,8 +138,8 @@ func update_ground_step_target(velocity: Vector3, force := false) -> void:
 func update_step(velocity: Vector3, dt: float) -> void:
 	step_target = null
 
-	if arm.is_stepping:
-		arm.advance_step(dt)
+	if arm.is_moving:
+		arm.advance_move(dt)
 		return
 
 	if is_leg:
@@ -210,7 +210,7 @@ func update_wall_climb(velocity: Vector3) -> Variant:
 		var distance := (hit_pos - arm.target_world).length()
 		if distance > raycast_config.max_target_displacement:
 			step_target = hit_pos
-	elif not arm.is_stepping:
+	elif not arm.is_moving:
 		# not touching anything and not mid-step: not a valid grip
 		wall_surface_normal = Vector3.ZERO
 	# the grip is world-static, so re-project it into the moving mount's local space

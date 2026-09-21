@@ -100,8 +100,8 @@ func update_arms(dt: float, input_dir: Vector2, average_normal: Vector3) -> void
 	for mount in p.all_mounts():
 		var hit = mount.update_wall_climb(p.velocity)
 
-		if mount.arm.is_stepping:
-			mount.arm.advance_step(dt)
+		if mount.arm.is_moving:
+			mount.arm.advance_move(dt)
 			continue
 
 		if not _can_step(mount):

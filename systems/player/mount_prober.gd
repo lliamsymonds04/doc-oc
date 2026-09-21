@@ -23,7 +23,7 @@ func try_mount_wall(input: Vector2, player_velocity: Vector3) -> bool:
 
 	for mount in p.arm_mounts:
 		# wall raycasts
-		if mount.wall_probe != null and mount.arm.is_stepping == false:
+		if mount.wall_probe != null and mount.arm.is_moving == false:
 			var hit = mount.get_wall_hit_pos(Vector3.ZERO)
 			wall_hits[mount] = hit
 
@@ -33,7 +33,7 @@ func try_mount_wall(input: Vector2, player_velocity: Vector3) -> bool:
 	if wall_detection_count > 1:
 		p.set_state(p.StateID.WALL_CLIMB)
 		for mount in p.arm_mounts:
-			if mount.arm.is_stepping:
+			if mount.arm.is_moving:
 				continue
 
 			var hit = wall_hits[mount]
