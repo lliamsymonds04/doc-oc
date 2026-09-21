@@ -2,13 +2,13 @@
 
 [ext_resource type="Texture2D" uid="uid://eie24le2lqen" path="res://assets/ui/panel-transparent-center-019.png" id="1_8vh48"]
 [ext_resource type="FontFile" uid="uid://t40g2ovltieu" path="res://assets/Anton-Regular.ttf" id="1_nlakb"]
-[ext_resource type="Texture2D" uid="uid://dquvt5q36wrht" path="res://assets/ui/panel-border-025.png" id="2_nlakb"]
+[ext_resource type="Texture2D" uid="uid://51lsdnh4cg3t" path="res://assets/ui/panel-border-002.png" id="2_s26ir"]
 [ext_resource type="Script" uid="uid://dhrbbye0yiydk" path="res://ui/texture_button_helper.gd" id="4_nlakb"]
 [ext_resource type="AudioStream" uid="uid://ehnn5pwugba6" path="res://assets/audio/ui/rollover3.ogg" id="5_s26ir"]
 [ext_resource type="AudioStream" uid="uid://b30s56s8vff0f" path="res://assets/audio/ui/click1.ogg" id="6_s26ir"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_m2c1y"]
-texture = ExtResource("2_nlakb")
+texture = ExtResource("2_s26ir")
 texture_margin_left = 20.0
 texture_margin_top = 20.0
 texture_margin_right = 20.0
@@ -34,6 +34,8 @@ modulate_color = Color(1.25, 1.25, 1.25, 1)
 custom_minimum_size = Vector2(200, 60)
 offset_right = 40.0
 offset_bottom = 40.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.7019608, 0.7019608, 0.7019608, 1)
 theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("1_nlakb")
 theme_override_styles/normal = SubResource("StyleBoxTexture_m2c1y")
@@ -41,6 +43,7 @@ theme_override_styles/pressed = SubResource("StyleBoxTexture_l10w8")
 theme_override_styles/hover = SubResource("StyleBoxTexture_s26ir")
 text = "Test"
 script = ExtResource("4_nlakb")
+pressed_color = Color(0.7019608, 0.7019608, 0.7019608, 1)
 hover_sound = ExtResource("5_s26ir")
 pressed_sound = ExtResource("6_s26ir")
 
