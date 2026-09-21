@@ -120,6 +120,10 @@ func physics_update(dt: float) -> void:
 		_set_arms_as_legs(false)
 		p.camera_controller.set_sprinting(false)
 
+	if Input.is_action_just_pressed("left-click"):
+		handle_attack()
+
+
 
 func frame_update(dt: float) -> void:
 	for mount in player.all_mounts():
@@ -320,3 +324,23 @@ func _set_arms_as_legs(active: bool) -> void:
 			var step_target = mount.step_target
 			if step_target:
 				mount.arm.start_step(step_target, 0.0, Vector3.UP, true, 2.0)
+
+var prev_attack_mount: ArmMount
+
+func handle_attack() -> void:
+	var p := player
+	if is_sprinting:
+		return
+
+	for mount in player.arm_mounts:
+		if mount == prev_attack_mount:
+			continue
+
+		# calculate a target to move the arm towards
+		var player_pos := p.global_position
+		var cam_dir = p.camera_controller.get_camera_direction()
+		var target = player_pos + cam_dir * 6.0
+		mount.arm.start_step(target, 0.0, Vector3.UP, false)
+
+		prev_attack_mount = mount
+		return

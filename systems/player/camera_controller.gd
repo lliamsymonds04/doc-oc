@@ -53,6 +53,8 @@ func set_current_speed(value: float) -> void:
 func set_sprinting(active: bool) -> void:
 	_sprinting = active
 
+func get_camera_direction() -> Vector3:
+	return -global_transform.basis.z
 
 func update_motion(dt: float, velocity: Vector3) -> void:
 	var local_vel: Vector3 = global_transform.basis.inverse() * velocity
