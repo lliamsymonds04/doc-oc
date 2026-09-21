@@ -189,7 +189,7 @@ func _try_outside_corner(mount: ArmMount, side_dir: Vector3, average_normal: Vec
 	var motion := -side_dir * (d + outside_corner_ray_reach) - average_normal * outside_corner_ray_depth
 
 	# only cast if the ray origin is actually visible from the mount
-	var visible_query := PhysicsRayQueryParameters3D.create(mount.global_position, ray_origin, ~2)
+	var visible_query := PhysicsRayQueryParameters3D.create(mount.global_position, ray_origin, p.cast_mask())
 	var visible := space.intersect_ray(visible_query).is_empty()
 
 	var side_result = mount.get_surface_hit(ray_origin, motion.normalized(), motion.length())
@@ -219,7 +219,7 @@ func _try_outside_corner(mount: ArmMount, side_dir: Vector3, average_normal: Vec
 func _hit_is_exposed(mount: ArmMount, hit: Dictionary) -> bool:
 	var space := player.get_world_3d().direct_space_state
 	var target: Vector3 = hit["position"] + (hit["normal"] as Vector3) * 0.2
-	var query := PhysicsRayQueryParameters3D.create(mount.global_position, target, ~2)
+	var query := PhysicsRayQueryParameters3D.create(mount.global_position, target, player.cast_mask())
 	return space.intersect_ray(query).is_empty()
 
 func _commit_step(best_mount: ArmMount, best_hit, cornering_mode: CorneringType) -> void:

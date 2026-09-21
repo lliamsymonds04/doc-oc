@@ -35,6 +35,10 @@ var _current: PlayerState
 var mount_prober: MountProber
 var _jump_audio_player: AudioStreamPlayer3D
 
+## Mask for casts originating on the player: everything except the player's own layer.
+func cast_mask() -> int:
+	return ~collision_layer
+
 func _init() -> void:
 	if movement == null:
 		movement = MovementConfig.new()

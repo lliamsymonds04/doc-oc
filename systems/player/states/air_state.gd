@@ -166,7 +166,7 @@ func _play_landed_effect() -> void:
 	# cast from the player in direction of velocity
 	var space_state = p.get_world_3d().direct_space_state
 	var player_pos := p.position
-	var query := PhysicsRayQueryParameters3D.create(player_pos, player_pos + v_dir * p.air.landing_vfx_raycast_distance, ~2)
+	var query := PhysicsRayQueryParameters3D.create(player_pos, player_pos + v_dir * p.air.landing_vfx_raycast_distance, p.cast_mask())
 	var result = space_state.intersect_ray(query)
 
 	if result:

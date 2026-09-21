@@ -219,7 +219,7 @@ func update_wall_climb(velocity: Vector3) -> Variant:
 
 func get_surface_hit(from: Vector3, direction: Vector3, distance: float) -> Variant:
 	var space := get_world_3d().direct_space_state
-	return RaycastUtil.shape_cast(space, _cast_sphere, from, direction * distance, ~2)
+	return RaycastUtil.shape_cast(space, _cast_sphere, from, direction * distance, player.cast_mask())
 
 func set_target(world_pos: Vector3) -> void:
 	if arm:

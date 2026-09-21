@@ -26,6 +26,7 @@ class_name CameraController
 # per-frame trail/sprint offsets.
 @onready var camera_pivot: Node3D = $CameraOffset/CameraShakePivot
 @onready var cam: Camera3D = $CameraOffset/CameraShakePivot/Camera3D
+@onready var _player: PlayerController = get_parent()
 
 @export_category("Sprint")
 @export var sprint_blend_rate: float = 5.0
@@ -82,7 +83,7 @@ func get_camera_center_hit(dist: float = 1000.0) -> Dictionary:
 	var dir = get_camera_direction()
 	var motion = dir * dist
 	var space := get_world_3d().direct_space_state
-	var hit_result = RaycastUtil.shape_cast(space, _cast_sphere, cam_pos, motion, ~2)
+	var hit_result = RaycastUtil.shape_cast(space, _cast_sphere, cam_pos, motion, _player.cast_mask())
 
 	return hit_result if hit_result != null else {}
 

@@ -95,7 +95,7 @@ func _update_average_normal() -> bool:
 func _apply_movement(dt: float) -> void:
 	var p := player
 	var space := p.get_world_3d().direct_space_state
-	var query := PhysicsRayQueryParameters3D.create(p.position, p.position + -p.basis.z * p.wall_climb.wall_offset * p.wall_climb.wall_raycast_dist, ~2)
+	var query := PhysicsRayQueryParameters3D.create(p.position, p.position + -p.basis.z * p.wall_climb.wall_offset * p.wall_climb.wall_raycast_dist, p.cast_mask())
 	var result := space.intersect_ray(query)
 
 	# core rule: always face the wall directly in front (lerped), reject glancing hits
@@ -146,7 +146,7 @@ func _detect_ledge(wall_normal: Vector3) -> Variant:
 	var space := p.get_world_3d().direct_space_state
 	var start := p.position + Vector3.UP * p.wall_climb.ledge_ray_offset
 	var end := start - wall_normal * p.wall_climb.ledge_ray_length + Vector3.DOWN * p.wall_climb.ledge_ray_offset
-	var query := PhysicsRayQueryParameters3D.create(start, end, ~2)
+	var query := PhysicsRayQueryParameters3D.create(start, end, p.cast_mask())
 	var result := space.intersect_ray(query)
 	if result.is_empty():
 		return null
