@@ -125,14 +125,12 @@ func physics_update(dt: float) -> void:
 	if Input.is_action_just_pressed("left-click"):
 		handle_attack()
 
-
-
 func frame_update(dt: float) -> void:
 	for mount in player.all_mounts():
 		if mount.is_leg:
 			mount.update_planted_target()
 		else:
-			mount.update_idle_target(dt)
+			mount.update_idle_target(dt, player.grounded.arm_idle_lerp_speed)
 
 func _update_camera_alignment(dt: float, is_moving: bool) -> void:
 	var p := player
@@ -343,10 +341,8 @@ func handle_attack() -> void:
 		# calculate a target to move the arm towards
 		var player_pos := p.global_position
 		var cam_dir = p.camera_controller.get_camera_direction()
-		var target = player_pos + cam_dir * 6.0
-		var params := StepParams.new()
-		params.emit_landed = false
-		mount.arm.start_step(target, params)
+		var target = player_pos + cam_dir * 10.0
+		mount.arm.start_punch(target)
 
 		prev_attack_mount = mount
 		return

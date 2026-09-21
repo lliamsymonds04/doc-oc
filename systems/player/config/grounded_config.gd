@@ -1,6 +1,8 @@
 class_name GroundedConfig
 extends Resource
 
+@export var arm_idle_lerp_speed: float = 8.0
+
 @export_group("Debounce")
 @export var grounded_debounce_time: float = 1.2
 

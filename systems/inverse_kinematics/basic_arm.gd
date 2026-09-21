@@ -5,14 +5,21 @@ signal move_finished(pos: Vector3)
 signal step_landed(pos: Vector3, normal: Vector3)
 signal step_started(pos: Vector3, normal: Vector3)
 
+@export_category("Limbs")
 @export var num_limbs: int = 3
 @export var limb_length: float = 2.0
 @export var limb_radius: float = 0.15
 @export var joint_radius: float = 0.25
+
+@export_category("Step_effects")
 @export var step_duration: float = 0.25
 @export var lift_height: float = 0.8
 @export var floor_margin: float = 0.6
 @export var min_joint_angle: float = 20.0
+
+@export_category("Attack")
+@export var punch_duration: float = 0.15
+@export var punch_ease_curve: float = 2.0
 
 const GROUNDED_DISTANCE_CHECK: float = 0.2
 
@@ -111,6 +118,7 @@ func advance_move(dt: float) -> void:
 func start_step(to: Vector3, params: StepParams = null) -> void:
 	if params == null:
 		params = StepParams.new()
+
 	var profile := MotionProfile.new()
 	profile.duration = step_duration
 	profile.delay = params.delay
@@ -119,8 +127,19 @@ func start_step(to: Vector3, params: StepParams = null) -> void:
 	profile.arc_axis = params.surface_normal
 	profile.floor_normal = params.surface_normal
 	_emit_step_landed = params.emit_landed
+
 	begin_move(to, profile)
+
 	step_started.emit(_move_start, params.surface_normal)
+
+func start_punch(to: Vector3) -> void:
+	var profile := MotionProfile.new()
+	profile.duration = punch_duration
+	profile.ease_curve = punch_ease_curve
+
+	begin_move(to, profile)
+
+
 
 func _on_move_finished(pos: Vector3) -> void:
 	if _emit_step_landed:
