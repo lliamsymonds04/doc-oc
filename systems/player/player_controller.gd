@@ -61,6 +61,8 @@ func _ready() -> void:
 		var arm = mount.init(self)
 		arms.append(arm)
 
+		arm.hit_detected.connect(arm_hit_detected)
+
 	mount_prober = MountProber.new()
 	mount_prober.init(self)
 
@@ -130,3 +132,9 @@ func _process(dt: float) -> void:
 func play_jump_effects(strength: float) -> void:
 	AudioUtil.play_with_pitch(_jump_audio_player)
 	camera_controller.add_trauma(strength * strength)
+
+func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
+	if collider is EnemyController:
+		print("hit an enemy")
+	else:
+		print("regular hit")

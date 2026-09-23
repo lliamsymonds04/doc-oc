@@ -14,7 +14,7 @@ func _ready() -> void:
 func apply_damage(dmg: float) -> void:
 	health = max(health - dmg, 0.0)
 	damage_taken.emit(dmg)
-	if health == 0.0:
+	if is_dead():
 		died.emit()
 
 func is_dead() -> bool:
