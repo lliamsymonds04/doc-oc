@@ -59,7 +59,7 @@ static func shape_cast(space: PhysicsDirectSpaceState3D, shape: Shape3D, origin:
 		var overlap_rest := space.get_rest_info(params)
 		if overlap_rest.is_empty():
 			return null
-		return {"position": overlap_rest["point"], "normal": overlap_rest["normal"]}
+		return {"position": overlap_rest["point"], "normal": overlap_rest["normal"], "collider": instance_from_id(overlap_rest["collider_id"])}
 
 	params.transform = Transform3D(Basis.IDENTITY, origin + motion * safe)
 	var rest := space.get_rest_info(params)
@@ -74,4 +74,4 @@ static func shape_cast(space: PhysicsDirectSpaceState3D, shape: Shape3D, origin:
 	if rest.is_empty():
 		return null
 
-	return {"position": rest["point"], "normal": rest["normal"]}
+	return {"position": rest["point"], "normal": rest["normal"], "collider": instance_from_id(rest["collider_id"])}

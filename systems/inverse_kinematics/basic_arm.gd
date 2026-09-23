@@ -4,6 +4,7 @@ class_name BasicArm
 signal move_finished(pos: Vector3)
 signal step_landed(pos: Vector3, normal: Vector3)
 signal step_started(pos: Vector3, normal: Vector3)
+signal hit_detected(pos: Vector3, normal: Vector3, collider: Object)
 
 @export_category("Limbs")
 @export var num_limbs: int = 3
@@ -20,6 +21,7 @@ signal step_started(pos: Vector3, normal: Vector3)
 @export_category("Attack")
 @export var punch_duration: float = 0.15
 @export var punch_ease_curve: float = 2.0
+@export var hit_probe_margin: float = 0.1 # extra radius beyond joint_radius for the hit sphere
 
 const GROUNDED_DISTANCE_CHECK: float = 0.2
 
@@ -36,6 +38,7 @@ class MotionProfile:
 	var arc_axis: Vector3 = Vector3.UP
 	var ease_curve: float = 1.0 # Godot's ease(): 1.0 = linear
 	var floor_normal: Variant = null # null = don't touch solver.floor_normal
+	var detect_hits: bool = false
 
 ## state
 var is_moving := false
@@ -43,6 +46,13 @@ var _profile: MotionProfile
 var _move_start: Vector3
 var _move_end: Vector3
 var _move_progress: float = 0.0
+var _hit_this_move: bool = false
+var _prev_probe_pos: Vector3 = Vector3.ZERO # world-space fist position last frame
+var _probe_shape: SphereShape3D
+
+## Physics mask for the hit probe; ignores the owner's layers.
+## Set by ArmMount from PlayerController.cast_mask().
+var cast_mask: int = ~0
 
 var _emit_step_landed := false
 var solver: FabrikSolver
@@ -65,6 +75,9 @@ func _ready() -> void:
 
 	for i in range(num_limbs - 1):
 		solver.hinge_axes.append(Vector3.RIGHT)
+
+	_probe_shape = SphereShape3D.new()
+	_probe_shape.radius = joint_radius + hit_probe_margin
 
 	_build_visualizer()
 
@@ -90,6 +103,9 @@ func begin_move(to: Vector3, profile: MotionProfile) -> void:
 	_move_start = to_global(solver.get_end_effector())
 	_move_end = to
 	_move_progress = -maxf(profile.delay, 0.0) * profile.speed_multiplier / profile.duration
+	_hit_this_move = false
+	_prev_probe_pos = _move_start
+
 	if profile.floor_normal != null:
 		solver.floor_normal = _to_local_dir(profile.floor_normal)
 
@@ -110,6 +126,14 @@ func advance_move(dt: float) -> void:
 	var pos := base + _profile.arc_axis * height
 	target_world = pos
 	target = to_local(pos)
+
+	if _profile.detect_hits:
+		if not _hit_this_move:
+			var hit_result: Variant = query_end_effector(pos)
+			if hit_result:
+				_hit_this_move = true
+				hit_detected.emit(hit_result["position"], hit_result["normal"], hit_result["collider"])
+		_prev_probe_pos = pos
 
 	if _move_progress >= 1.0:
 		is_moving = false
@@ -136,16 +160,28 @@ func start_punch(to: Vector3) -> void:
 	var profile := MotionProfile.new()
 	profile.duration = punch_duration
 	profile.ease_curve = punch_ease_curve
+	profile.detect_hits = true
 
 	begin_move(to, profile)
 
+func query_end_effector(to: Vector3) -> Variant:
+	if solver == null:
+		return null
 
+	# perform a spatial query
+	var space := get_world_3d().direct_space_state
 
-func _on_move_finished(pos: Vector3) -> void:
-	if _emit_step_landed:
-		_emit_step_landed = false
-		step_landed.emit(pos, _profile.arc_axis)
+	var motion := to - _prev_probe_pos
+	if motion.length() < 0.001:
+		return null
 
+	return RaycastUtil.shape_cast(
+		space,
+		_probe_shape,
+		_prev_probe_pos,
+		motion,
+		cast_mask, # set by ArmMount from PlayerController.cast_mask()
+	)
 
 ## private methods
 func _process(_delta: float) -> void:
@@ -153,6 +189,11 @@ func _process(_delta: float) -> void:
 		return
 	var solved := solver.solve(target, Vector3.ZERO, pole.position)
 	_update_visualizer(solved)
+
+func _on_move_finished(pos: Vector3) -> void:
+	if _emit_step_landed:
+		_emit_step_landed = false
+		step_landed.emit(pos, _profile.arc_axis)
 
 ## Converts a world-space direction into the solver's local space.
 func _to_local_dir(world_dir: Vector3) -> Vector3:
