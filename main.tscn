@@ -9,6 +9,7 @@
 [ext_resource type="AudioStream" uid="uid://i3cgbpcxm2xh" path="res://assets/audio/small_servo.ogg" id="5_3rvo"]
 [ext_resource type="PackedScene" uid="uid://fqe70d8uduc6" path="res://ui/hud.tscn" id="8_5vw27"]
 [ext_resource type="Script" uid="uid://c34dnohk30mk" path="res://systems/util/debug_ray_drawer.gd" id="9_dbg"]
+[ext_resource type="PackedScene" uid="uid://dqbd8ih3ynaal" path="res://systems/enemy/basic_enemy.tscn" id="10_4c57u"]
 
 [sub_resource type="StandardMaterial3D" id="FloorMat"]
 albedo_texture = ExtResource("1_h2yge")
@@ -187,3 +188,6 @@ material = SubResource("StandardMaterial3D_m2c1y")
 script = ExtResource("9_dbg")
 
 [node name="Hud" parent="." unique_id=1447860461 instance=ExtResource("8_5vw27")]
+
+[node name="Node3D" parent="." unique_id=1318838475 instance=ExtResource("10_4c57u")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.3669295, 1.0890002, 23.221933)
