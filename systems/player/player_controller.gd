@@ -136,6 +136,7 @@ func _process(dt: float) -> void:
 		hs = 0.0
 
 	camera_controller.set_current_speed(hs)
+	attack_controller.process(dt)
 
 func play_jump_effects(strength: float) -> void:
 	AudioUtil.play_with_pitch(_jump_audio_player)

@@ -181,9 +181,11 @@ func _update_tilt(dt: float) -> void:
 
 	var current_tilt_x := p.tilt_pivot.rotation.x
 	var current_tilt_z := p.tilt_pivot.rotation.z
+	var current_tilt_y := p.tilt_pivot.rotation.y
 
 	var target_tilt_x := dir.y * walk_tilt_x
 	var target_tilt_z := -dir.x * walk_tilt_z
+	var target_tilt_y := p.attack_controller.attack_tilt_y
 
 	if is_sprinting:
 		target_tilt_x *= c.sprint_tilt_multiplier
@@ -193,9 +195,11 @@ func _update_tilt(dt: float) -> void:
 
 	var tilted_x = lerp(current_tilt_x, target_tilt_x, dt * tilt_speed)
 	var tilted_z = lerp(current_tilt_z, target_tilt_z, dt * tilt_speed)
+	var tilted_y = lerp(current_tilt_y, target_tilt_y, dt * tilt_speed * p.grounded.yaw_tilt_speed_multiplier)
 
 	p.tilt_pivot.rotation.x = tilted_x
 	p.tilt_pivot.rotation.z = tilted_z
+	p.tilt_pivot.rotation.y = tilted_y
 
 func _update_legs(dt: float) -> void:
 	var p := player
