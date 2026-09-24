@@ -93,6 +93,15 @@ func is_sprinting() -> bool:
 func current_state() -> PlayerState:
 	return _current
 
+func grounded_state() -> GroundedState:
+	return _states[StateID.GROUNDED]
+
+func air_state() -> AirState:
+	return _states[StateID.AIR]
+
+func wall_climb_state() -> WallClimbState:
+	return _states[StateID.WALL_CLIMB]
+
 func is_in_state(id: StateID) -> bool:
 	return _current == _states[id]
 

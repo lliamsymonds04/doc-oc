@@ -8,6 +8,7 @@ var sprint_tilt_x: float
 var tilt_speed: float
 var align_angle: float
 var disalign_angle: float
+var force_align: bool = false
 
 var grounded_debounce := 0.0
 var is_holding_jump := false
@@ -135,7 +136,7 @@ func frame_update(dt: float) -> void:
 func _update_camera_alignment(dt: float, is_moving: bool) -> void:
 	var p := player
 
-	if is_moving:
+	if is_moving or force_align:
 		if is_camera_aligned:
 			p.rotation.y = p.camera_controller.global_rotation.y
 			p.camera_controller.rotation.y = 0
@@ -151,6 +152,7 @@ func _update_camera_alignment(dt: float, is_moving: bool) -> void:
 
 			if absf(p.camera_controller.rotation.y) <= align_angle:
 				is_camera_aligned = true
+				force_align = false
 	elif absf(p.camera_controller.rotation.y) >= disalign_angle:
 		is_camera_aligned = false
 

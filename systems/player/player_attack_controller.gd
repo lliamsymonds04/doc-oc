@@ -5,6 +5,7 @@ const ATTACK_DEBOUNCE: float = 0.5
 const ATTACK_CAST_RANGE: float = 15.0
 const ATTACK_TILT_ANGLE: float = deg_to_rad(15.0)
 const TILT_RESET_TIME: float = 0.3
+const MAX_FORCE_ALIGN_TURN: float = deg_to_rad(100.0)
 
 var player: PlayerController
 var prev_attack_mount: ArmMount
@@ -42,6 +43,12 @@ func try_attack() -> void:
 
 		prev_attack_mount = mount
 		last_attack_time = now
+		var gs := p.grounded_state()
+		var look_turn := absf(angle_difference(p.rotation.y, p.camera_controller.global_rotation.y))
+		# gate on the real turn size: looking backwards must not spin the body,
+		# the planted legs misbehave through a 180 degree turn
+		if not gs.is_camera_aligned and look_turn <= MAX_FORCE_ALIGN_TURN:
+			gs.force_align = true
 		return
 
 func process(_dt: float):
