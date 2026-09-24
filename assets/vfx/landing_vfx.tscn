@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cx6neuu3typ8d"]
 
-[ext_resource type="Script" uid="uid://didvyshe4wbbi" path="res://assets/vfx/step_vfx.gd" id="1_ce056"]
+[ext_resource type="Script" uid="uid://c6qyx2j1rjdi4" path="res://assets/vfx/impact_vfx.gd" id="1_ce056"]
 [ext_resource type="Texture2D" uid="uid://bj1ednj8w4fkv" path="res://assets/textures/trace_02_a.png" id="4_v1blk"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u57ka"]

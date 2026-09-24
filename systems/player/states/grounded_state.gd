@@ -18,9 +18,6 @@ var is_sprinting := false
 var leg_probe_hits: Dictionary = {}
 var floor_normal := Vector3.UP
 
-const ATTACK_DEBOUNCE: float = 0.5
-const ATTACK_CAST_RANGE: float = 15.0
-
 func _init(p: PlayerController) -> void:
 	super._init(p)
 	var c := p.grounded
@@ -126,7 +123,7 @@ func physics_update(dt: float) -> void:
 		p.camera_controller.set_sprinting(false)
 
 	if Input.is_action_just_pressed("left-click"):
-		handle_attack()
+		p.attack_controller.try_attack()
 
 func frame_update(dt: float) -> void:
 	for mount in player.all_mounts():
@@ -329,34 +326,3 @@ func _set_arms_as_legs(active: bool) -> void:
 				var params := StepParams.new()
 				params.speed_multiplier = 2.0
 				mount.arm.start_step(step_target, params)
-
-var prev_attack_mount: ArmMount
-var last_attack_time: float = -INF
-
-func handle_attack() -> void:
-	var now := Time.get_ticks_msec() / 1000.0
-	if now - last_attack_time < ATTACK_DEBOUNCE:
-		return
-
-	var p := player
-	if is_sprinting:
-		return
-
-	var cam_hit := p.camera_controller.get_camera_center_hit(ATTACK_CAST_RANGE)
-	var attack_target: Vector3
-	if cam_hit.is_empty():
-		var cam_pos = p.camera_controller.cam.global_position
-		var cam_dir = p.camera_controller.get_camera_direction()
-		attack_target = cam_pos + cam_dir * ATTACK_CAST_RANGE
-	else:
-		attack_target = cam_hit["position"]
-
-	for mount in player.arm_mounts:
-		if mount == prev_attack_mount:
-			continue
-
-		mount.arm.start_punch(attack_target)
-
-		prev_attack_mount = mount
-		last_attack_time = now
-		return

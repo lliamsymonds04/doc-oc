@@ -3,7 +3,7 @@ class_name MountProber
 
 var player: PlayerController
 
-func init(p: PlayerController):
+func _init(p: PlayerController):
 	player = p
 
 const VERTICAL_SURFACE_NORMAL_CHECK := acos(deg_to_rad(45))

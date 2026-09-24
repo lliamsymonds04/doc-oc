@@ -33,7 +33,10 @@ var _states: Dictionary = {}
 var _current: PlayerState
 
 var mount_prober: MountProber
+var attack_controller: PlayerAttackController
 var _jump_audio_player: AudioStreamPlayer3D
+
+var _hit_vfx: ImpactVFX
 
 ## Mask for casts originating on the player: everything except the player's own layer.
 func cast_mask() -> int:
@@ -63,8 +66,8 @@ func _ready() -> void:
 
 		arm.hit_detected.connect(arm_hit_detected)
 
-	mount_prober = MountProber.new()
-	mount_prober.init(self)
+	mount_prober = MountProber.new(self)
+	attack_controller = PlayerAttackController.new(self)
 
 	_states[StateID.GROUNDED] = GroundedState.new(self)
 	_states[StateID.WALL_CLIMB] = WallClimbState.new(self)
@@ -75,6 +78,11 @@ func _ready() -> void:
 	_jump_audio_player = AudioStreamPlayer3D.new()
 	_jump_audio_player.stream = preload("res://assets/audio/robot_jump.ogg")
 	add_child(_jump_audio_player)
+
+	if step_vfx != null:
+		_hit_vfx = step_vfx.instantiate() as ImpactVFX
+		_hit_vfx.top_level = true
+		add_child(_hit_vfx)
 
 func all_mounts() -> Array[ArmMount]:
 	return leg_mounts + arm_mounts
@@ -138,3 +146,6 @@ func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 		print("hit an enemy")
 	else:
 		print("regular hit")
+
+	if _hit_vfx:
+		_hit_vfx.play(hit, normal)
