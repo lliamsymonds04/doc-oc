@@ -8,6 +8,7 @@ class_name PlayerController
 @export var air: AirConfig
 @export var jump: JumpConfig
 @export var wall_climb: WallClimbConfig
+@export var attack: PlayerAttackConfig
 @export var arm_mounts: Array[ArmMount] = []
 @export var leg_mounts: Array[ArmMount] = []
 @export var raycast_config: ArmRaycastConfig
@@ -55,6 +56,8 @@ func _init() -> void:
 		jump = JumpConfig.new()
 	if wall_climb == null:
 		wall_climb = WallClimbConfig.new()
+	if attack == null:
+		attack = PlayerAttackConfig.new()
 
 func _ready() -> void:
 	for mount in arm_mounts + leg_mounts:
@@ -65,7 +68,7 @@ func _ready() -> void:
 		arms.append(arm)
 
 	mount_prober = MountProber.new(self)
-	attack_controller = PlayerAttackController.new(self)
+	attack_controller = PlayerAttackController.new(self, attack)
 
 	_states[StateID.GROUNDED] = GroundedState.new(self)
 	_states[StateID.WALL_CLIMB] = WallClimbState.new(self)
