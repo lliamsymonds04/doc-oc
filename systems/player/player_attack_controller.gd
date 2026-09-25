@@ -12,8 +12,25 @@ var prev_attack_mount: ArmMount
 var last_attack_time: float = -INF
 var attack_tilt_y: float = 0.0
 
+var _attack_audio_player: AudioStreamPlayer3D
+var _attack_sound := preload("res://assets/audio/small_servo.ogg")
+
+var _hit_vfx_scene := preload("res://assets/vfx/step.tscn")
+var _hit_vfx: ImpactVFX
+
 func _init(p: PlayerController) -> void:
 	player = p
+
+	_attack_audio_player = AudioStreamPlayer3D.new()
+	_attack_audio_player.stream = _attack_sound
+	p.add_child(_attack_audio_player)
+
+	_hit_vfx = _hit_vfx_scene.instantiate() as ImpactVFX
+	_hit_vfx.top_level = true
+	p.add_child(_hit_vfx)
+
+	for mount in p.all_mounts():
+		mount.arm.hit_detected.connect(arm_hit_detected)
 
 func try_attack() -> void:
 	var now = _get_now()
@@ -38,6 +55,8 @@ func try_attack() -> void:
 			continue
 
 		mount.arm.start_punch(attack_target)
+		AudioUtil.play_with_pitch(_attack_audio_player)
+
 		var side_dir = sign(mount.position.x)
 		attack_tilt_y = side_dir * ATTACK_TILT_ANGLE
 
@@ -50,6 +69,15 @@ func try_attack() -> void:
 		if not gs.is_camera_aligned and look_turn <= MAX_FORCE_ALIGN_TURN:
 			gs.force_align = true
 		return
+
+func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
+	if collider is EnemyController:
+		print("hit an enemy")
+	else:
+		print("regular hit")
+
+	if _hit_vfx:
+		_hit_vfx.play(hit, normal)
 
 func process(_dt: float):
 	var now = _get_now()
