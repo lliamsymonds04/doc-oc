@@ -185,9 +185,14 @@ func _update_tilt(dt: float) -> void:
 	var current_tilt_z := p.tilt_pivot.rotation.z
 	var current_tilt_y := p.tilt_pivot.rotation.y
 
-	var target_tilt_x := dir.y * walk_tilt_x
-	var target_tilt_z := -dir.x * walk_tilt_z
-	var target_tilt_y := p.attack_controller.attack_tilt_y
+	# camera influence
+	var camera_pitch = p.camera_controller.get_pitch() * p.grounded.cam_pitch_tilt_mult
+	var camera_yaw = p.camera_controller.rotation.y * p.grounded.cam_yaw_tilt_mult
+
+	# targets
+	var target_tilt_x: float = dir.y * walk_tilt_x + camera_pitch
+	var target_tilt_z: float = -dir.x * walk_tilt_z
+	var target_tilt_y: float = p.attack_controller.attack_tilt_y + camera_yaw
 
 	if is_sprinting:
 		target_tilt_x *= c.sprint_tilt_multiplier

@@ -65,6 +65,9 @@ func set_sprinting(active: bool) -> void:
 func get_camera_direction() -> Vector3:
 	return -cam.global_transform.basis.z
 
+func get_pitch() -> float:
+	return asin(get_camera_direction().y)
+
 func update_motion(dt: float, velocity: Vector3) -> void:
 	var local_vel: Vector3 = global_transform.basis.inverse() * velocity
 
