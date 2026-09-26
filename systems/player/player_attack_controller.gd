@@ -66,10 +66,10 @@ func try_attack() -> void:
 
 func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 	if collider is EnemyController:
-		# _hit_audio_player.stream
+		_hit_audio_player.stream = player.attack_config.enemy_hit_sound
 		AudioUtil.play_with_pitch(_hit_audio_player)
 	else:
-		_hit_audio_player.stream = player.attack.surface_hit_sound
+		_hit_audio_player.stream = player.attack_config.surface_hit_sound
 		AudioUtil.play_with_pitch(_hit_audio_player)
 
 	if _hit_vfx:
@@ -86,7 +86,7 @@ func _get_now() -> float:
 
 func _get_target(side_dir: int = 0) -> Vector3:
 	var p := player
-	var attack_offset = p.camera_controller.global_transform.basis.x * side_dir * p.attack.attack_side_offset
+	var attack_offset = p.camera_controller.global_transform.basis.x * side_dir * p.attack_config.attack_side_offset
 
 	var cam_hit := p.camera_controller.get_camera_center_hit(config.attack_cast_range, attack_offset)
 	if cam_hit.is_empty():

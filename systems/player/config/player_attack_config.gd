@@ -1,6 +1,7 @@
 class_name PlayerAttackConfig
 extends Resource
 
+@export var damage: float = 30.0
 @export_group("Timing")
 @export var attack_debounce: float = 0.5
 @export var tilt_reset_time: float = 0.3
@@ -18,4 +19,5 @@ extends Resource
 @export_group("Feedback")
 @export var attack_sound: AudioStreamOggVorbis = preload("res://assets/audio/throw_robot_punch.ogg")
 @export var surface_hit_sound: AudioStreamOggVorbis = preload("res://assets/audio/metal_attack.ogg")
+@export var enemy_hit_sound: AudioStreamOggVorbis = preload("res://assets/audio/cyber_punch.ogg")
 @export var hit_vfx_scene: PackedScene = preload("res://assets/vfx/step.tscn")
