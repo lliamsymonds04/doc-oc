@@ -15,5 +15,6 @@ extends Resource
 @export var max_force_align_turn_degrees: float = 100.0
 
 @export_group("Feedback")
-@export var attack_sound: AudioStreamOggVorbis = preload("res://assets/audio/small_servo.ogg")
+@export var attack_sound: AudioStreamOggVorbis = preload("res://assets/audio/throw_robot_punch.ogg")
+@export var surface_hit_sound: AudioStreamOggVorbis = preload("res://assets/audio/metal_attack.ogg")
 @export var hit_vfx_scene: PackedScene = preload("res://assets/vfx/step.tscn")

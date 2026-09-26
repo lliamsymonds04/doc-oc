@@ -9,6 +9,7 @@ var attack_tilt_y: float = 0.0
 var config: PlayerAttackConfig
 
 var _attack_audio_player: AudioStreamPlayer3D
+var _hit_audio_player: AudioStreamPlayer3D
 
 var _hit_vfx: ImpactVFX
 
@@ -19,6 +20,9 @@ func _init(p: PlayerController, attack_config: PlayerAttackConfig) -> void:
 	_attack_audio_player = AudioStreamPlayer3D.new()
 	_attack_audio_player.stream = config.attack_sound
 	p.add_child(_attack_audio_player)
+
+	_hit_audio_player = AudioStreamPlayer3D.new()
+	p.add_child(_hit_audio_player)
 
 	if config.hit_vfx_scene != null:
 		_hit_vfx = config.hit_vfx_scene.instantiate() as ImpactVFX
@@ -68,9 +72,11 @@ func try_attack() -> void:
 
 func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 	if collider is EnemyController:
-		print("hit an enemy")
+		# _hit_audio_player.stream
+		AudioUtil.play_with_pitch(_hit_audio_player)
 	else:
-		print("regular hit")
+		_hit_audio_player.stream = player.attack.surface_hit_sound
+		AudioUtil.play_with_pitch(_hit_audio_player)
 
 	if _hit_vfx:
 		_hit_vfx.play(hit, normal)
