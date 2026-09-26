@@ -13,6 +13,7 @@ extends Resource
 ## Largest camera-to-body turn (degrees) that still triggers a forced body
 ## realignment; larger turns would misbehave through a 180 degree pivot.
 @export var max_force_align_turn_degrees: float = 100.0
+@export var attack_side_offset: float = 0.1
 
 @export_group("Feedback")
 @export var attack_sound: AudioStreamOggVorbis = preload("res://assets/audio/throw_robot_punch.ogg")

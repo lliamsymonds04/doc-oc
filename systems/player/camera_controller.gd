@@ -81,8 +81,8 @@ func update_motion(dt: float, velocity: Vector3) -> void:
 	var world_offset := Vector3.UP * sprint_y_offset * _sprint_weight
 	camera_pivot.position = _trail + global_transform.basis.inverse() * world_offset
 
-func get_camera_center_hit(dist: float = 1000.0) -> Dictionary:
-	var cam_pos = cam.global_position
+func get_camera_center_hit(dist: float = 1000.0, offset: Vector3 = Vector3.ZERO) -> Dictionary:
+	var cam_pos = cam.global_position + offset
 	var dir = get_camera_direction()
 	var motion = dir * dist
 	var space := get_world_3d().direct_space_state

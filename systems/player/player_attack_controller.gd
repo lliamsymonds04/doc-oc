@@ -41,33 +41,27 @@ func try_attack() -> void:
 	if p.is_sprinting():
 		return
 
-	var cam_hit := p.camera_controller.get_camera_center_hit(config.attack_cast_range)
-	var attack_target: Vector3
-	if cam_hit.is_empty():
-		var cam_pos = p.camera_controller.cam.global_position
-		var cam_dir = p.camera_controller.get_camera_direction()
-		attack_target = cam_pos + cam_dir * config.attack_cast_range
-	else:
-		attack_target = cam_hit["position"]
 
 	for mount in p.arm_mounts:
 		if mount == prev_attack_mount:
 			continue
 
+		var side_dir: int = sign(mount.position.x)
+		var attack_target = _get_target(side_dir)
+
 		mount.arm.start_punch(attack_target)
 		AudioUtil.play_with_pitch(_attack_audio_player)
 
-		var side_dir = sign(mount.position.x)
 		attack_tilt_y = side_dir * deg_to_rad(config.attack_tilt_degrees)
 
 		prev_attack_mount = mount
 		last_attack_time = now
+
 		var gs := p.grounded_state()
 		var look_turn := absf(angle_difference(p.rotation.y, p.camera_controller.global_rotation.y))
-		# gate on the real turn size: looking backwards must not spin the body,
-		# the planted legs misbehave through a 180 degree turn
 		if not gs.is_camera_aligned and look_turn <= deg_to_rad(config.max_force_align_turn_degrees):
 			gs.force_align = true
+
 		return
 
 func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
@@ -89,3 +83,15 @@ func process(_dt: float):
 
 func _get_now() -> float:
 	return Time.get_ticks_msec() / 1000.0
+
+func _get_target(side_dir: int = 0) -> Vector3:
+	var p := player
+	var attack_offset = p.camera_controller.global_transform.basis.x * side_dir * p.attack.attack_side_offset
+
+	var cam_hit := p.camera_controller.get_camera_center_hit(config.attack_cast_range, attack_offset)
+	if cam_hit.is_empty():
+		var cam_pos = p.camera_controller.cam.global_position
+		var cam_dir = p.camera_controller.get_camera_direction()
+		return cam_pos + cam_dir * config.attack_cast_range
+	else:
+		return cam_hit["position"] + attack_offset
