@@ -7,6 +7,7 @@
 albedo_color = Color(0.85882354, 0.13725491, 0.13333334, 1)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_m2c1y"]
+material = SubResource("StandardMaterial3D_pftr6")
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m2c1y"]
 
@@ -14,7 +15,6 @@ albedo_color = Color(0.85882354, 0.13725491, 0.13333334, 1)
 script = ExtResource("1_ojmdn")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=856474733]
-material_override = SubResource("StandardMaterial3D_pftr6")
 mesh = SubResource("CapsuleMesh_m2c1y")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=402825113]

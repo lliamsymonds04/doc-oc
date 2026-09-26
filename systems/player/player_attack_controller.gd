@@ -66,8 +66,11 @@ func try_attack() -> void:
 
 func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 	if collider is EnemyController:
+		var enemy: EnemyController = collider
 		_hit_audio_player.stream = player.attack_config.enemy_hit_sound
 		AudioUtil.play_with_pitch(_hit_audio_player)
+
+		enemy.take_damage(player.attack_config.damage)
 	else:
 		_hit_audio_player.stream = player.attack_config.surface_hit_sound
 		AudioUtil.play_with_pitch(_hit_audio_player)
