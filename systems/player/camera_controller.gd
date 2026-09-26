@@ -12,6 +12,7 @@ class_name CameraController
 @export var speed_at_max_fov: float = 10.0
 @export var fov_change_rate: float = 2.0
 @export_range(0.1,4.0,0.05) var fov_curve_exponent: float = 0.5
+@export var fov_kick_recovery: float = 8.0
 
 @export_category("Trail")
 @export var trail_strength: float = 0.06    # forward/back (local Z)
@@ -38,6 +39,8 @@ class_name CameraController
 
 var _trauma: float = 0.0
 var _current_speed: float = 0.0
+var _fov_kick: float = 0.0
+var _speed_fov: float
 var _trail := Vector3.ZERO
 var _pending_mouse := Vector2.ZERO
 
@@ -49,12 +52,16 @@ var _cast_sphere: SphereShape3D
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	cam.fov = base_fov
+	_speed_fov = base_fov
 
 	_cast_sphere = SphereShape3D.new()
 	_cast_sphere.radius =  cast_sphere_radius
 
 func add_trauma(amount: float) -> void:
 	_trauma = min(_trauma + amount, 1.0)
+
+func kick_fov(amount: float) -> void:
+	_fov_kick = amount
 
 func set_current_speed(value: float) -> void:
 	_current_speed = max(value, 0.0)
@@ -104,12 +111,7 @@ func _process(dt: float) -> void:
 		cam.position = Vector3.ZERO
 		cam.rotation_degrees.z = 0
 
-	# handle fov
-	var speed_float = min(_current_speed/speed_at_max_fov, 1.0)
-	speed_float = pow(speed_float,fov_curve_exponent)
-	var target_fov = lerpf(base_fov, max_fov, speed_float)
-	var current_fov = cam.fov
-	cam.fov = lerpf(current_fov, target_fov, dt*fov_change_rate)
+	_update_fov(dt)
 
 	_sprint_weight = lerpf(_sprint_weight, 1.0 if _sprinting else 0.0, 1.0 - exp(-sprint_blend_rate*dt))
 
@@ -119,6 +121,17 @@ func _process(dt: float) -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		_pending_mouse += event.relative
+
+func _update_fov(dt: float) -> void:
+	var speed_float = min(_current_speed/speed_at_max_fov, 1.0)
+	speed_float = pow(speed_float,fov_curve_exponent)
+	var target_fov = lerpf(base_fov, max_fov, speed_float)
+
+	_speed_fov = lerpf(_speed_fov, target_fov, dt*fov_change_rate)
+	_fov_kick = lerpf(_fov_kick, 0.0, 1.0 - exp(-fov_kick_recovery * dt))
+
+	cam.fov = _speed_fov + _fov_kick
+
 
 func _physics_process(_dt: float) -> void:
 	rotation_degrees.y -= _pending_mouse.x * sensitivity

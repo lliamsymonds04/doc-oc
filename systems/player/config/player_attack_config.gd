@@ -21,3 +21,5 @@ extends Resource
 @export var surface_hit_sound: AudioStreamOggVorbis = preload("res://assets/audio/metal_attack.ogg")
 @export var enemy_hit_sound: AudioStreamOggVorbis = preload("res://assets/audio/cyber_punch.ogg")
 @export var hit_vfx_scene: PackedScene = preload("res://assets/vfx/step.tscn")
+@export var hit_trauma: float = 0.7
+@export_range(0, -10, -0.5) var hit_fov_kick: float = -2.0

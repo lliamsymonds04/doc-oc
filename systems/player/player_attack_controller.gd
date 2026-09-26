@@ -41,7 +41,6 @@ func try_attack() -> void:
 	if p.is_sprinting():
 		return
 
-
 	for mount in p.arm_mounts:
 		if mount == prev_attack_mount:
 			continue
@@ -75,6 +74,9 @@ func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 		_hit_audio_player.stream = player.attack_config.surface_hit_sound
 		AudioUtil.play_with_pitch(_hit_audio_player)
 
+	player.camera_controller.add_trauma(player.attack_config.hit_trauma)
+	player.camera_controller.kick_fov(player.attack_config.hit_fov_kick)
+
 	if _hit_vfx:
 		_hit_vfx.play(hit, normal)
 
@@ -82,7 +84,6 @@ func process(_dt: float):
 	var now = _get_now()
 	if attack_tilt_y != 0.0 and now - last_attack_time >= config.tilt_reset_time:
 		attack_tilt_y = 0.0
-
 
 func _get_now() -> float:
 	return Time.get_ticks_msec() / 1000.0
