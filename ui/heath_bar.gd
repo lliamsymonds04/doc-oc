@@ -8,9 +8,12 @@ class_name HealthBar
 
 @export var health_tween_duration: float = 0.1
 @export var trail_tween_duration: float = 0.5
+@export var shake_tween_duration: float = 0.04
 
 var _health_tween: Tween
 var _trail_tween: Tween
+var _shake_tween: Tween
+var _control_origin: Vector2
 
 func _ready() -> void:
 	# Control layout isn't resolved until after the first frame
@@ -19,6 +22,7 @@ func _ready() -> void:
 	health_bar.value = health_bar.max_value
 	trail_bar.value = 0.0
 	visible = false
+	_control_origin = health_control.position
 
 
 func _size_viewport_to_bar() -> void:
@@ -38,12 +42,24 @@ func set_health_float(value: float) -> void:
 	visible = value < 1.0
 
 	if _health_tween != null:
-		_health_tween.stop()
+		_health_tween.kill()
 	_health_tween = get_tree().create_tween()
 	var target = health_bar.max_value * value
 	_health_tween.tween_property(health_bar, "value", target, health_tween_duration)
 
 	if _trail_tween != null:
-		_trail_tween.stop()
+		_trail_tween.kill()
 	_trail_tween = get_tree().create_tween()
 	_trail_tween.tween_property(trail_bar, "value", target, trail_tween_duration)
+
+func shake_health_bar(shake_iters: int = 3, shake_mag: int = 6, strengh_decay: float = 0.7) -> void:
+	if _shake_tween and _shake_tween.is_running():
+		_shake_tween.kill()
+
+	_shake_tween = get_tree().create_tween()
+	for i in range(shake_iters):
+		_shake_tween.tween_property(health_control, "position", _control_origin + Vector2(-shake_mag, 0), shake_tween_duration)
+		_shake_tween.tween_property(health_control, "position", _control_origin + Vector2(shake_mag, 0), shake_tween_duration)
+		shake_mag *= strengh_decay
+
+	_shake_tween.tween_property(health_control, "position", _control_origin, shake_tween_duration)
