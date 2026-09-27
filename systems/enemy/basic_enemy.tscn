@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ckrp1daarob1u" path="res://systems/enemy/enemy_controller.gd" id="1_ojmdn"]
 [ext_resource type="Script" uid="uid://pygi44sg0dn6" path="res://systems/common/health_controller.gd" id="2_rchf0"]
+[ext_resource type="PackedScene" uid="uid://b77qe4lyrbdo8" path="res://ui/health_bar.tscn" id="3_fujp6"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pftr6"]
 albedo_color = Color(0.85882354, 0.13725491, 0.13333334, 1)
@@ -11,8 +12,12 @@ material = SubResource("StandardMaterial3D_pftr6")
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m2c1y"]
 
-[node name="Enemy" type="CharacterBody3D" unique_id=1318838475]
+[sub_resource type="ViewportTexture" id="ViewportTexture_fujp6"]
+viewport_path = NodePath("SubViewport")
+
+[node name="Enemy" type="CharacterBody3D" unique_id=1318838475 node_paths=PackedStringArray("health_bar")]
 script = ExtResource("1_ojmdn")
+health_bar = NodePath("HealthBar")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=856474733]
 mesh = SubResource("CapsuleMesh_m2c1y")
@@ -23,3 +28,7 @@ shape = SubResource("CapsuleShape3D_m2c1y")
 [node name="HealthController" type="Node" parent="." unique_id=1177370103]
 script = ExtResource("2_rchf0")
 metadata/_custom_type_script = "uid://pygi44sg0dn6"
+
+[node name="HealthBar" parent="." unique_id=284543108 instance=ExtResource("3_fujp6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5018837, 0)
+texture = SubResource("ViewportTexture_fujp6")

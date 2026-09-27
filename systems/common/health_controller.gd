@@ -4,7 +4,7 @@ class_name HealthController
 signal damage_taken(dmg: float)
 signal died()
 
-@export var max_health: float
+@export var max_health: float = 100.0
 
 var health: float
 
@@ -19,3 +19,6 @@ func apply_damage(dmg: float) -> void:
 
 func is_dead() -> bool:
 	return health <= 0.0
+
+func get_health_float() -> float:
+	return health/max_health

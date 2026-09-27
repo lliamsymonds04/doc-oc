@@ -5,6 +5,7 @@ class_name EnemyController
 
 @onready var health_controller: HealthController = $HealthController
 @onready var mesh: MeshInstance3D = $MeshInstance3D
+@export var health_bar: HealthBar
 
 const damage_shader = preload("res://shaders/damage_shader.gdshader")
 
@@ -17,8 +18,15 @@ func _ready() -> void:
 	_shader_mat.shader = damage_shader
 	mesh.material_overlay = _shader_mat
 
+	health_controller.damage_taken.connect(_on_damage_taken)
+
 func take_damage(dmg: float) -> void:
 	health_controller.apply_damage(dmg)
+
+func _on_damage_taken(_dmg: float) -> void:
+	if health_bar:
+		health_bar.set_health_float(health_controller.get_health_float())
+
 	_flash()
 
 func _flash() -> void:
