@@ -5,15 +5,18 @@ class_name HealthBar
 @onready var health_control: Control = $SubViewport/HealthControl
 @onready var trail_bar: ProgressBar = $SubViewport/HealthControl/TrailBar
 @onready var health_bar: ProgressBar = $SubViewport/HealthControl/TrailBar/HealthBar
+@onready var flash_panel: Panel = $SubViewport/HealthControl/TrailBar/Flash
 
 @export var health_tween_duration: float = 0.1
 @export var trail_tween_duration: float = 0.5
 @export var shake_tween_duration: float = 0.04
+@export var flash_tween_duration: float = 0.05
 
 var _health_tween: Tween
 var _trail_tween: Tween
 var _shake_tween: Tween
 var _control_origin: Vector2
+var _flash_tween: Tween
 
 func _ready() -> void:
 	# Control layout isn't resolved until after the first frame
@@ -63,3 +66,11 @@ func shake_health_bar(shake_iters: int = 3, shake_mag: int = 6, strengh_decay: f
 		shake_mag *= strengh_decay
 
 	_shake_tween.tween_property(health_control, "position", _control_origin, shake_tween_duration)
+
+func flash() -> void:
+	if _flash_tween:
+		_flash_tween.kill()
+	flash_panel.modulate.a = 1.0
+	flash_panel.visible = true
+	_flash_tween = get_tree().create_tween()
+	_flash_tween.tween_property(flash_panel, "modulate:a", 0.0, flash_tween_duration)

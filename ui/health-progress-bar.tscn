@@ -22,6 +22,9 @@ bg_color = Color(0.6685755, 0.13093472, 9.62615e-08, 1)
 corner_radius_top_left = 1
 corner_radius_top_right = 1
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m2c1y"]
+bg_color = Color(2.119338, 2.119338, 2.119338, 0.47058824)
+
 [node name="HealthControl" type="Control" unique_id=976476699]
 layout_mode = 3
 anchors_preset = 0
@@ -47,3 +50,13 @@ theme_override_styles/background = SubResource("StyleBoxEmpty_3ceha")
 theme_override_styles/fill = SubResource("StyleBoxFlat_3ceha")
 value = 79.0
 show_percentage = false
+
+[node name="Flash" type="Panel" parent="TrailBar" unique_id=634818127]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_m2c1y")
