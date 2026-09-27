@@ -2,6 +2,7 @@ extends Node
 class_name HealthController
 
 signal damage_taken(dmg: float)
+signal healed(heal: float)
 signal died()
 
 @export var max_health: float = 100.0
@@ -16,6 +17,13 @@ func apply_damage(dmg: float) -> void:
 	damage_taken.emit(dmg)
 	if is_dead():
 		died.emit()
+
+func apply_heal(heal: float) -> void:
+	if is_dead():
+		return
+
+	health = min(health + heal, max_health)
+	healed.emit(heal)
 
 func is_dead() -> bool:
 	return health <= 0.0

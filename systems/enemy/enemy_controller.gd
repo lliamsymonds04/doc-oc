@@ -19,6 +19,8 @@ func _ready() -> void:
 	mesh.material_overlay = _shader_mat
 
 	health_controller.damage_taken.connect(_on_damage_taken)
+	health_controller.healed.connect(_on_healed)
+	health_controller.died.connect(_on_death)
 
 func take_damage(dmg: float) -> void:
 	health_controller.apply_damage(dmg)
@@ -28,11 +30,19 @@ func _physics_process(dt: float) -> void:
 
 func _on_damage_taken(_dmg: float) -> void:
 	if health_bar:
-		health_bar.set_health_float(health_controller.get_health_float())
-		health_bar.shake_health_bar()
-		health_bar.flash()
+		health_bar.damage_health_bar_tween(health_controller.get_health_float())
 
 	_flash()
+
+func _on_healed(_heal: float) -> void:
+	if health_bar:
+		health_bar.heal_health_bar_tween(health_controller.get_health_float())
+
+func _on_death() -> void:
+	# wait 0.5 seconds before healing
+	await get_tree().create_timer(0.5).timeout
+	health_controller.health += 0.01
+	health_controller.apply_heal(100.0)
 
 func _flash() -> void:
 	if _tween:
