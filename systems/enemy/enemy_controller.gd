@@ -39,9 +39,14 @@ func _on_healed(_heal: float) -> void:
 		health_bar.heal_health_bar_tween(health_controller.get_health_float())
 
 func _on_death() -> void:
+	# bar: let the killing blow's trail finish, then sink + fade
+	if health_bar:
+		health_bar.play_death()
+
 	# wait 0.5 seconds before healing
 	await get_tree().create_timer(0.5).timeout
 	health_controller.health += 0.01
+	health_bar.health_bar.value = 0.0
 	health_controller.apply_heal(100.0)
 
 func _flash() -> void:

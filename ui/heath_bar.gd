@@ -22,13 +22,19 @@ class_name HealthBar
 @export var heal_pulse_mag: float = 1.5
 @export var heal_pulse_duration: float = 0.07
 
+# death tuning
+@export var death_sink_amount: float = 0.2
+@export var death_effect_duration: float = 0.3
+
 var _health_tween: Tween
 var _trail_tween: Tween
 var _shake_tween: Tween
 var _flash_tween: Tween
 var _trail_color_tween: Tween
 var _pop_tween: Tween
+var _death_tween: Tween
 var _control_origin: Vector2
+var _sprite_origin: Vector3
 var _trail_color: Color
 
 func _ready() -> void:
@@ -39,11 +45,12 @@ func _ready() -> void:
 	trail_bar.value = 0.0
 	visible = false
 	_control_origin = health_control.position
+	_sprite_origin = position
 	_trail_color = trail_bar.get_theme_stylebox("fill").bg_color
 
 
 func _size_viewport_to_bar() -> void:
-	# Expand margins draw outside the control rect, so they'd be clipped without padding
+	# expand margins draw outside the control rect; pad the viewport so they aren't clipped
 	var background: StyleBox = trail_bar.get_theme_stylebox("background")
 	var expand := Vector2(
 		background.get_expand_margin(SIDE_LEFT) + background.get_expand_margin(SIDE_RIGHT),
@@ -68,9 +75,11 @@ func _set_trail_fill_color(to: Color, duration: float) -> void:
 
 func damage_health_bar_tween(value: float) -> void:
 	value = clampf(value, 0.0, 1.0)
-	# full health hides the bar entirely
 	visible = value < 1.0
-	# hit response needs the damage color back immediately
+
+	shake_health_bar()
+	flash()
+
 	_set_trail_fill_color(_trail_color, 0.0)
 
 	if _health_tween != null:
@@ -88,13 +97,11 @@ func damage_health_bar_tween(value: float) -> void:
 		visible = value > 0.0
 	)
 
-	shake_health_bar()
-	flash()
-
 
 func heal_health_bar_tween(value: float) -> void:
 	value = clampf(value, 0.0, 1.0)
 	visible = value > 0.0
+
 	_set_trail_fill_color(trail_heal_color, trail_color_fade_duration)
 	flash(trail_heal_color)
 	_heal_pulse()
@@ -152,3 +159,38 @@ func flash(tint: Color = Color(1.0, 1.0, 1.0, 1.0)) -> void:
 	flash_panel.visible = true
 	_flash_tween = create_tween()
 	_flash_tween.tween_property(flash_panel, "modulate:a", 0.0, flash_tween_duration)
+
+
+func kill_all_tweens() -> void:
+	for tween in [_health_tween, _trail_tween, _shake_tween,
+			_flash_tween, _trail_color_tween, _pop_tween]:
+		if tween and tween.is_running():
+			tween.kill()
+
+
+func _reset_bar() -> void:
+	health_control.position = _control_origin
+	position = _sprite_origin
+	modulate.a = 1.0
+	health_bar.value = health_bar.max_value
+	trail_bar.value = 0.0
+	trail_bar.get_theme_stylebox("fill").bg_color = _trail_color
+
+
+func play_death() -> void:
+	kill_all_tweens()
+
+	# trail tween was killed mid-flight; sync trail to the drained value
+	trail_bar.value = health_bar.value
+
+	_death_tween = create_tween()
+	# let the killing blow's drain read before the corpse animation starts
+	_death_tween.tween_interval(death_effect_duration)
+	_death_tween.parallel().tween_property(self, "position",
+			_sprite_origin + Vector3(0, -death_sink_amount, 0), death_effect_duration) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	_death_tween.parallel().tween_property(self, "modulate:a", 0.0, death_effect_duration)
+	await _death_tween.finished
+
+	visible = false
+	_reset_bar()
