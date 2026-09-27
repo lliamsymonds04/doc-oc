@@ -23,6 +23,9 @@ func _ready() -> void:
 func take_damage(dmg: float) -> void:
 	health_controller.apply_damage(dmg)
 
+func _physics_process(dt: float) -> void:
+	velocity += get_gravity() * dt
+
 func _on_damage_taken(_dmg: float) -> void:
 	if health_bar:
 		health_bar.set_health_float(health_controller.get_health_float())

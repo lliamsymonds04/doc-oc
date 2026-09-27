@@ -11,6 +11,13 @@ corner_radius_bottom_left = 1
 expand_margin_bottom = 2.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oi67n"]
+bg_color = Color(0.8117647, 0.81960785, 0.8117647, 1)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3ceha"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3ceha"]
 bg_color = Color(0.6685755, 0.13093472, 9.62615e-08, 1)
 corner_radius_top_left = 1
 corner_radius_top_right = 1
@@ -19,12 +26,24 @@ corner_radius_top_right = 1
 layout_mode = 3
 anchors_preset = 0
 
-[node name="ProgressBar" type="ProgressBar" parent="." unique_id=573472260]
-custom_minimum_size = Vector2(150, 20)
+[node name="TrailBar" type="ProgressBar" parent="." unique_id=573472260]
+custom_minimum_size = Vector2(200, 20)
 layout_mode = 0
-offset_right = 150.0
+offset_right = 200.0
 offset_bottom = 20.0
 theme_override_styles/background = SubResource("StyleBoxFlat_r7nec")
 theme_override_styles/fill = SubResource("StyleBoxFlat_oi67n")
-value = 50.0
+value = 90.0
+show_percentage = false
+
+[node name="HealthBar" type="ProgressBar" parent="TrailBar" unique_id=490882047]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/background = SubResource("StyleBoxEmpty_3ceha")
+theme_override_styles/fill = SubResource("StyleBoxFlat_3ceha")
+value = 79.0
 show_percentage = false
