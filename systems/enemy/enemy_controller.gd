@@ -2,6 +2,7 @@ extends CharacterBody3D
 class_name EnemyController
 
 @export var damage_flash_duration: float = 0.2
+@export var dead_body_cleanup_time: float = 10.0
 
 @onready var health_controller: HealthController = $HealthController
 @onready var mesh: MeshInstance3D = $MeshInstance3D
@@ -12,6 +13,7 @@ const damage_shader = preload("res://shaders/damage_shader.gdshader")
 var _shader_mat: ShaderMaterial
 var _tween: Tween
 var _death_body: RigidBody3D
+var _death_timer: float
 
 func _ready() -> void:
 	# create the shader material overlay
@@ -38,6 +40,12 @@ func get_death_body() -> RigidBody3D:
 func _physics_process(dt: float) -> void:
 	velocity += get_gravity() * dt
 
+func _process(dt: float) -> void:
+	if _death_timer > 0.0:
+		_death_timer -= dt
+		if _death_timer <= 0.0:
+			_death_body.queue_free()
+
 func _on_damage_taken(_dmg: float) -> void:
 	if health_bar:
 		health_bar.damage_health_bar_tween(health_controller.get_health_float())
@@ -51,6 +59,8 @@ func _on_healed(_heal: float) -> void:
 func _on_death() -> void:
 	if health_bar:
 		health_bar.play_death()
+
+	_death_timer = dead_body_cleanup_time
 
 func _create_fake_body() -> void:
 	visible = false
