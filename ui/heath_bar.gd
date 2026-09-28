@@ -42,7 +42,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_size_viewport_to_bar()
 	health_bar.value = health_bar.max_value
-	trail_bar.value = 0.0
+	trail_bar.value = trail_bar.max_value
 	visible = false
 	_control_origin = health_control.position
 	_sprite_origin = position
@@ -103,7 +103,6 @@ func heal_health_bar_tween(value: float) -> void:
 	visible = value > 0.0
 
 	_set_trail_fill_color(trail_heal_color, trail_color_fade_duration)
-	flash(trail_heal_color)
 	_heal_pulse()
 
 	var target = health_bar.max_value * value
@@ -194,3 +193,7 @@ func play_death() -> void:
 
 	visible = false
 	_reset_bar()
+
+func set_bar_positions(pos: float) -> void:
+	trail_bar.value = pos
+	health_bar.value = pos

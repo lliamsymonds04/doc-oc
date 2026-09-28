@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://fqe70d8uduc6" path="res://ui/hud.tscn" id="8_5vw27"]
 [ext_resource type="Script" uid="uid://c34dnohk30mk" path="res://systems/util/debug_ray_drawer.gd" id="9_dbg"]
 [ext_resource type="PackedScene" uid="uid://dqbd8ih3ynaal" path="res://systems/enemy/basic_enemy.tscn" id="10_4c57u"]
+[ext_resource type="Script" uid="uid://bdtssx7vpj7jn" path="res://systems/enemy/dummy.gd" id="11_efxa6"]
 
 [sub_resource type="StandardMaterial3D" id="FloorMat"]
 albedo_texture = ExtResource("1_h2yge")
@@ -207,9 +208,6 @@ script = ExtResource("9_dbg")
 
 [node name="Hud" parent="." unique_id=1447860461 instance=ExtResource("8_5vw27")]
 
-[node name="Node3D" parent="." unique_id=1318838475 instance=ExtResource("10_4c57u")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.3669295, 1.0890002, 23.221933)
-
 [node name="RigidBody3D" type="RigidBody3D" parent="." unique_id=589689143]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.865284, 1.7930105, 13.972524)
 
@@ -219,3 +217,9 @@ material = SubResource("BoxMat_coral")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D" unique_id=1457229589]
 shape = SubResource("BoxShape3D_m2c1y")
+
+[node name="Dummy" type="Node3D" parent="." unique_id=171037128]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 23)
+script = ExtResource("11_efxa6")
+enemy_scene = ExtResource("10_4c57u")
+metadata/_custom_type_script = "uid://bdtssx7vpj7jn"

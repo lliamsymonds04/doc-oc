@@ -6,6 +6,7 @@ class_name EnemyController
 
 @onready var health_controller: HealthController = $HealthController
 @onready var mesh: MeshInstance3D = $MeshInstance3D
+@onready var hitbox: CollisionShape3D = $Hitbox
 @export var health_bar: HealthBar
 
 const damage_shader = preload("res://shaders/damage_shader.gdshader")
@@ -45,6 +46,7 @@ func _process(dt: float) -> void:
 		_death_timer -= dt
 		if _death_timer <= 0.0:
 			_death_body.queue_free()
+			queue_free()
 
 func _on_damage_taken(_dmg: float) -> void:
 	if health_bar:
@@ -64,7 +66,7 @@ func _on_death() -> void:
 
 func _create_fake_body() -> void:
 	visible = false
-	$CollisionShape3D.set_deferred("disabled", true)
+	hitbox.set_deferred("disabled", true)
 	set_physics_process(false)
 
 	_death_body = RigidBody3D.new()
@@ -74,7 +76,7 @@ func _create_fake_body() -> void:
 	_death_body.add_child(corpse_mesh)
 
 	var corpse_shape := CollisionShape3D.new()
-	corpse_shape.shape = $CollisionShape3D.shape
+	corpse_shape.shape = hitbox.shape
 	_death_body.add_child(corpse_shape)
 
 	get_parent().add_child(_death_body)
