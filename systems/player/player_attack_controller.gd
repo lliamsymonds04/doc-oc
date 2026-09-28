@@ -64,18 +64,26 @@ func try_attack() -> void:
 		return
 
 func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
-	if collider is EnemyController:
-		var enemy: EnemyController = collider
+	var is_enemy_hit: bool = collider is EnemyController or collider.is_in_group("enemy_corpse")
+	if is_enemy_hit:
 		_hit_audio_player.stream = player.attack_config.enemy_hit_sound
-		AudioUtil.play_with_pitch(_hit_audio_player)
-
-		enemy.take_damage(player.attack_config.damage)
 	else:
 		_hit_audio_player.stream = player.attack_config.surface_hit_sound
-		AudioUtil.play_with_pitch(_hit_audio_player)
 
-		if collider is RigidBody3D:
-			_impulse_rigid_body(collider, hit)
+	AudioUtil.play_with_pitch(_hit_audio_player)
+
+	if collider is EnemyController:
+		var enemy: EnemyController = collider
+
+		enemy.take_damage(player.attack_config.damage)
+
+		if enemy.is_dead():
+			var death_body := enemy.get_death_body()
+			if death_body:
+				_impulse_rigid_body(death_body, hit)
+
+	elif collider is RigidBody3D:
+		_impulse_rigid_body(collider, hit)
 
 	player.camera_controller.add_trauma(player.attack_config.hit_trauma)
 	player.camera_controller.kick_fov(player.attack_config.hit_fov_kick)
