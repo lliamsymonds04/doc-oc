@@ -12,6 +12,7 @@ var _attack_audio_player: AudioStreamPlayer3D
 var _hit_audio_player: AudioStreamPlayer3D
 
 var _hit_vfx: ImpactVFX
+var _crack_decal_parent: Node3D
 
 func _init(p: PlayerController, attack_config: PlayerAttackConfig) -> void:
 	player = p
@@ -28,6 +29,9 @@ func _init(p: PlayerController, attack_config: PlayerAttackConfig) -> void:
 		_hit_vfx = config.hit_vfx_scene.instantiate() as ImpactVFX
 		_hit_vfx.top_level = true
 		p.add_child(_hit_vfx)
+
+	# Decals live at scene root so they don't move around with the player.
+	_crack_decal_parent = p.get_tree().current_scene
 
 	for mount in p.all_mounts():
 		mount.arm.hit_detected.connect(arm_hit_detected)
@@ -71,6 +75,9 @@ func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 		_hit_audio_player.stream = player.attack_config.surface_hit_sound
 
 	AudioUtil.play_with_pitch(_hit_audio_player)
+
+	if not is_enemy_hit and not collider is RigidBody3D:
+		CrackDecal.spawn(_crack_decal_parent, hit, normal)
 
 	if collider is EnemyController:
 		var enemy: EnemyController = collider
