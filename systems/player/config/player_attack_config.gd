@@ -23,3 +23,7 @@ extends Resource
 @export var hit_vfx_scene: PackedScene = preload("res://assets/vfx/step.tscn")
 @export var hit_trauma: float = 0.7
 @export_range(0, -10, -0.5) var hit_fov_kick: float = -2.0
+
+@export_group("Impulse Physics")
+@export var impulse_strength: float = 7.0
+@export var impulse_min_y: float = 1.0

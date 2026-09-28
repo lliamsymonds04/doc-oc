@@ -74,6 +74,9 @@ func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 		_hit_audio_player.stream = player.attack_config.surface_hit_sound
 		AudioUtil.play_with_pitch(_hit_audio_player)
 
+		if collider is RigidBody3D:
+			_impulse_rigid_body(collider, hit)
+
 	player.camera_controller.add_trauma(player.attack_config.hit_trauma)
 	player.camera_controller.kick_fov(player.attack_config.hit_fov_kick)
 
@@ -99,3 +102,12 @@ func _get_target(side_dir: int = 0) -> Vector3:
 		return cam_pos + cam_dir * config.attack_cast_range
 	else:
 		return cam_hit["position"] + attack_offset
+
+func _impulse_rigid_body(body: RigidBody3D, hit_point: Vector3) -> void:
+	var local_hit_point = body.to_local(hit_point)
+	var impulse = Vector3.ZERO
+
+	var hit_dir = player.camera_controller.get_camera_direction()
+	impulse = hit_dir * player.attack_config.impulse_strength
+	impulse.y = max(impulse.y, player.attack_config.impulse_min_y)
+	body.apply_impulse(impulse,local_hit_point)
