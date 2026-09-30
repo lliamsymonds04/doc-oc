@@ -32,9 +32,12 @@ var wall_climb_debounce: float = 0.0
 
 var _states: Dictionary = {}
 var _current: PlayerState
+var is_in_grab_mode: bool = true
 
 var mount_prober: MountProber
 var attack_controller: PlayerAttackController
+var grab_controller: PlayerGrabController
+
 var _jump_audio_player: AudioStreamPlayer3D
 
 var _hit_vfx: ImpactVFX
@@ -69,6 +72,7 @@ func _ready() -> void:
 
 	mount_prober = MountProber.new(self)
 	attack_controller = PlayerAttackController.new(self, attack_config)
+	grab_controller = PlayerGrabController.new(self)
 
 	_states[StateID.GROUNDED] = GroundedState.new(self)
 	_states[StateID.WALL_CLIMB] = WallClimbState.new(self)
@@ -131,6 +135,7 @@ func _physics_process(dt: float) -> void:
 
 	_current.input_dir = Input.get_vector("left", "right", "forward", "back")
 	_current.physics_update(dt)
+	grab_controller.physics_update()
 
 	move_and_slide()
 	camera_controller.update_motion(dt,velocity)

@@ -124,10 +124,15 @@ func physics_update(dt: float) -> void:
 		p.camera_controller.set_sprinting(false)
 
 	if Input.is_action_just_pressed("left-click"):
-		p.attack_controller.try_attack()
+		if player.is_in_grab_mode:
+			p.grab_controller.try_grab()
+		else:
+			p.attack_controller.try_attack()
 
 func frame_update(dt: float) -> void:
 	for mount in player.all_mounts():
+		if player.grab_controller.is_mount_grabbing(mount):
+			continue
 		if mount.is_leg:
 			mount.update_planted_target()
 		else:
@@ -220,6 +225,10 @@ func _update_legs(dt: float) -> void:
 		mounts = p.all_mounts()
 
 	for mount in mounts:
+		if p.grab_controller.is_mount_grabbing(mount):
+			if mount.arm.is_moving:
+				mount.arm.advance_move(dt)
+			continue
 		mount.update_step(p.velocity, dt)
 		var other_mounts_grounded := false
 		var is_horizontal_mount_grounded := mount.horizontal_mount.arm.is_grounded()
@@ -255,6 +264,10 @@ func _update_arms(dt: float) -> void:
 
 	var p := player
 	for mount in p.arm_mounts:
+		if p.grab_controller.is_mount_grabbing(mount):
+			if mount.arm.is_moving:
+				mount.arm.advance_move(dt)
+			continue
 		mount.update_step(p.velocity, dt)
 
 

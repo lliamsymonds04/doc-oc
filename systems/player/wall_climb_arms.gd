@@ -98,6 +98,9 @@ func update_arms(dt: float, input_dir: Vector2, average_normal: Vector3) -> void
 	var right := wall_basis(wall_normal).x
 
 	for mount in p.all_mounts():
+		if p.grab_controller.is_mount_grabbing(mount):
+			continue
+
 		var hit = mount.update_wall_climb(p.velocity)
 
 		if mount.arm.is_moving:

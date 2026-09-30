@@ -123,6 +123,8 @@ func frame_update(dt: float) -> void:
 
 	var world_offset := calculate_hand_velocity_offset(p.velocity)
 	for mount in p.all_mounts():
+		if p.grab_controller.is_mount_grabbing(mount):
+			continue
 		mount.update_idle_target(dt, p.air.arm_target_speed, world_offset)
 
 func _check_grounded() -> bool:
@@ -137,6 +139,8 @@ func _check_grounded() -> bool:
 					mount.set_target(hit_pos)
 
 		for mount in p.arm_mounts:
+			if p.grab_controller.is_mount_grabbing(mount):
+				continue
 			mount.set_target(mount.to_global(mount.compute_idle_target()))
 
 		p.set_state(p.StateID.GROUNDED)

@@ -11,6 +11,9 @@ const VERTICAL_SURFACE_NORMAL_CHECK := acos(deg_to_rad(45))
 func try_mount_wall(input: Vector2, player_velocity: Vector3) -> bool:
 	var p := player
 
+	if p.grab_controller.is_grabbing():
+		return false
+
 	if p.wall_climb_debounce > 0.0 and player_velocity.y > p.wall_climb.fall_speed_wall_debounce_bypass:
 		return false
 
