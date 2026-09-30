@@ -2,14 +2,11 @@ extends RefCounted
 class_name PlayerGrabController
 
 var player: PlayerController
-var prev_attack_mount: ArmMount
 var last_attack_time: float = -INF
-# var grabbed_bodies: Dictionary = {}
 const HOLD_OFFSET := Vector3(0.6, 1.2, -0.8)
 
 var mounts_grabbed_bodies: Dictionary = {}
 var grab_offsets: Dictionary = {}
-# var grab_local_offset: Vector3
 
 func _init(p: PlayerController) -> void:
 	player = p
@@ -17,7 +14,7 @@ func _init(p: PlayerController) -> void:
 	for mount in p.all_mounts():
 		mount.arm.hit_detected.connect(arm_hit_detected.bind(mount))
 
-func try_grab() -> void:
+func try_grab(side_dir: int) -> void:
 	var now = _get_now()
 	if now - last_attack_time < 0.5:
 		return
@@ -26,19 +23,13 @@ func try_grab() -> void:
 	if p.is_sprinting():
 		return
 
-	for mount in p.arm_mounts:
-		if mount == prev_attack_mount:
-			continue
-		if is_mount_grabbing(mount):
-			continue
-
-		var side_dir: int = sign(mount.position.x)
-		var target = _get_target(side_dir)  # same aim-point math as attack
-		mount.arm.start_punch(target)
-		prev_attack_mount = mount
-		last_attack_time = now
-
+	var mount := _get_mount_for_side(side_dir)
+	if mount == null or is_mount_grabbing(mount):
 		return
+
+	var target = _get_target(side_dir)  # same aim-point math as attack
+	mount.arm.start_punch(target)
+	last_attack_time = now
 
 func physics_update() -> void:
 	for mount in mounts_grabbed_bodies.keys():
@@ -72,6 +63,12 @@ func _get_target(side_dir: int = 0) -> Vector3:
 		return cam_pos + cam_dir * 15
 	else:
 		return cam_hit["position"] + attack_offset
+
+func _get_mount_for_side(side_dir: int) -> ArmMount:
+	for mount in player.arm_mounts:
+		if sign(mount.position.x) == side_dir:
+			return mount
+	return null
 
 
 func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object, mount: ArmMount) -> void:
