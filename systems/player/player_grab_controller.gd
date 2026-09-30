@@ -31,6 +31,15 @@ func try_grab(side_dir: int) -> void:
 	mount.arm.start_punch(target)
 	last_attack_time = now
 
+func release_grab(side_dir: int) -> void:
+	var p := player
+	var mount := _get_mount_for_side(side_dir)
+	if mount == null or not is_mount_grabbing(mount):
+		return
+	# actually remove the keys — assigning null keeps the key, so has() stays true
+	mounts_grabbed_bodies.erase(mount)
+	grab_offsets.erase(mount)
+
 func physics_update() -> void:
 	for mount in mounts_grabbed_bodies.keys():
 		if not is_mount_grabbing(mount):

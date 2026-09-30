@@ -133,6 +133,14 @@ func physics_update(dt: float) -> void:
 		if player.is_in_grab_mode:
 			p.grab_controller.try_grab(1)
 
+	if Input.is_action_just_released("left-click"):
+		if player.is_in_grab_mode:
+			p.grab_controller.release_grab(-1)
+
+	if Input.is_action_just_released("right-click"):
+		if player.is_in_grab_mode:
+			p.grab_controller.release_grab(1)
+
 func frame_update(dt: float) -> void:
 	for mount in player.all_mounts():
 		if player.grab_controller.is_mount_grabbing(mount):
