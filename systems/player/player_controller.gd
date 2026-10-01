@@ -42,9 +42,12 @@ var _jump_audio_player: AudioStreamPlayer3D
 
 var _hit_vfx: ImpactVFX
 
-## Mask for casts originating on the player: everything except the player's own layer.
+## Layer bodies are moved to while held; excluded from player casts via cast_mask.
+const HELD_LAYER := 4
+
+## Mask for casts originating on the player: everything except the player's own layer and held bodies.
 func cast_mask() -> int:
-	return ~collision_layer
+	return ~(collision_layer | HELD_LAYER)
 
 func _init() -> void:
 	if movement == null:
