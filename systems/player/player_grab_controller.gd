@@ -4,9 +4,11 @@ class_name PlayerGrabController
 var player: PlayerController
 var last_attack_time: float = -INF
 const HOLD_OFFSET := Vector3(0.6, 1.2, -0.8)
+const MAX_GRAB_SPIN := 15.0  # rad/s cap for the rotation servo
 
 var grabs: Dictionary = {}  # mount -> body
 var grab_offsets: Dictionary = {}
+var grab_relative_rotations: Dictionary = {}  # mount -> Quaternion (body basis relative to player basis)
 var original_layers: Dictionary = {}  # body -> original collision_layer
 
 func _init(p: PlayerController) -> void:
@@ -48,6 +50,7 @@ func release_grab(side_dir: int) -> void:
 	var body: RigidBody3D = grabs[mount]
 	grabs.erase(mount)
 	grab_offsets.erase(mount)
+	grab_relative_rotations.erase(mount)
 	if not grabs.values().has(body):
 		body.collision_layer = original_layers[body]
 		original_layers.erase(body)
@@ -72,6 +75,24 @@ func physics_update() -> void:
 		# velocity magnet
 		var error := anchor - grip_world
 		body.linear_velocity = error * 15
+
+		# rotation servo: keep the body's orientation locked relative to the player
+		var dt := player.get_physics_process_delta_time()
+		var target_q: Quaternion = player.global_transform.basis.get_rotation_quaternion() * grab_relative_rotations[mount]
+		var current_q := body.global_transform.basis.get_rotation_quaternion()
+
+		# delta in WORLD frame: target = q_err * current, because angular_velocity is global-space
+		var q_err := target_q * current_q.inverse()
+		if q_err.w < 0.0:
+			q_err = -q_err  # take the shortest path around
+
+		var axis := Vector3(q_err.x, q_err.y, q_err.z)
+		var angle := q_err.get_angle()
+		if angle > 0.001 and axis.length() > 0.001:
+			# P-gain below 1.0/dt keeps it stable instead of oscillating
+			body.angular_velocity = (axis.normalized() * angle / dt * 0.7).limit_length(MAX_GRAB_SPIN)
+		else:
+			body.angular_velocity = Vector3.ZERO
 
 func _get_target(side_dir: int = 0) -> Vector3:
 	var p := player
@@ -107,6 +128,9 @@ func _join_grab(mount: ArmMount, body: RigidBody3D) -> void:
 	var side_dir: int = sign(mount.position.x)
 	var hold_offset := Vector3(HOLD_OFFSET.x * side_dir, HOLD_OFFSET.y, HOLD_OFFSET.z)
 	grab_offsets[mount] = body.to_local(mount.to_global(hold_offset))
+	grab_relative_rotations[mount] = \
+		player.global_transform.basis.get_rotation_quaternion().inverse() \
+		* body.global_transform.basis.get_rotation_quaternion()
 	grabs[mount] = body
 
 
@@ -122,6 +146,9 @@ func arm_hit_detected(hit: Vector3, _normal: Vector3, collider: Object, mount: A
 
 	var body = collider as RigidBody3D
 	grab_offsets[mount] = body.to_local(hit)
+	grab_relative_rotations[mount] = \
+		player.global_transform.basis.get_rotation_quaternion().inverse() \
+		* body.global_transform.basis.get_rotation_quaternion()
 	grabs[mount] = body
 	# HELD_LAYER kills the player-vs-body pair: the player's mask doesn't include it
 	if not original_layers.has(body):
