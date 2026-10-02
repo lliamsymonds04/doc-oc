@@ -207,7 +207,7 @@ func _update_tilt(dt: float) -> void:
 	var camera_yaw = p.camera_controller.rotation.y * p.grounded.cam_yaw_tilt_mult
 
 	# targets
-	var target_tilt_x: float = dir.y * walk_tilt_x + camera_pitch
+	var target_tilt_x: float = dir.y * walk_tilt_x
 	var target_tilt_z: float = -dir.x * walk_tilt_z
 	var target_tilt_y: float = p.attack_controller.attack_tilt_y + camera_yaw
 
@@ -216,6 +216,8 @@ func _update_tilt(dt: float) -> void:
 		if dir.y <= 0.0:
 			target_tilt_x += sprint_tilt_x
 		target_tilt_z *= c.sprint_tilt_multiplier
+	else:
+		target_tilt_x += camera_pitch
 
 	var tilted_x = lerp(current_tilt_x, target_tilt_x, dt * tilt_speed)
 	var tilted_z = lerp(current_tilt_z, target_tilt_z, dt * tilt_speed)
