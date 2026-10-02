@@ -46,6 +46,8 @@ var _pending_mouse := Vector2.ZERO
 ## Raw mouse delta accumulated since the last physics tick (pixels). Snapshot of
 ## _pending_mouse published for systems that need mouse motion without owning the accumulator.
 var mouse_delta_physics := Vector2.ZERO
+var _pending_wheel := 0.0  # notches since last physics tick, + = wheel-up
+var wheel_delta_physics := 0.0
 
 var _sprinting: bool = false
 var _sprint_weight: float = 0.0
@@ -124,6 +126,9 @@ func _process(dt: float) -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		_pending_mouse += event.relative
+	elif event is InputEventMouseButton and event.pressed \
+			and (event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_DOWN):
+		_pending_wheel += event.factor * (1.0 if event.button_index == MOUSE_BUTTON_WHEEL_UP else -1.0)
 
 func _update_fov(dt: float) -> void:
 	var speed_float = min(_current_speed/speed_at_max_fov, 1.0)
@@ -143,6 +148,8 @@ func _physics_process(_dt: float) -> void:
 	rotation.y = wrapf(rotation.y, -PI, PI)
 	mouse_delta_physics = _pending_mouse
 	_pending_mouse = Vector2.ZERO
+	wheel_delta_physics = _pending_wheel
+	_pending_wheel = 0.0
 
 func get_flat_basis() -> Basis:
 	return Basis(Vector3.UP, global_rotation.y)

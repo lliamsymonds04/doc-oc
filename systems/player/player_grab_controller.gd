@@ -5,6 +5,7 @@ var player: PlayerController
 var last_attack_time: float = -INF
 const HOLD_OFFSET := Vector3(0.6, 1.2, -0.8)
 const HOLD_DRAG_SENS := 0.02  # mouse pixels -> world meters, feel-driven
+const WHEEL_NOTCH_SENS := 0.3  # notches -> world meters of height, feel-driven
 const MAX_HOLD_DRAG := 2.4  # hold position can move this far from its default, relative to the player
 const MAX_GRAB_SPIN := 15.0  # rad/s cap for the rotation servo
 const MIN_Z_HOLD_OFFSET := -0.6  # hold position z axis limit
@@ -62,8 +63,8 @@ func release_grab(side_dir: int) -> void:
 		body.collision_layer = original_layers[body]
 		original_layers.erase(body)
 
-func physics_update(mouse_delta: Vector2) -> void:
-	_apply_mouse_drag(mouse_delta)
+func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
+	_apply_mouse_drag(mouse_delta, wheel_delta)
 	# two arms on one body: per-mount velocity writes would overwrite the other arm's error
 	var err_sum := {}    # body -> Vector3
 	var err_count := {}  # body -> int
@@ -109,16 +110,22 @@ func physics_update(mouse_delta: Vector2) -> void:
 
 ## Mouse motion moves the hold position relative to the player; the servo pulls the body
 ## so its fixed grip point lands there, and the arm target simply follows that point.
-func _apply_mouse_drag(mouse_delta: Vector2) -> void:
-	if mouse_delta == Vector2.ZERO or grabs.is_empty():
+## Mouse X = lateral (flat cam X), mouse Y = depth (flat cam Z), wheel = height (world UP).
+func _apply_mouse_drag(mouse_delta: Vector2, wheel_delta: float) -> void:
+	if mouse_delta == Vector2.ZERO and is_zero_approx(wheel_delta):
+		return
+	if grabs.is_empty():
 		return
 
 	if not player.is_idle():
 		return
 
-	# var cam_basis: Basis = player.camera_controller.cam.global_transform.basis
-	var cam_basis: Basis = player.global_transform.basis
-	var world_delta: Vector3 = cam_basis.x * mouse_delta.x * HOLD_DRAG_SENS + cam_basis.z * mouse_delta.y * HOLD_DRAG_SENS
+	var cam_basis: Basis = player.camera_controller.get_flat_basis()
+	var world_delta: Vector3 = \
+		cam_basis.x * mouse_delta.x * HOLD_DRAG_SENS + \
+		cam_basis.z * mouse_delta.y * HOLD_DRAG_SENS + \
+		-Vector3.UP * wheel_delta * WHEEL_NOTCH_SENS
+
 	for mount in grabs:
 		var local_delta: Vector3 = mount.global_transform.basis.inverse() * world_delta
 		var default := _default_hold_offset(mount)
