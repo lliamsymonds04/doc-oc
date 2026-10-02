@@ -208,14 +208,14 @@ script = ExtResource("9_dbg")
 
 [node name="Hud" parent="." unique_id=1447860461 instance=ExtResource("8_5vw27")]
 
-[node name="RigidBody3D" type="RigidBody3D" parent="." unique_id=589689143]
+[node name="BoxCoral" type="RigidBody3D" parent="." unique_id=589689143]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.865284, 1.7930105, 13.972524)
 
-[node name="BoxCoral" type="CSGBox3D" parent="RigidBody3D" unique_id=145132706]
+[node name="BoxCoral" type="CSGBox3D" parent="BoxCoral" unique_id=145132706]
 size = Vector3(1.5, 1.5, 1.5)
 material = SubResource("BoxMat_coral")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D" unique_id=1457229589]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BoxCoral" unique_id=1457229589]
 shape = SubResource("BoxShape3D_m2c1y")
 
 [node name="Dummy" type="Node3D" parent="." unique_id=171037128]

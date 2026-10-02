@@ -32,14 +32,16 @@ func try_grab(side_dir: int) -> void:
 
 	var target = _get_target(side_dir)  # same aim-point math as attack
 
-	# punches can't hit held bodies (cast_mask excludes HELD_LAYER) — join via a held-visible aim ray
+	# fast path: join instantly when the crosshair rests on a body the other arm holds;
+	# otherwise the punch below now sweeps with a HELD_LAYER-inclusive mask and joins at contact
 	var join_body := _aimed_held_body(15.0)
 	if join_body != null:
 		_join_grab(mount, join_body)
 		last_attack_time = now
 		return
 
-	mount.arm.start_punch(target)
+	# mask includes HELD_LAYER so the sweep can join a body the other arm already holds
+	mount.arm.start_punch(target, ~player.collision_layer)
 	last_attack_time = now
 
 func release_grab(side_dir: int) -> void:
@@ -56,6 +58,10 @@ func release_grab(side_dir: int) -> void:
 		original_layers.erase(body)
 
 func physics_update() -> void:
+	# two arms on one body: per-mount velocity writes would overwrite the other arm's error
+	var err_sum := {}    # body -> Vector3
+	var err_count := {}  # body -> int
+
 	for mount in grabs.keys():
 		if not is_mount_grabbing(mount):
 			continue
@@ -72,9 +78,9 @@ func physics_update() -> void:
 		mount.set_target(grip_world)
 		mount.set_apply_floor(false)
 
-		# velocity magnet
 		var error := anchor - grip_world
-		body.linear_velocity = error * 15
+		err_sum[body] = err_sum.get(body, Vector3.ZERO) + error
+		err_count[body] = err_count.get(body, 0) + 1
 
 		# rotation servo: keep the body's orientation locked relative to the player
 		var dt := player.get_physics_process_delta_time()
@@ -93,6 +99,9 @@ func physics_update() -> void:
 			body.angular_velocity = (axis.normalized() * angle / dt * 0.7).limit_length(MAX_GRAB_SPIN)
 		else:
 			body.angular_velocity = Vector3.ZERO
+
+	for body in err_sum:
+		body.linear_velocity = (err_sum[body] / err_count[body]) * 15
 
 func _get_target(side_dir: int = 0) -> Vector3:
 	var p := player
@@ -154,6 +163,8 @@ func arm_hit_detected(hit: Vector3, _normal: Vector3, collider: Object, mount: A
 	if not original_layers.has(body):
 		original_layers[body] = body.collision_layer
 	body.collision_layer = player.HELD_LAYER
+
+	print(body)
 
 func is_mount_grabbing(mount: ArmMount) -> bool:
 	return grabs.has(mount)

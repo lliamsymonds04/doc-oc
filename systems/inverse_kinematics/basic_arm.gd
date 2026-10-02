@@ -39,6 +39,7 @@ class MotionProfile:
 	var ease_curve: float = 1.0 # Godot's ease(): 1.0 = linear
 	var floor_normal: Variant = null # null = don't touch solver.floor_normal
 	var detect_hits: bool = false
+	var cast_mask: int = -1 # -1 = use the arm's default cast_mask
 
 ## state
 var is_moving := false
@@ -156,11 +157,12 @@ func start_step(to: Vector3, params: StepParams = null) -> void:
 
 	step_started.emit(_move_start, params.surface_normal)
 
-func start_punch(to: Vector3) -> void:
+func start_punch(to: Vector3, p_cast_mask: int = -1) -> void:
 	var profile := MotionProfile.new()
 	profile.duration = punch_duration
 	profile.ease_curve = punch_ease_curve
 	profile.detect_hits = true
+	profile.cast_mask = p_cast_mask
 
 	begin_move(to, profile)
 
@@ -180,7 +182,7 @@ func query_end_effector(to: Vector3) -> Variant:
 		_probe_shape,
 		_prev_probe_pos,
 		motion,
-		cast_mask, # set by ArmMount from PlayerController.cast_mask()
+		_profile.cast_mask if _profile.cast_mask != -1 else cast_mask,
 	)
 
 ## private methods
