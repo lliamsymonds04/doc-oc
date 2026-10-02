@@ -6,9 +6,12 @@ var last_attack_time: float = -INF
 const HOLD_OFFSET := Vector3(0.6, 1.2, -0.8)
 const HOLD_DRAG_SENS_X := 0.3  # mouse pixels -> world meters, feel-driven
 const HOLD_DRAG_SENS_Y := 2
-const WHEEL_NOTCH_SENS := 0.3  # notches -> world meters of height, feel-driven
+const WHEEL_NOTCH_SENS := 0.5  # notches -> world meters of height, feel-driven
 const MAX_HOLD_DRAG := 2.4  # hold position can move this far from its default, relative to the player
 const MAX_GRAB_SPIN := 15.0  # rad/s cap for the rotation servo
+const THROW_RELEASE_VELOCITY_MULT := 1.5
+const THROW_RELEASE_VELOCITY_Y := 5.0
+const THROW_RELEASE_VELOCITY_THRESHOLD_Z := 10.0
 
 var grabs: Dictionary = {}  # mount -> body
 var grab_offsets: Dictionary = {}  # mount -> body-local grip point; fixed at grab time
@@ -55,6 +58,15 @@ func release_grab(side_dir: int) -> void:
 		return
 
 	var body: RigidBody3D = grabs[mount]
+
+	# get the velocity relative to the player. check it is going forward.
+	var body_vel := body.linear_velocity
+	var player_basis := player.global_basis
+	var body_vel_relative := player_basis.inverse() * body_vel
+	if body_vel_relative.z < -THROW_RELEASE_VELOCITY_THRESHOLD_Z:
+		body.linear_velocity *= THROW_RELEASE_VELOCITY_MULT
+		body.linear_velocity.y += THROW_RELEASE_VELOCITY_Y
+
 	grabs.erase(mount)
 	grab_offsets.erase(mount)
 	hold_offsets.erase(mount)
