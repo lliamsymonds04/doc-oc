@@ -43,6 +43,9 @@ var _fov_kick: float = 0.0
 var _speed_fov: float
 var _trail := Vector3.ZERO
 var _pending_mouse := Vector2.ZERO
+## Raw mouse delta accumulated since the last physics tick (pixels). Snapshot of
+## _pending_mouse published for systems that need mouse motion without owning the accumulator.
+var mouse_delta_physics := Vector2.ZERO
 
 var _sprinting: bool = false
 var _sprint_weight: float = 0.0
@@ -138,6 +141,7 @@ func _physics_process(_dt: float) -> void:
 	rotation_degrees.x -= _pending_mouse.y * sensitivity
 	rotation_degrees.x = clampf(rotation_degrees.x, -70, 70)
 	rotation.y = wrapf(rotation.y, -PI, PI)
+	mouse_delta_physics = _pending_mouse
 	_pending_mouse = Vector2.ZERO
 
 func get_flat_basis() -> Basis:

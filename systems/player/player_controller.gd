@@ -119,6 +119,8 @@ func is_airborne() -> bool:
 func is_wall_climbing() -> bool:
 	return _current is WallClimbState
 
+func is_idle() -> bool:
+	return _current is GroundedState and (velocity * Vector3(1, 0, 1)).length() < 0.1
 
 func set_state(id: StateID) -> void:
 	if _current == _states[id]:
@@ -138,7 +140,7 @@ func _physics_process(dt: float) -> void:
 
 	_current.input_dir = Input.get_vector("left", "right", "forward", "back")
 	_current.physics_update(dt)
-	grab_controller.physics_update()
+	grab_controller.physics_update(camera_controller.mouse_delta_physics)
 
 	move_and_slide()
 	camera_controller.update_motion(dt,velocity)
