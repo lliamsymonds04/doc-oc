@@ -4,11 +4,11 @@ class_name PlayerGrabController
 var player: PlayerController
 var last_attack_time: float = -INF
 const HOLD_OFFSET := Vector3(0.6, 1.2, -0.8)
-const HOLD_DRAG_SENS := 0.02  # mouse pixels -> world meters, feel-driven
+const HOLD_DRAG_SENS_X := 0.3  # mouse pixels -> world meters, feel-driven
+const HOLD_DRAG_SENS_Y := 2
 const WHEEL_NOTCH_SENS := 0.3  # notches -> world meters of height, feel-driven
 const MAX_HOLD_DRAG := 2.4  # hold position can move this far from its default, relative to the player
 const MAX_GRAB_SPIN := 15.0  # rad/s cap for the rotation servo
-const MIN_Z_HOLD_OFFSET := -0.6  # hold position z axis limit
 
 var grabs: Dictionary = {}  # mount -> body
 var grab_offsets: Dictionary = {}  # mount -> body-local grip point; fixed at grab time
@@ -122,8 +122,8 @@ func _apply_mouse_drag(mouse_delta: Vector2, wheel_delta: float) -> void:
 
 	var cam_basis: Basis = player.camera_controller.get_flat_basis()
 	var world_delta: Vector3 = \
-		cam_basis.x * mouse_delta.x * HOLD_DRAG_SENS + \
-		cam_basis.z * mouse_delta.y * HOLD_DRAG_SENS + \
+		cam_basis.x * mouse_delta.x * HOLD_DRAG_SENS_X * player.camera_controller.sensitivity + \
+		cam_basis.z * mouse_delta.y * HOLD_DRAG_SENS_Y * player.camera_controller.sensitivity + \
 		-Vector3.UP * wheel_delta * WHEEL_NOTCH_SENS
 
 	for mount in grabs:
@@ -131,9 +131,6 @@ func _apply_mouse_drag(mouse_delta: Vector2, wheel_delta: float) -> void:
 		var default := _default_hold_offset(mount)
 		var moved: Vector3 = (hold_offsets[mount] as Vector3) + local_delta - default
 		var new_offset := default + moved.limit_length(MAX_HOLD_DRAG)
-
-		# apply limit on the z axis
-		new_offset.z = minf(new_offset.z, MIN_Z_HOLD_OFFSET)
 		hold_offsets[mount] = new_offset
 
 func _default_hold_offset(mount: ArmMount) -> Vector3:
