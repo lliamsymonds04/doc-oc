@@ -32,7 +32,7 @@ var wall_climb_debounce: float = 0.0
 
 var _states: Dictionary = {}
 var _current: PlayerState
-var is_in_grab_mode: bool = true
+var is_in_grab_mode: bool = false
 
 var mount_prober: MountProber
 var attack_controller: PlayerAttackController
@@ -142,6 +142,9 @@ func _physics_process(dt: float) -> void:
 
 	move_and_slide()
 	camera_controller.update_motion(dt,velocity)
+
+	if Input.is_action_just_pressed("mode-switch"):
+		is_in_grab_mode = !is_in_grab_mode
 
 func _process(dt: float) -> void:
 	if _current:
