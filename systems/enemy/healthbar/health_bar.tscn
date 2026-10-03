@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://b77qe4lyrbdo8"]
+
+[ext_resource type="Script" uid="uid://bm8un1vg5s1cx" path="res://systems/enemy/healthbar/heath_bar.gd" id="1_prk0l"]
+[ext_resource type="PackedScene" uid="uid://durdqu4erffly" path="res://systems/enemy/healthbar/health-progress-bar.tscn" id="1_rwxrv"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_3ceha"]
+viewport_path = NodePath("SubViewport")
+
+[node name="Healthbar" type="Sprite3D" unique_id=284543108]
+billboard = 1
+texture = SubResource("ViewportTexture_3ceha")
+script = ExtResource("1_prk0l")
+
+[node name="SubViewport" type="SubViewport" parent="." unique_id=1026646622]
+transparent_bg = true
+size = Vector2i(120, 16)
+
+[node name="HealthControl" parent="SubViewport" unique_id=976476699 instance=ExtResource("1_rwxrv")]

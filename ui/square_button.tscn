@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://cmir1iw4xilyp"]
+[gd_scene format=3 uid="uid://b5y2uhqt7at0m"]
 
-[ext_resource type="Script" uid="uid://cp8md4vuzuudct" path="res://ui/square_button.gd" id="1_flash"]
 [ext_resource type="Texture2D" uid="uid://bysmsy8wucwkm" path="res://assets/ui/icons/attack_icon.svg" id="1_bw2wb"]
+[ext_resource type="Script" path="res://ui/square_button.gd" id="1_flash"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m2c1y"]
 bg_color = Color(0.12941177, 0.12941177, 0.15686275, 1)
@@ -19,11 +19,11 @@ corner_radius_bottom_left = 2
 bg_color = Color(1, 1, 1, 0.3019608)
 
 [node name="SquareButton" type="Panel" unique_id=1015339128]
-script = ExtResource("1_flash")
 custom_minimum_size = Vector2(64, 64)
 offset_right = 64.0
 offset_bottom = 64.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_m2c1y")
+script = ExtResource("1_flash")
 
 [node name="Texture" type="TextureRect" parent="." unique_id=412143201]
 layout_mode = 1

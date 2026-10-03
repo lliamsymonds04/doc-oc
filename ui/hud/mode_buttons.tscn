@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://ckea25jbuw1i2"]
 
-[ext_resource type="Script" uid="uid://c33cntoikxhnf" path="res://ui/mode_handler.gd" id="1_qyeyl"]
-[ext_resource type="PackedScene" uid="uid://cmir1iw4xilyp" path="res://ui/square_button.tscn" id="1_wl20c"]
+[ext_resource type="Script" uid="uid://c33cntoikxhnf" path="res://ui/hud/mode_handler.gd" id="1_qyeyl"]
+[ext_resource type="PackedScene" uid="uid://cmir1iw4xilyp" path="res://ui/util/square_button.tscn" id="1_wl20c"]
 
 [node name="ModeButtons" type="Control" unique_id=1989756047]
 layout_mode = 3

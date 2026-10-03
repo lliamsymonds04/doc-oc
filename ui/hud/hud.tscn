@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://fqe70d8uduc6"]
 
-[ext_resource type="PackedScene" uid="uid://d07l4xvcqt7ft" path="res://ui/crosshair.tscn" id="1_rbyyf"]
-[ext_resource type="Script" uid="uid://c1yy3j3seh5qc" path="res://ui/pause_menu.gd" id="2_276te"]
+[ext_resource type="PackedScene" uid="uid://d07l4xvcqt7ft" path="res://ui/hud/crosshair.tscn" id="1_rbyyf"]
+[ext_resource type="Script" uid="uid://c1yy3j3seh5qc" path="res://ui/hud/pause_menu.gd" id="2_276te"]
 [ext_resource type="Shader" uid="uid://bu60as08yka86" path="res://shaders/blur.gdshader" id="3_546lt"]
-[ext_resource type="PackedScene" uid="uid://cnd56v71x1mrb" path="res://ui/pause_menu_button.tscn" id="4_7ihmi"]
+[ext_resource type="PackedScene" uid="uid://cnd56v71x1mrb" path="res://ui/hud/pause_menu_button.tscn" id="4_7ihmi"]
 [ext_resource type="AudioStream" uid="uid://c6b43l5u6h3j5" path="res://assets/audio/ui/bookFlip2.ogg" id="4_en2x2"]
-[ext_resource type="PackedScene" uid="uid://ckea25jbuw1i2" path="res://ui/mode_buttons.tscn" id="6_1v5rv"]
+[ext_resource type="PackedScene" uid="uid://ckea25jbuw1i2" path="res://ui/hud/mode_buttons.tscn" id="6_1v5rv"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_m2c1y"]
 shader = ExtResource("3_546lt")
