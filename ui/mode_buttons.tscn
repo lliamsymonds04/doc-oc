@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://ckea25jbuw1i2"]
+
+[ext_resource type="Script" uid="uid://c33cntoikxhnf" path="res://ui/mode_handler.gd" id="1_qyeyl"]
+[ext_resource type="PackedScene" uid="uid://cmir1iw4xilyp" path="res://ui/square_button.tscn" id="1_wl20c"]
+
+[node name="ModeButtons" type="Control" unique_id=1989756047]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_qyeyl")
+
+[node name="InactivePanel" parent="." unique_id=977001982 instance=ExtResource("1_wl20c")]
+custom_minimum_size = Vector2(38, 38)
+layout_mode = 0
+offset_left = 76.0
+offset_top = -22.0
+offset_right = 114.0
+offset_bottom = 16.0
+
+[node name="ActiveBox" type="VBoxContainer" parent="." unique_id=649509742]
+layout_mode = 0
+offset_right = 64.0
+offset_bottom = 95.0
+
+[node name="Label" type="Label" parent="ActiveBox" unique_id=941846070]
+layout_mode = 2
+theme_override_constants/outline_size = 2
+text = "R"
+horizontal_alignment = 1
+
+[node name="ActivePanel" parent="ActiveBox" unique_id=1015339128 instance=ExtResource("1_wl20c")]
+layout_mode = 2
