@@ -9,6 +9,7 @@ const HOLD_DRAG_SENS_Y := 2
 const WHEEL_NOTCH_SENS := 0.5  # notches -> world meters of height, feel-driven
 const MAX_HOLD_DRAG := 2.4  # hold position can move this far from its default, relative to the player
 const MAX_GRAB_SPIN := 15.0  # rad/s cap for the rotation servo
+const ROTATION_SERVO_GAIN := 6.0  # 1/s; maps orientation error angle to angular velocity
 const THROW_RELEASE_VELOCITY_MULT := 1.5
 const THROW_RELEASE_VELOCITY_Y := 5.0
 const THROW_RELEASE_VELOCITY_THRESHOLD_Z := 10.0
@@ -16,7 +17,7 @@ const THROW_RELEASE_VELOCITY_THRESHOLD_Z := 10.0
 var grabs: Dictionary = {}  # mount -> body
 var grab_offsets: Dictionary = {}  # mount -> body-local grip point; fixed at grab time
 var hold_offsets: Dictionary = {}  # mount -> mount-local hold position; mouse drag moves this
-var grab_relative_rotations: Dictionary = {}  # mount -> Quaternion (body basis relative to player basis)
+var grab_relative_rotations: Dictionary = {}  # body -> Quaternion (body basis relative to player basis); fixed at the first grab
 var original_layers: Dictionary = {}  # body -> original collision_layer
 
 func _init(p: PlayerController) -> void:
@@ -70,14 +71,14 @@ func release_grab(side_dir: int) -> void:
 	grabs.erase(mount)
 	grab_offsets.erase(mount)
 	hold_offsets.erase(mount)
-	grab_relative_rotations.erase(mount)
 	if not grabs.values().has(body):
+		grab_relative_rotations.erase(body)
 		body.collision_layer = original_layers[body]
 		original_layers.erase(body)
 
 func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
 	_apply_mouse_drag(mouse_delta, wheel_delta)
-	# two arms on one body: per-mount velocity writes would overwrite the other arm's error
+	# two arms on one body: per-mount body writes would overwrite the other arm's error
 	var err_sum := {}    # body -> Vector3
 	var err_count := {}  # body -> int
 
@@ -99,9 +100,13 @@ func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
 		err_sum[body] = err_sum.get(body, Vector3.ZERO) + error
 		err_count[body] = err_count.get(body, 0) + 1
 
+	for body_key in err_sum:
+		var body := body_key as RigidBody3D
+		body.linear_velocity = (err_sum[body] / err_count[body]) * 15
+
 		# rotation servo: keep the body's orientation locked relative to the player
-		var dt := player.get_physics_process_delta_time()
-		var target_q: Quaternion = player.global_transform.basis.get_rotation_quaternion() * grab_relative_rotations[mount]
+		var target_q: Quaternion = player.global_transform.basis.get_rotation_quaternion() \
+			* (grab_relative_rotations[body] as Quaternion)
 		var current_q := body.global_transform.basis.get_rotation_quaternion()
 
 		# delta in WORLD frame: target = q_err * current, because angular_velocity is global-space
@@ -112,13 +117,9 @@ func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
 		var axis := Vector3(q_err.x, q_err.y, q_err.z)
 		var angle := q_err.get_angle()
 		if angle > 0.001 and axis.length() > 0.001:
-			# P-gain below 1.0/dt keeps it stable instead of oscillating
-			body.angular_velocity = (axis.normalized() * angle / dt * 0.7).limit_length(MAX_GRAB_SPIN)
+			body.angular_velocity = (axis.normalized() * angle * ROTATION_SERVO_GAIN).limit_length(MAX_GRAB_SPIN)
 		else:
 			body.angular_velocity = Vector3.ZERO
-
-	for body in err_sum:
-		body.linear_velocity = (err_sum[body] / err_count[body]) * 15
 
 ## Mouse motion moves the hold position relative to the player; the servo pulls the body
 ## so its fixed grip point lands there, and the arm target simply follows that point.
@@ -185,9 +186,10 @@ func _join_grab(mount: ArmMount, body: RigidBody3D, hit_pos: Vector3) -> void:
 	hold_offsets[mount] = hold_offset
 	# same semantics as arm_hit_detected: a real surface point, not the hold anchor
 	grab_offsets[mount] = body.to_local(hit_pos)
-	grab_relative_rotations[mount] = \
-		player.global_transform.basis.get_rotation_quaternion().inverse() \
-		* body.global_transform.basis.get_rotation_quaternion()
+	if not grab_relative_rotations.has(body):
+		grab_relative_rotations[body] = \
+			player.global_transform.basis.get_rotation_quaternion().inverse() \
+			* body.global_transform.basis.get_rotation_quaternion()
 	grabs[mount] = body
 
 
@@ -204,9 +206,10 @@ func arm_hit_detected(hit: Vector3, _normal: Vector3, collider: Object, mount: A
 	var body = collider as RigidBody3D
 	grab_offsets[mount] = body.to_local(hit)
 	hold_offsets[mount] = _default_hold_offset(mount)
-	grab_relative_rotations[mount] = \
-		player.global_transform.basis.get_rotation_quaternion().inverse() \
-		* body.global_transform.basis.get_rotation_quaternion()
+	if not grab_relative_rotations.has(body):
+		grab_relative_rotations[body] = \
+			player.global_transform.basis.get_rotation_quaternion().inverse() \
+			* body.global_transform.basis.get_rotation_quaternion()
 	grabs[mount] = body
 	# HELD_LAYER kills the player-vs-body pair: the player's mask doesn't include it
 	if not original_layers.has(body):
