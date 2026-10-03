@@ -45,7 +45,7 @@ func try_grab(side_dir: int) -> void:
 	# otherwise the punch below now sweeps with a HELD_LAYER-inclusive mask and joins at contact
 	var join_hit := _aimed_held_body(15.0)
 	if not join_hit.is_empty():
-		_join_grab(mount, join_hit["collider"] as RigidBody3D, join_hit["position"])
+		_register_grab(mount, join_hit["collider"] as RigidBody3D, join_hit["position"])
 		last_attack_time = now
 		return
 
@@ -54,7 +54,15 @@ func try_grab(side_dir: int) -> void:
 	last_attack_time = now
 
 func release_grab(side_dir: int) -> void:
-	var mount := _get_mount_for_side(side_dir)
+	_release_mount(_get_mount_for_side(side_dir))
+
+## Mode switch can end a hold without a mouse release; drop every grab so each
+## arm's pole constraints and each body's collision layer are restored.
+func release_all() -> void:
+	for mount in grabs.keys():
+		_release_mount(mount as ArmMount)
+
+func _release_mount(mount: ArmMount) -> void:
 	if mount == null or not is_mount_grabbing(mount):
 		return
 
@@ -75,6 +83,10 @@ func release_grab(side_dir: int) -> void:
 		grab_relative_rotations.erase(body)
 		body.collision_layer = original_layers[body]
 		original_layers.erase(body)
+	mount.set_apply_pole(true)
+	# the per-tick set_apply_floor(false) in physics_update only gets restored here;
+	# air keeps the floor off so dangling arms match AirState.enter
+	mount.set_apply_floor(not player.is_airborne())
 
 func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
 	_apply_mouse_drag(mouse_delta, wheel_delta)
@@ -181,16 +193,18 @@ func _aimed_held_body(max_dist: float) -> Dictionary:
 	return hit if grabs.values().has(collider) else {}
 
 ## grab_offsets values are body-local; physics_update does body.to_global(offset).
-func _join_grab(mount: ArmMount, body: RigidBody3D, hit_pos: Vector3) -> void:
-	var hold_offset := _default_hold_offset(mount)
-	hold_offsets[mount] = hold_offset
-	# same semantics as arm_hit_detected: a real surface point, not the hold anchor
+func _register_grab(mount: ArmMount, body: RigidBody3D, hit_pos: Vector3) -> void:
+	# hit_pos is a real body surface contact, not the hold anchor
 	grab_offsets[mount] = body.to_local(hit_pos)
+	hold_offsets[mount] = _default_hold_offset(mount)
+	# first grab on a body fixes its held orientation; a second arm keeps that lock
 	if not grab_relative_rotations.has(body):
 		grab_relative_rotations[body] = \
 			player.global_transform.basis.get_rotation_quaternion().inverse() \
 			* body.global_transform.basis.get_rotation_quaternion()
 	grabs[mount] = body
+	# pole off for the hold: the elbow keeps its bend plane instead of being re-aimed
+	mount.set_apply_pole(false)
 
 
 func arm_hit_detected(hit: Vector3, _normal: Vector3, collider: Object, mount: ArmMount) -> void:
@@ -204,13 +218,7 @@ func arm_hit_detected(hit: Vector3, _normal: Vector3, collider: Object, mount: A
 		return
 
 	var body = collider as RigidBody3D
-	grab_offsets[mount] = body.to_local(hit)
-	hold_offsets[mount] = _default_hold_offset(mount)
-	if not grab_relative_rotations.has(body):
-		grab_relative_rotations[body] = \
-			player.global_transform.basis.get_rotation_quaternion().inverse() \
-			* body.global_transform.basis.get_rotation_quaternion()
-	grabs[mount] = body
+	_register_grab(mount, body, hit)
 	# HELD_LAYER kills the player-vs-body pair: the player's mask doesn't include it
 	if not original_layers.has(body):
 		original_layers[body] = body.collision_layer
@@ -218,6 +226,19 @@ func arm_hit_detected(hit: Vector3, _normal: Vector3, collider: Object, mount: A
 
 func is_mount_grabbing(mount: ArmMount) -> bool:
 	return grabs.has(mount)
+
+## Per render frame: re-aim grabbing arms using the interpolated mount/body transforms.
+## physics_update bakes the grip target with authoritative transforms at physics tick rate;
+## with physics interpolation on, that target oscillates against what is rendered.
+func frame_update() -> void:
+	for mount in grabs:
+		if not mount in grab_offsets:
+			continue
+		var body: RigidBody3D = grabs[mount]
+		var grip_world: Vector3 = body.get_global_transform_interpolated() \
+			* (grab_offsets[mount] as Vector3)
+		var arm: BasicArm = mount.arm
+		arm.target = arm.get_global_transform_interpolated().affine_inverse() * grip_world
 
 func is_grabbing() -> bool:
 	return not grabs.is_empty()

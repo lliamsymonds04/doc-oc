@@ -229,3 +229,6 @@ func set_target(world_pos: Vector3) -> void:
 
 func set_apply_floor(should_apply: bool) -> void:
 	arm.solver.should_apply_floor = should_apply
+
+func set_apply_pole(should_apply: bool) -> void:
+	arm.set_pole_constraints(should_apply)

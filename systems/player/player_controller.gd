@@ -147,10 +147,13 @@ func _physics_process(dt: float) -> void:
 
 	if Input.is_action_just_pressed("mode-switch"):
 		is_in_grab_mode = !is_in_grab_mode
+		if not is_in_grab_mode:
+			grab_controller.release_all()
 
 func _process(dt: float) -> void:
 	if _current:
 		_current.frame_update(dt)
+	grab_controller.frame_update()
 
 	var horizontal_velocity = velocity * Vector3(1,0,1)
 	var hs := horizontal_velocity.length()

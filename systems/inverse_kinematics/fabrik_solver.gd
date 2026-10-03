@@ -17,6 +17,10 @@ var floor_margin: float = 0.0
 var hinge_axes: Array[Vector3] = []
 var should_apply_floor: bool = true
 
+## false while grabbing: skips pole alignment, C-curve mirroring and curl clamps,
+## leaving pure FABRIK (length/root/tip). set_pole_constraints seeds the bend on disable.
+var use_pole_constraints: bool = true
+
 func _init(p_joints: PackedVector3Array):
 	joints = p_joints
 	lengths = PackedFloat32Array()
@@ -189,9 +193,11 @@ func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 		return joints
 
 	var max_dev := deg_to_rad(180.0 - min_joint_angle)
-	var has_hinges := not hinge_axes.is_empty() and joints.size() >= 3
+	var has_hinges := not hinge_axes.is_empty() and joints.size() >= 3 \
+		and use_pole_constraints
 
-	apply_pole(target, root, pole)
+	if use_pole_constraints:
+		apply_pole(target, root, pole)
 
 	for _iter in range(max_iterations):
 		var global_hinge := _global_hinge(root, target, pole) if has_hinges else Vector3.ZERO
@@ -213,7 +219,8 @@ func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 		if should_apply_floor:
 			_apply_floor(target)
 
-		apply_pole(target, root, pole)
+		if use_pole_constraints:
+			apply_pole(target, root, pole)
 
 		if has_hinges:
 			# Guarantee C-curve after pole align (catches any residual S-bend).
@@ -229,6 +236,28 @@ func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 			break
 
 	return joints
+
+
+## Turns the pole machinery (alignment, C-curve mirror, curl clamps) on/off.
+## Disabling seeds the bend toward the pole once first: from a straight chain,
+## pure FABRIK folds accordion-style along the root->target line and never converges.
+func set_pole_constraints(enabled: bool, target: Vector3, root: Vector3, pole: Vector3) -> void:
+	use_pole_constraints = enabled
+	if enabled:
+		return
+	var axis := target - root
+	if axis.length_squared() < 0.0001:
+		return
+	axis = axis.normalized()
+	var bend_vec := joints[(joints.size() - 1) / 2] - root
+	bend_vec -= axis * bend_vec.dot(axis)
+	if bend_vec.length_squared() >= 0.0025:
+		return  # chain already has a bend; keep it
+	var pole_lat := pole - root
+	pole_lat -= axis * pole_lat.dot(axis)
+	if pole_lat.length_squared() < 0.0001:
+		return
+	_seed_bend_toward_pole(root, axis, pole_lat.normalized())
 
 
 ## Returns the point `length` away from `a` toward `b`.

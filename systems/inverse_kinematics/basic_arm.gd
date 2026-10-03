@@ -166,6 +166,11 @@ func start_punch(to: Vector3, p_cast_mask: int = -1) -> void:
 
 	begin_move(to, profile)
 
+## Owns the solver call convention (root at the arm origin, pole in arm-local space)
+## so external callers can't diverge from what _process passes to solve().
+func set_pole_constraints(enabled: bool) -> void:
+	solver.set_pole_constraints(enabled, target, Vector3.ZERO, pole.position)
+
 func query_end_effector(to: Vector3) -> Variant:
 	if solver == null:
 		return null
