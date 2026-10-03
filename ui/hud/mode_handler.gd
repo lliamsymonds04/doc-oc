@@ -21,6 +21,10 @@ enum Mode {
 @export var active_box_tween_offset_y: float = 10.0
 @export var inactive_box_tween_offset: float = 7.0
 
+@export_category("Audio")
+@export var switch_sound: AudioStream = preload("res://assets/audio/ui/switch26.ogg")
+
+var switch_sound_player: AudioStreamPlayer2D
 
 var active_button_tween: Tween
 var inactive_button_tween: Tween
@@ -36,8 +40,16 @@ func _ready() -> void:
 	active_box_starting_position = active_box.position
 	inactive_box_starting_position = inactive_button.position
 
+	# screen-space UI, so 2D audio player
+	switch_sound_player = AudioStreamPlayer2D.new()
+	add_child(switch_sound_player)
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("mode-switch"):
+		if switch_sound and switch_sound_player:
+			switch_sound_player.stream = switch_sound
+			AudioUtil.play_with_pitch(switch_sound_player)
+
 		mode = (mode + 1) % 2
 		active_icon.texture = [attack_icon, grab_icon][mode]
 		inactive_icon.texture = [grab_icon, attack_icon][mode]
@@ -54,6 +66,5 @@ func _unhandled_input(event: InputEvent) -> void:
 			+ Vector2(0, inactive_box_tween_offset), pos_tween_duration)
 		inactive_button_tween.tween_property(inactive_button, "position", inactive_box_starting_position, pos_tween_duration)
 
-		# play the white flash overlay on both buttons
 		active_button.flash()
 		inactive_button.flash()
