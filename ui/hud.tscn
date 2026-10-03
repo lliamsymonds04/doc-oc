@@ -61,7 +61,3 @@ columns = 2
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="PauseMenu" unique_id=1119919063]
 
 [node name="ModeButtons" parent="." unique_id=1989756047 instance=ExtResource("6_1v5rv")]
-offset_left = 1702.0
-offset_top = 877.0
-offset_right = 1702.0
-offset_bottom = 877.0
