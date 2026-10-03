@@ -3,19 +3,7 @@ class_name PlayerGrabController
 
 var player: PlayerController
 var last_attack_time: float = -INF
-const HOLD_OFFSET := Vector3(0.6, 1.2, -0.8)
-const HOLD_DRAG_SENS_X := 0.3  # mouse pixels -> world meters, feel-driven
-const HOLD_DRAG_SENS_Y := 1  # mouse Y pixels -> body height, feel-driven
-const HOLD_WHEEL_SENS := 0.5  # notches -> world meters of depth, feel-driven
-const MAX_HOLD_DRAG := 2.4  # hold position can move this far from its default, relative to the player
-const MAX_GRAB_SPIN := 15.0  # rad/s cap for the rotation servo
-const ROTATION_SERVO_GAIN := 6.0  # 1/s; maps orientation error angle to angular velocity
-const THROW_RELEASE_VELOCITY_Y := 20.0  # base arc for the weakest throw
-const THROW_Y_Z_DROPOFF := 0.25  # arc lost per m/s of z throw speed
-const THROW_RELEASE_VELOCITY_Y_MIN := 1.0  # arc floor so max-speed throws stay flat, not downward
-const RELEASE_MOUSE_SAMPLE := 0.5  # EMA weight per physics tick for the mouse-up speed tracker
-const RELEASE_MOUSE_UP_THRESHOLD := 15.0  # smoothed up-pixels/tick that counts as a flick at release
-const RELEASE_THROW_SENS := 0.4  # up-pixels -> forward release velocity, feel-driven
+var config: PlayerGrabConfig
 
 var grabs: Dictionary = {}  # mount -> body
 var grab_offsets: Dictionary = {}  # mount -> body-local grip point; fixed at grab time
@@ -24,8 +12,9 @@ var grab_relative_rotations: Dictionary = {}  # body -> Quaternion (body basis r
 var original_layers: Dictionary = {}  # body -> original collision_layer
 var _mouse_up_speed := 0.0  # smoothed upward mouse pixels per physics tick, for the release flick
 
-func _init(p: PlayerController) -> void:
+func _init(p: PlayerController, grab_config: PlayerGrabConfig) -> void:
 	player = p
+	config = grab_config
 
 	for mount in p.all_mounts():
 		mount.arm.hit_detected.connect(arm_hit_detected.bind(mount))
@@ -79,15 +68,15 @@ func _release_mount(mount: ArmMount) -> void:
 		if m != mount and grabs[m] == body:
 			still_held = true
 			break
-	if not still_held and _mouse_up_speed > RELEASE_MOUSE_UP_THRESHOLD:
-		var throw_speed := _mouse_up_speed * RELEASE_THROW_SENS
+	if not still_held and _mouse_up_speed > config.RELEASE_MOUSE_UP_THRESHOLD:
+		var throw_speed := clampf(_mouse_up_speed * config.RELEASE_THROW_SENS, 0.0, config.RELEASE_THROW_MAX_SPEED)
 		var throw_dir := -player.camera_controller.get_flat_basis().z
 		# release runs outside the physics loop, so the servo's last chase velocity
 		# is stale; zero its vertical part or it dominates the throw
 		body.linear_velocity.y = 0.0
 		body.linear_velocity += throw_dir * throw_speed
-		body.linear_velocity.y += maxf(THROW_RELEASE_VELOCITY_Y - throw_speed * THROW_Y_Z_DROPOFF,
-			THROW_RELEASE_VELOCITY_Y_MIN)
+		body.linear_velocity.y += maxf(config.THROW_RELEASE_VELOCITY_Y - throw_speed * config.THROW_Y_Z_DROPOFF,
+			config.THROW_RELEASE_VELOCITY_Y_MIN)
 	_mouse_up_speed = 0.0
 
 	grabs.erase(mount)
@@ -144,7 +133,7 @@ func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
 		var axis := Vector3(q_err.x, q_err.y, q_err.z)
 		var angle := q_err.get_angle()
 		if angle > 0.001 and axis.length() > 0.001:
-			body.angular_velocity = (axis.normalized() * angle * ROTATION_SERVO_GAIN).limit_length(MAX_GRAB_SPIN)
+			body.angular_velocity = (axis.normalized() * angle * config.ROTATION_SERVO_GAIN).limit_length(config.MAX_GRAB_SPIN)
 		else:
 			body.angular_velocity = Vector3.ZERO
 
@@ -161,19 +150,19 @@ func _apply_mouse_drag(mouse_delta: Vector2, wheel_delta: float) -> void:
 
 	var cam_basis: Basis = player.camera_controller.get_flat_basis()
 	var world_delta: Vector3 = \
-		cam_basis.x * mouse_delta.x * HOLD_DRAG_SENS_X * player.camera_controller.sensitivity + \
-		-Vector3.UP * mouse_delta.y * HOLD_DRAG_SENS_Y * player.camera_controller.sensitivity + \
-		-cam_basis.z * wheel_delta * HOLD_WHEEL_SENS
+		cam_basis.x * mouse_delta.x * config.HOLD_DRAG_SENS_X * player.camera_controller.sensitivity + \
+		-Vector3.UP * mouse_delta.y * config.HOLD_DRAG_SENS_Y * player.camera_controller.sensitivity + \
+		-cam_basis.z * wheel_delta * config.HOLD_WHEEL_SENS
 
 	for mount in grabs:
 		var local_delta: Vector3 = mount.global_transform.basis.inverse() * world_delta
 		var default := _default_hold_offset(mount)
 		var moved: Vector3 = (hold_offsets[mount] as Vector3) + local_delta - default
-		var new_offset := default + moved.limit_length(MAX_HOLD_DRAG)
+		var new_offset := default + moved.limit_length(config.MAX_HOLD_DRAG)
 		hold_offsets[mount] = new_offset
 
 func _default_hold_offset(mount: ArmMount) -> Vector3:
-	return Vector3(HOLD_OFFSET.x * sign(mount.position.x), HOLD_OFFSET.y, HOLD_OFFSET.z)
+	return Vector3(config.HOLD_OFFSET.x * sign(mount.position.x), config.HOLD_OFFSET.y, config.HOLD_OFFSET.z)
 
 ## Exponential average of upward mouse pixels per physics tick while holding;
 ## read at release so an upward stroke right before letting go throws the body.
@@ -183,7 +172,7 @@ func _sample_mouse_y_speed(mouse_delta: Vector2) -> void:
 		return
 	# input stores Y down-positive; flip so up-mouse increases the tracker
 	var sample := maxf(-mouse_delta.y, 0.0)
-	_mouse_up_speed = lerpf(_mouse_up_speed, sample, RELEASE_MOUSE_SAMPLE)
+	_mouse_up_speed = lerpf(_mouse_up_speed, sample, config.RELEASE_MOUSE_SAMPLE)
 
 func _get_target(side_dir: int = 0) -> Vector3:
 	var p := player
