@@ -5,20 +5,24 @@ var player: PlayerController
 var last_attack_time: float = -INF
 const HOLD_OFFSET := Vector3(0.6, 1.2, -0.8)
 const HOLD_DRAG_SENS_X := 0.3  # mouse pixels -> world meters, feel-driven
-const HOLD_DRAG_SENS_Y := 2
-const WHEEL_NOTCH_SENS := 0.5  # notches -> world meters of height, feel-driven
+const HOLD_DRAG_SENS_Y := 1  # mouse Y pixels -> body height, feel-driven
+const HOLD_WHEEL_SENS := 0.5  # notches -> world meters of depth, feel-driven
 const MAX_HOLD_DRAG := 2.4  # hold position can move this far from its default, relative to the player
 const MAX_GRAB_SPIN := 15.0  # rad/s cap for the rotation servo
 const ROTATION_SERVO_GAIN := 6.0  # 1/s; maps orientation error angle to angular velocity
-const THROW_RELEASE_VELOCITY_MULT := 1.5
-const THROW_RELEASE_VELOCITY_Y := 5.0
-const THROW_RELEASE_VELOCITY_THRESHOLD_Z := 10.0
+const THROW_RELEASE_VELOCITY_Y := 20.0  # base arc for the weakest throw
+const THROW_Y_Z_DROPOFF := 0.25  # arc lost per m/s of z throw speed
+const THROW_RELEASE_VELOCITY_Y_MIN := 1.0  # arc floor so max-speed throws stay flat, not downward
+const RELEASE_MOUSE_SAMPLE := 0.5  # EMA weight per physics tick for the mouse-up speed tracker
+const RELEASE_MOUSE_UP_THRESHOLD := 15.0  # smoothed up-pixels/tick that counts as a flick at release
+const RELEASE_THROW_SENS := 0.4  # up-pixels -> forward release velocity, feel-driven
 
 var grabs: Dictionary = {}  # mount -> body
 var grab_offsets: Dictionary = {}  # mount -> body-local grip point; fixed at grab time
 var hold_offsets: Dictionary = {}  # mount -> mount-local hold position; mouse drag moves this
 var grab_relative_rotations: Dictionary = {}  # body -> Quaternion (body basis relative to player basis); fixed at the first grab
 var original_layers: Dictionary = {}  # body -> original collision_layer
+var _mouse_up_speed := 0.0  # smoothed upward mouse pixels per physics tick, for the release flick
 
 func _init(p: PlayerController) -> void:
 	player = p
@@ -42,7 +46,7 @@ func try_grab(side_dir: int) -> void:
 	var target = _get_target(side_dir)  # same aim-point math as attack
 
 	# fast path: join instantly when the crosshair rests on a body the other arm holds;
-	# otherwise the punch below now sweeps with a HELD_LAYER-inclusive mask and joins at contact
+	# otherwise the punch below sweeps with a HELD_LAYER-inclusive mask and joins at contact
 	var join_hit := _aimed_held_body(15.0)
 	if not join_hit.is_empty():
 		_register_grab(mount, join_hit["collider"] as RigidBody3D, join_hit["position"])
@@ -68,13 +72,23 @@ func _release_mount(mount: ArmMount) -> void:
 
 	var body: RigidBody3D = grabs[mount]
 
-	# get the velocity relative to the player. check it is going forward.
-	var body_vel := body.linear_velocity
-	var player_basis := player.global_basis
-	var body_vel_relative := player_basis.inverse() * body_vel
-	if body_vel_relative.z < -THROW_RELEASE_VELOCITY_THRESHOLD_Z:
-		body.linear_velocity *= THROW_RELEASE_VELOCITY_MULT
-		body.linear_velocity.y += THROW_RELEASE_VELOCITY_Y
+	# flick skipped while the other arm still holds the body; the servo
+	# overwrites its velocity every tick
+	var still_held := false
+	for m in grabs:
+		if m != mount and grabs[m] == body:
+			still_held = true
+			break
+	if not still_held and _mouse_up_speed > RELEASE_MOUSE_UP_THRESHOLD:
+		var throw_speed := _mouse_up_speed * RELEASE_THROW_SENS
+		var throw_dir := -player.camera_controller.get_flat_basis().z
+		# release runs outside the physics loop, so the servo's last chase velocity
+		# is stale; zero its vertical part or it dominates the throw
+		body.linear_velocity.y = 0.0
+		body.linear_velocity += throw_dir * throw_speed
+		body.linear_velocity.y += maxf(THROW_RELEASE_VELOCITY_Y - throw_speed * THROW_Y_Z_DROPOFF,
+			THROW_RELEASE_VELOCITY_Y_MIN)
+	_mouse_up_speed = 0.0
 
 	grabs.erase(mount)
 	grab_offsets.erase(mount)
@@ -89,6 +103,7 @@ func _release_mount(mount: ArmMount) -> void:
 	mount.set_apply_floor(not player.is_airborne())
 
 func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
+	_sample_mouse_y_speed(mouse_delta)
 	_apply_mouse_drag(mouse_delta, wheel_delta)
 	# two arms on one body: per-mount body writes would overwrite the other arm's error
 	var err_sum := {}    # body -> Vector3
@@ -133,9 +148,8 @@ func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
 		else:
 			body.angular_velocity = Vector3.ZERO
 
-## Mouse motion moves the hold position relative to the player; the servo pulls the body
-## so its fixed grip point lands there, and the arm target simply follows that point.
-## Mouse X = lateral (flat cam X), mouse Y = depth (flat cam Z), wheel = height (world UP).
+## Mouse X = lateral (flat cam X), mouse Y = height (world UP), wheel = depth
+## (flat cam Z; wheel-up pushes the body away, wheel-down pulls it in).
 func _apply_mouse_drag(mouse_delta: Vector2, wheel_delta: float) -> void:
 	if mouse_delta == Vector2.ZERO and is_zero_approx(wheel_delta):
 		return
@@ -148,8 +162,8 @@ func _apply_mouse_drag(mouse_delta: Vector2, wheel_delta: float) -> void:
 	var cam_basis: Basis = player.camera_controller.get_flat_basis()
 	var world_delta: Vector3 = \
 		cam_basis.x * mouse_delta.x * HOLD_DRAG_SENS_X * player.camera_controller.sensitivity + \
-		cam_basis.z * mouse_delta.y * HOLD_DRAG_SENS_Y * player.camera_controller.sensitivity + \
-		-Vector3.UP * wheel_delta * WHEEL_NOTCH_SENS
+		-Vector3.UP * mouse_delta.y * HOLD_DRAG_SENS_Y * player.camera_controller.sensitivity + \
+		-cam_basis.z * wheel_delta * HOLD_WHEEL_SENS
 
 	for mount in grabs:
 		var local_delta: Vector3 = mount.global_transform.basis.inverse() * world_delta
@@ -160,6 +174,16 @@ func _apply_mouse_drag(mouse_delta: Vector2, wheel_delta: float) -> void:
 
 func _default_hold_offset(mount: ArmMount) -> Vector3:
 	return Vector3(HOLD_OFFSET.x * sign(mount.position.x), HOLD_OFFSET.y, HOLD_OFFSET.z)
+
+## Exponential average of upward mouse pixels per physics tick while holding;
+## read at release so an upward stroke right before letting go throws the body.
+func _sample_mouse_y_speed(mouse_delta: Vector2) -> void:
+	if grabs.is_empty():
+		_mouse_up_speed = 0.0
+		return
+	# input stores Y down-positive; flip so up-mouse increases the tracker
+	var sample := maxf(-mouse_delta.y, 0.0)
+	_mouse_up_speed = lerpf(_mouse_up_speed, sample, RELEASE_MOUSE_SAMPLE)
 
 func _get_target(side_dir: int = 0) -> Vector3:
 	var p := player
