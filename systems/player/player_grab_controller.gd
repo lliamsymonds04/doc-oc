@@ -42,9 +42,9 @@ func try_grab(side_dir: int) -> void:
 
 	# fast path: join instantly when the crosshair rests on a body the other arm holds;
 	# otherwise the punch below now sweeps with a HELD_LAYER-inclusive mask and joins at contact
-	var join_body := _aimed_held_body(15.0)
-	if join_body != null:
-		_join_grab(mount, join_body)
+	var join_hit := _aimed_held_body(15.0)
+	if not join_hit.is_empty():
+		_join_grab(mount, join_hit["collider"] as RigidBody3D, join_hit["position"])
 		last_attack_time = now
 		return
 
@@ -166,22 +166,25 @@ func _get_mount_for_side(side_dir: int) -> ArmMount:
 			return mount
 	return null
 
-func _aimed_held_body(max_dist: float) -> RigidBody3D:
+## Returns the full ray hit for a held body under the crosshair, or an empty Dictionary.
+## Keeps hit["position"] so the joining arm can grip the actual surface point.
+func _aimed_held_body(max_dist: float) -> Dictionary:
 	var from := player.camera_controller.cam.global_position
 	var to := from + player.camera_controller.get_camera_direction() * max_dist
 	# includes HELD_LAYER, unlike cast_mask
 	var params := PhysicsRayQueryParameters3D.create(from, to, ~player.collision_layer)
 	var hit := player.get_world_3d().direct_space_state.intersect_ray(params)
 	if hit.is_empty():
-		return null
+		return {}
 	var collider = hit["collider"]
-	return collider if grabs.values().has(collider) else null
+	return hit if grabs.values().has(collider) else {}
 
 ## grab_offsets values are body-local; physics_update does body.to_global(offset).
-func _join_grab(mount: ArmMount, body: RigidBody3D) -> void:
+func _join_grab(mount: ArmMount, body: RigidBody3D, hit_pos: Vector3) -> void:
 	var hold_offset := _default_hold_offset(mount)
 	hold_offsets[mount] = hold_offset
-	grab_offsets[mount] = body.to_local(mount.to_global(hold_offset))
+	# same semantics as arm_hit_detected: a real surface point, not the hold anchor
+	grab_offsets[mount] = body.to_local(hit_pos)
 	grab_relative_rotations[mount] = \
 		player.global_transform.basis.get_rotation_quaternion().inverse() \
 		* body.global_transform.basis.get_rotation_quaternion()
