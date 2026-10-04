@@ -14,6 +14,7 @@ extends Resource
 @export var HOLD_DRAG_SENS_Y := 1  # mouse Y pixels -> body height
 @export var HOLD_WHEEL_SENS := 0.5  # notches -> world meters of depth
 @export var MAX_HOLD_DRAG := 2.4  # hold position can move this far from its default, relative to the player
+@export var MAGNET_GAIN := 15.0  # chase speed in m/s per meter of hold error
 
 @export_group("Servo")
 @export var MAX_GRAB_SPIN := 15.0  # rad/s cap for the rotation servo
@@ -30,3 +31,6 @@ extends Resource
 @export var RELEASE_SPIN_SENS := 0.2  # rad/s per m/s of release speed; sign flips tumble direction
 @export_range(0, 10, 0.5) var charge_fov_kick := 4.0  # FOV widen at full charge; + = widen
 @export var FOV_CHARGE_DECAY_PER_TICK := 0.3  # m/s of charge drained per idle physics tick
+@export_group("Carry Weight")
+@export var CARRY_WEIGHT_MASS_REF := 10.0  # mass at which the magnet slowdown saturates
+@export var CARRY_MAGNET_MIN := 0.35  # magnet multiplier at or above CARRY_WEIGHT_MASS_REF

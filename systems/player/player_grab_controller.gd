@@ -108,6 +108,12 @@ func _apply_release_spin(body: RigidBody3D) -> void:
 	var basis := Basis.looking_at(dir, up)
 	body.angular_velocity = basis.x * (vel.length() * config.RELEASE_SPIN_SENS)
 
+## Velocity-magnet speed multiplier: 1.0 for a light body, falling to CARRY_MAGNET_MIN
+## at CARRY_WEIGHT_MASS_REF and above. Extra grips on one body divide its mass, easing the falloff.
+func carry_magnet_factor(body: RigidBody3D, grip_count: int) -> float:
+	var t := clampf(body.mass / grip_count / config.CARRY_WEIGHT_MASS_REF, 0.0, 1.0)
+	return lerpf(1.0, config.CARRY_MAGNET_MIN, t)
+
 func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
 	_sample_mouse_y_speed(mouse_delta)
 	_update_fov_charge(mouse_delta)
@@ -136,7 +142,7 @@ func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
 
 	for body_key in err_sum:
 		var body := body_key as RigidBody3D
-		body.linear_velocity = (err_sum[body] / err_count[body]) * 15
+		body.linear_velocity = (err_sum[body] / err_count[body]) * config.MAGNET_GAIN * carry_magnet_factor(body, err_count[body])
 
 		# rotation servo: keep the body's orientation locked relative to the player
 		var target_q: Quaternion = player.global_transform.basis.get_rotation_quaternion() \

@@ -126,6 +126,7 @@ material = SubResource("BoxMat_red")
 
 [node name="BoxOrange" type="RigidBody3D" parent="." unique_id=145132774]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 1, 6)
+mass = 8.0
 
 [node name="BoxOrange" type="CSGBox3D" parent="BoxOrange" unique_id=145132708]
 size = Vector3(2, 2, 2)
@@ -136,6 +137,7 @@ shape = SubResource("BoxShape3D_orange")
 
 [node name="BoxYellow" type="RigidBody3D" parent="." unique_id=145132776]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 0.75, 1)
+mass = 3.0
 
 [node name="BoxYellow" type="CSGBox3D" parent="BoxYellow" unique_id=145132709]
 size = Vector3(1.5, 1.5, 1.5)
@@ -146,6 +148,7 @@ shape = SubResource("BoxShape3D_m2c1y")
 
 [node name="BoxPink" type="RigidBody3D" parent="." unique_id=145132778]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 1.5, 7)
+mass = 1.5
 
 [node name="BoxPink" type="CSGBox3D" parent="BoxPink" unique_id=145132710]
 material = SubResource("BoxMat_pink")
@@ -155,6 +158,7 @@ shape = SubResource("BoxShape3D_pink")
 
 [node name="BoxPurple" type="RigidBody3D" parent="." unique_id=145132780]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 0.75, 12)
+mass = 2.0
 
 [node name="BoxPurple" type="CSGBox3D" parent="BoxPurple" unique_id=145132711]
 size = Vector3(1.5, 1.5, 1.5)
@@ -210,6 +214,7 @@ script = ExtResource("9_dbg")
 
 [node name="BoxCoral" type="RigidBody3D" parent="." unique_id=589689143]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.865284, 1.7930105, 13.972524)
+mass = 4.0
 
 [node name="BoxCoral" type="CSGBox3D" parent="BoxCoral" unique_id=145132706]
 size = Vector3(1.5, 1.5, 1.5)
