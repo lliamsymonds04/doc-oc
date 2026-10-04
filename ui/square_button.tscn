@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://b5y2uhqt7at0m"]
 
 [ext_resource type="Texture2D" uid="uid://bysmsy8wucwkm" path="res://assets/ui/icons/attack_icon.svg" id="1_bw2wb"]
-[ext_resource type="Script" path="res://ui/square_button.gd" id="1_flash"]
+[ext_resource type="Script" path="res://ui/util/square_button.gd" id="1_flash"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m2c1y"]
 bg_color = Color(0.12941177, 0.12941177, 0.15686275, 1)

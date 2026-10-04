@@ -31,9 +31,15 @@ class_name PlayerController
 enum StateID { GROUNDED, WALL_CLIMB, AIR }
 var wall_climb_debounce: float = 0.0
 
+enum Mode { ATTACK, GRAB }
+
+## the hud listens to this; wiring lives in main.tscn
+signal mode_changed(mode: Mode)
+
 var _states: Dictionary = {}
 var _current: PlayerState
-var is_in_grab_mode: bool = false
+
+var _mode: Mode = Mode.ATTACK
 
 var mount_prober: MountProber
 var attack_controller: PlayerAttackController
@@ -85,7 +91,6 @@ func _ready() -> void:
 	_states[StateID.AIR] = AirState.new(self)
 	_current = _states[StateID.GROUNDED]
 
-	## create jump audio stream
 	_jump_audio_player = AudioStreamPlayer3D.new()
 	_jump_audio_player.stream = preload("res://assets/audio/robot_jump.ogg")
 	add_child(_jump_audio_player)
@@ -119,6 +124,18 @@ func is_in_state(id: StateID) -> bool:
 func is_airborne() -> bool:
 	return _current is AirState
 
+func is_in_grab_mode() -> bool:
+	return _mode == Mode.GRAB
+
+func set_mode(new_mode: Mode) -> void:
+	if new_mode == _mode:
+		return
+	_mode = new_mode
+	# so arm state doesn't carry over into attack mode
+	if _mode != Mode.GRAB:
+		grab_controller.release_all()
+	mode_changed.emit(_mode)
+
 func is_wall_climbing() -> bool:
 	return _current is WallClimbState
 
@@ -137,6 +154,10 @@ func set_state(id: StateID) -> void:
 	_current = _states[id]
 	_current.enter()
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("mode-switch"):
+		set_mode(Mode.GRAB if _mode == Mode.ATTACK else Mode.ATTACK)
+
 func _physics_process(dt: float) -> void:
 	if _current == null:
 		return
@@ -147,11 +168,6 @@ func _physics_process(dt: float) -> void:
 
 	move_and_slide()
 	camera_controller.update_motion(dt,velocity)
-
-	if Input.is_action_just_pressed("mode-switch"):
-		is_in_grab_mode = !is_in_grab_mode
-		if not is_in_grab_mode:
-			grab_controller.release_all()
 
 func _process(dt: float) -> void:
 	if _current:

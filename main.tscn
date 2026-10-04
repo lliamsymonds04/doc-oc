@@ -163,7 +163,7 @@ material = SubResource("BoxMat_purple")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BoxPurple" unique_id=145132781]
 shape = SubResource("BoxShape3D_m2c1y")
 
-[node name="CharacterBody3D" parent="." unique_id=1831706131 instance=ExtResource("1_ig7tw")]
+[node name="Player" parent="." unique_id=1831706131 instance=ExtResource("1_ig7tw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.682001, 0.08204651, 21.104301)
 hover = SubResource("Resource_b5y0m")
 step_vfx = ExtResource("3_lquwl")
@@ -223,3 +223,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 23)
 script = ExtResource("11_efxa6")
 enemy_scene = ExtResource("10_4c57u")
 metadata/_custom_type_script = "uid://bdtssx7vpj7jn"
+
+[connection signal="mode_changed" from="Player" to="Hud" method="_on_mode_changed"]

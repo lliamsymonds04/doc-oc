@@ -221,7 +221,7 @@ func _register_grab(mount: ArmMount, body: RigidBody3D, hit_pos: Vector3) -> voi
 
 
 func arm_hit_detected(hit: Vector3, _normal: Vector3, collider: Object, mount: ArmMount) -> void:
-	if not player.is_in_grab_mode:
+	if not player.is_in_grab_mode():
 		return
 
 	if not collider is RigidBody3D:

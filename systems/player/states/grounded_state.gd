@@ -124,21 +124,21 @@ func physics_update(dt: float) -> void:
 		p.camera_controller.set_sprinting(false)
 
 	if Input.is_action_just_pressed("left-click"):
-		if player.is_in_grab_mode:
+		if player.is_in_grab_mode():
 			p.grab_controller.try_grab(-1)
 		else:
 			p.attack_controller.try_attack()
 
 	if Input.is_action_just_pressed("right-click"):
-		if player.is_in_grab_mode:
+		if player.is_in_grab_mode():
 			p.grab_controller.try_grab(1)
 
 	if Input.is_action_just_released("left-click"):
-		if player.is_in_grab_mode:
+		if player.is_in_grab_mode():
 			p.grab_controller.release_grab(-1)
 
 	if Input.is_action_just_released("right-click"):
-		if player.is_in_grab_mode:
+		if player.is_in_grab_mode():
 			p.grab_controller.release_grab(1)
 
 func frame_update(dt: float) -> void:

@@ -68,7 +68,7 @@ func try_attack() -> void:
 		return
 
 func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
-	if player.is_in_grab_mode:
+	if player.is_in_grab_mode():
 		return
 
 	var is_enemy_hit: bool = collider is EnemyController or collider.is_in_group("enemy_corpse")
