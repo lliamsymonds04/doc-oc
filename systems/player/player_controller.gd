@@ -131,7 +131,7 @@ func set_mode(new_mode: Mode) -> void:
 	if new_mode == _mode:
 		return
 	_mode = new_mode
-	# so arm state doesn't carry over into attack mode
+
 	if _mode != Mode.GRAB:
 		grab_controller.release_all()
 	mode_changed.emit(_mode)

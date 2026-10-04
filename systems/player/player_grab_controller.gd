@@ -11,22 +11,25 @@ var hold_offsets: Dictionary = {}  # mount -> mount-local hold position; mouse d
 var grab_relative_rotations: Dictionary = {}  # body -> Quaternion (body basis relative to player basis); fixed at the first grab
 var original_layers: Dictionary = {}  # body -> original collision_layer
 var _mouse_up_speed := 0.0  # smoothed upward mouse pixels per physics tick, for the release flick
+var _grab_audio_player: AudioStreamPlayer3D
 
 func _init(p: PlayerController, grab_config: PlayerGrabConfig) -> void:
 	player = p
 	config = grab_config
+
+	_grab_audio_player = AudioStreamPlayer3D.new()
+	_grab_audio_player.stream = config.grab_sound
+	p.add_child(_grab_audio_player)
 
 	for mount in p.all_mounts():
 		mount.arm.hit_detected.connect(arm_hit_detected.bind(mount))
 
 func try_grab(side_dir: int) -> void:
 	var now = _get_now()
-	if now - last_attack_time < 0.5:
+	if not PlayerPunchUtil.punch_allowed(player, last_attack_time, config.grab_debounce, now):
 		return
 
 	var p := player
-	if p.is_sprinting():
-		return
 
 	var mount := _get_mount_for_side(side_dir)
 	if mount == null or is_mount_grabbing(mount):
@@ -36,7 +39,7 @@ func try_grab(side_dir: int) -> void:
 
 	# fast path: join instantly when the crosshair rests on a body the other arm holds;
 	# otherwise the punch below sweeps with a HELD_LAYER-inclusive mask and joins at contact
-	var join_hit := _aimed_held_body(15.0)
+	var join_hit := _aimed_held_body(config.grab_cast_range)
 	if not join_hit.is_empty():
 		_register_grab(mount, join_hit["collider"] as RigidBody3D, join_hit["position"])
 		last_attack_time = now
@@ -44,6 +47,7 @@ func try_grab(side_dir: int) -> void:
 
 	# mask includes HELD_LAYER so the sweep can join a body the other arm already holds
 	mount.arm.start_punch(target, ~player.collision_layer)
+	AudioUtil.play_with_pitch(_grab_audio_player)
 	last_attack_time = now
 
 func release_grab(side_dir: int) -> void:
@@ -175,16 +179,7 @@ func _sample_mouse_y_speed(mouse_delta: Vector2) -> void:
 	_mouse_up_speed = lerpf(_mouse_up_speed, sample, config.RELEASE_MOUSE_SAMPLE)
 
 func _get_target(side_dir: int = 0) -> Vector3:
-	var p := player
-	var attack_offset = p.camera_controller.global_transform.basis.x * side_dir * p.attack_config.attack_side_offset
-
-	var cam_hit := p.camera_controller.get_camera_center_hit(15, attack_offset)
-	if cam_hit.is_empty():
-		var cam_pos = p.camera_controller.cam.global_position
-		var cam_dir = p.camera_controller.get_camera_direction()
-		return cam_pos + cam_dir * 15
-	else:
-		return cam_hit["position"] + attack_offset
+	return PlayerPunchUtil.get_punch_target(player, side_dir, config.grab_cast_range)
 
 func _get_mount_for_side(side_dir: int) -> ArmMount:
 	for mount in player.arm_mounts:
@@ -257,4 +252,4 @@ func is_grabbing() -> bool:
 	return not grabs.is_empty()
 
 func _get_now() -> float:
-	return Time.get_ticks_msec() / 1000.0
+	return PlayerPunchUtil.get_now()

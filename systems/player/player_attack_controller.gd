@@ -38,11 +38,8 @@ func _init(p: PlayerController, attack_config: PlayerAttackConfig) -> void:
 
 func try_attack() -> void:
 	var now = _get_now()
-	if now - last_attack_time < config.attack_debounce:
-		return
-
 	var p := player
-	if p.is_sprinting():
+	if not PlayerPunchUtil.punch_allowed(p, last_attack_time, config.attack_debounce, now):
 		return
 
 	for mount in p.arm_mounts:
@@ -107,19 +104,10 @@ func process(_dt: float):
 		attack_tilt_y = 0.0
 
 func _get_now() -> float:
-	return Time.get_ticks_msec() / 1000.0
+	return PlayerPunchUtil.get_now()
 
 func _get_target(side_dir: int = 0) -> Vector3:
-	var p := player
-	var attack_offset = p.camera_controller.global_transform.basis.x * side_dir * p.attack_config.attack_side_offset
-
-	var cam_hit := p.camera_controller.get_camera_center_hit(config.attack_cast_range, attack_offset)
-	if cam_hit.is_empty():
-		var cam_pos = p.camera_controller.cam.global_position
-		var cam_dir = p.camera_controller.get_camera_direction()
-		return cam_pos + cam_dir * config.attack_cast_range
-	else:
-		return cam_hit["position"] + attack_offset
+	return PlayerPunchUtil.get_punch_target(player, side_dir, config.attack_cast_range)
 
 func _impulse_rigid_body(body: RigidBody3D, hit_point: Vector3) -> void:
 	var local_hit_point = body.to_local(hit_point)

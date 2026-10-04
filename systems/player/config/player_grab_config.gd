@@ -1,6 +1,13 @@
 class_name PlayerGrabConfig
 extends Resource
 
+@export_group("Audio")
+@export var grab_sound: AudioStream = preload("res://assets/audio/throw_robot_punch.ogg")
+
+@export_group("Grab")
+@export var grab_debounce: float = 0.5
+@export var grab_cast_range: float = 15.0
+
 @export_group("Hold")
 @export var HOLD_OFFSET := Vector3(0.6, 1.2, -0.8)
 @export var HOLD_DRAG_SENS_X := 0.3  # mouse pixels -> world meters
