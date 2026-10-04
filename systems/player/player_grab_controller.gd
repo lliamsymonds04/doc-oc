@@ -80,6 +80,7 @@ func _release_mount(mount: ArmMount) -> void:
 		body.linear_velocity += throw_dir * throw_speed
 		body.linear_velocity.y += maxf(config.THROW_RELEASE_VELOCITY_Y - throw_speed * config.THROW_Y_Z_DROPOFF,
 			config.THROW_RELEASE_VELOCITY_Y_MIN)
+		_apply_release_spin(body)
 	_mouse_up_speed = 0.0
 
 	grabs.erase(mount)
@@ -93,6 +94,19 @@ func _release_mount(mount: ArmMount) -> void:
 	# the per-tick set_apply_floor(false) in physics_update only gets restored here;
 	# air keeps the floor off so dangling arms match AirState.enter
 	mount.set_apply_floor(not player.is_airborne())
+
+## Tumble the released body around the lateral axis of its release velocity;
+## spin rate scales with release speed.
+func _apply_release_spin(body: RigidBody3D) -> void:
+	var vel := body.linear_velocity
+	if vel.length() < 0.1:
+		return
+	var dir := vel.normalized()
+	# looking_at needs an up vector not parallel to the direction;
+	# straight up/down releases fall back to the right axis as up
+	var up := Vector3.UP if absf(dir.dot(Vector3.UP)) < 0.99 else Vector3.RIGHT
+	var basis := Basis.looking_at(dir, up)
+	body.angular_velocity = basis.x * (vel.length() * config.RELEASE_SPIN_SENS)
 
 func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
 	_sample_mouse_y_speed(mouse_delta)
