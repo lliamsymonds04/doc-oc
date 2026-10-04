@@ -27,3 +27,5 @@ extends Resource
 @export var RELEASE_MOUSE_UP_THRESHOLD := 15.0  # smoothed up-pixels/tick that counts as a flick at release
 @export var RELEASE_THROW_SENS := 0.4  # up-pixels -> forward release velocity
 @export var RELEASE_THROW_MAX_SPEED := 25.0  # speed cap for the hardest flicks, m/s
+@export_range(0, 10, 0.5) var charge_fov_kick := 4.0  # FOV widen at full charge; + = widen
+@export var FOV_CHARGE_DECAY_PER_TICK := 0.3  # m/s of charge drained per idle physics tick

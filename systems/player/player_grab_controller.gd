@@ -11,6 +11,7 @@ var hold_offsets: Dictionary = {}  # mount -> mount-local hold position; mouse d
 var grab_relative_rotations: Dictionary = {}  # body -> Quaternion (body basis relative to player basis); fixed at the first grab
 var original_layers: Dictionary = {}  # body -> original collision_layer
 var _mouse_up_speed := 0.0  # smoothed upward mouse pixels per physics tick, for the release flick
+var _fov_charge := 0.0  # m/s-scale charge of upward mouse motion; drives the live FOV kick
 var _grab_audio_player: AudioStreamPlayer3D
 
 func _init(p: PlayerController, grab_config: PlayerGrabConfig) -> void:
@@ -28,8 +29,6 @@ func try_grab(side_dir: int) -> void:
 	var now = _get_now()
 	if not PlayerPunchUtil.punch_allowed(player, last_attack_time, config.grab_debounce, now):
 		return
-
-	var p := player
 
 	var mount := _get_mount_for_side(side_dir)
 	if mount == null or is_mount_grabbing(mount):
@@ -97,6 +96,7 @@ func _release_mount(mount: ArmMount) -> void:
 
 func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
 	_sample_mouse_y_speed(mouse_delta)
+	_update_fov_charge(mouse_delta)
 	_apply_mouse_drag(mouse_delta, wheel_delta)
 	# two arms on one body: per-mount body writes would overwrite the other arm's error
 	var err_sum := {}    # body -> Vector3
@@ -167,6 +167,25 @@ func _apply_mouse_drag(mouse_delta: Vector2, wheel_delta: float) -> void:
 
 func _default_hold_offset(mount: ArmMount) -> Vector3:
 	return Vector3(config.HOLD_OFFSET.x * sign(mount.position.x), config.HOLD_OFFSET.y, config.HOLD_OFFSET.z)
+
+## FOV widen driven by _fov_charge, which shares the release throw's
+## pixels->m/s scale (RELEASE_THROW_SENS / RELEASE_THROW_MAX_SPEED).
+func _update_fov_charge(mouse_delta: Vector2) -> void:
+	if grabs.is_empty():
+		_fov_charge = move_toward(_fov_charge, 0.0, config.FOV_CHARGE_DECAY_PER_TICK)
+	else:
+		_charge_fov_mouse(mouse_delta)
+	if _fov_charge > 0.0:
+		player.camera_controller.kick_fov(config.charge_fov_kick * (_fov_charge / config.RELEASE_THROW_MAX_SPEED))
+
+func _charge_fov_mouse(mouse_delta: Vector2) -> void:
+	# input stores Y down-positive; flip so up-mouse charges
+	var up_pixels := maxf(-mouse_delta.y, 0.0)
+	if up_pixels > 0.0:
+		_fov_charge = minf(_fov_charge + up_pixels * config.RELEASE_THROW_SENS,
+			config.RELEASE_THROW_MAX_SPEED)
+	else:
+		_fov_charge = move_toward(_fov_charge, 0.0, config.FOV_CHARGE_DECAY_PER_TICK)
 
 ## Exponential average of upward mouse pixels per physics tick while holding;
 ## read at release so an upward stroke right before letting go throws the body.
