@@ -1,6 +1,10 @@
 [gd_scene format=3 uid="uid://d07l4xvcqt7ft"]
 
-[ext_resource type="Texture2D" uid="uid://bhmu4csbp3wdp" path="res://assets/ui/crosshair-000.png" id="1_1gxxw"]
+[ext_resource type="Texture2D" uid="uid://bhmu4csbp3wdp" path="res://assets/ui/cursors/crosshair-000.png" id="1_1gxxw"]
+[ext_resource type="Texture2D" uid="uid://snmh2yg1f7qv" path="res://assets/ui/cursors/crosshair-172.png" id="1_3th6j"]
+[ext_resource type="Script" uid="uid://x5fkedyjeplg" path="res://ui/hud/crosshair_controller.gd" id="1_pr88r"]
+[ext_resource type="Texture2D" uid="uid://dq00ak3votmgn" path="res://assets/ui/cursors/crosshair-148.png" id="3_8hujb"]
+[ext_resource type="Texture2D" uid="uid://blg0245eyro38" path="res://assets/ui/cursors/crosshair-005.png" id="5_fp0yb"]
 
 [node name="Crosshair" type="Control" unique_id=682692616]
 layout_mode = 3
@@ -11,8 +15,9 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 6
 size_flags_vertical = 6
+script = ExtResource("1_pr88r")
 
-[node name="TextureRect" type="TextureRect" parent="." unique_id=933732587]
+[node name="Dot" type="TextureRect" parent="." unique_id=933732587]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -26,3 +31,51 @@ offset_bottom = 37.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("1_1gxxw")
+
+[node name="Circle" type="TextureRect" parent="." unique_id=264147382]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_3th6j")
+
+[node name="Hit" type="TextureRect" parent="." unique_id=56239004]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -37.0
+offset_top = -37.0
+offset_right = 37.0
+offset_bottom = 37.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_8hujb")
+
+[node name="Hold" type="TextureRect" parent="." unique_id=2108450550]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -37.0
+offset_top = -37.0
+offset_right = 37.0
+offset_bottom = 37.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_fp0yb")

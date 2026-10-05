@@ -36,6 +36,13 @@ enum Mode { ATTACK, GRAB }
 ## the hud listens to this; wiring lives in main.tscn
 signal mode_changed(mode: Mode)
 
+## the hud listens to this; wiring lives in main.tscn
+signal attack_hit(hit_point: Vector3, normal: Vector3, collider: Object)
+
+## the hud listens to this; wiring lives in main.tscn.
+## emitted on the 0 <-> any grab transition, so it stays true while any arm holds
+signal grabbing_changed(active: bool)
+
 var _states: Dictionary = {}
 var _current: PlayerState
 
@@ -135,6 +142,7 @@ func set_mode(new_mode: Mode) -> void:
 	if _mode != Mode.GRAB:
 		grab_controller.release_all()
 	mode_changed.emit(_mode)
+	camera_controller.kick_fov(grab.mode_switch_fov_kick)
 
 func is_wall_climbing() -> bool:
 	return _current is WallClimbState

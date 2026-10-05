@@ -48,6 +48,7 @@ func try_grab(side_dir: int) -> void:
 	mount.arm.start_punch(target, ~player.collision_layer)
 	AudioUtil.play_with_pitch(_grab_audio_player)
 	last_attack_time = now
+	player.camera_controller.kick_fov(config.grab_fov_kick)
 
 func release_grab(side_dir: int) -> void:
 	_release_mount(_get_mount_for_side(side_dir))
@@ -94,6 +95,9 @@ func _release_mount(mount: ArmMount) -> void:
 	# the per-tick set_apply_floor(false) in physics_update only gets restored here;
 	# air keeps the floor off so dangling arms match AirState.enter
 	mount.set_apply_floor(not player.is_airborne())
+
+	if grabs.is_empty():
+		player.grabbing_changed.emit(false)
 
 ## Tumble the released body around the lateral axis of its release velocity;
 ## spin rate scales with release speed.
@@ -241,7 +245,7 @@ func _aimed_held_body(max_dist: float) -> Dictionary:
 
 ## grab_offsets values are body-local; physics_update does body.to_global(offset).
 func _register_grab(mount: ArmMount, body: RigidBody3D, hit_pos: Vector3) -> void:
-	# hit_pos is a real body surface contact, not the hold anchor
+	var was_empty := grabs.is_empty()
 	grab_offsets[mount] = body.to_local(hit_pos)
 	hold_offsets[mount] = _default_hold_offset(mount)
 	# first grab on a body fixes its held orientation; a second arm keeps that lock
@@ -252,6 +256,9 @@ func _register_grab(mount: ArmMount, body: RigidBody3D, hit_pos: Vector3) -> voi
 	grabs[mount] = body
 	# pole off for the hold: the elbow keeps its bend plane instead of being re-aimed
 	mount.set_apply_pole(false)
+
+	if was_empty:
+		player.grabbing_changed.emit(true)
 
 
 func arm_hit_detected(hit: Vector3, _normal: Vector3, collider: Object, mount: ArmMount) -> void:

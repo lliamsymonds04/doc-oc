@@ -4,9 +4,13 @@ extends Resource
 @export_group("Audio")
 @export var grab_sound: AudioStream = preload("res://assets/audio/throw_robot_punch.ogg")
 
+@export_group("Mode Switch")
+@export var mode_switch_fov_kick: float = -0.5
+
 @export_group("Grab")
 @export var grab_debounce: float = 0.5
 @export var grab_cast_range: float = 15.0
+@export var grab_fov_kick: float = 1.0  # FOV widen when a grab punch launches
 
 @export_group("Hold")
 @export var HOLD_OFFSET := Vector3(0.6, 1.2, -0.8)
