@@ -13,6 +13,9 @@ func _ready() -> void:
 	health = max_health
 
 func apply_damage(dmg: float) -> void:
+	if is_dead():
+		return
+
 	health = max(health - dmg, 0.0)
 	damage_taken.emit(dmg)
 	if is_dead():

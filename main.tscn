@@ -229,6 +229,6 @@ script = ExtResource("11_efxa6")
 enemy_scene = ExtResource("10_4c57u")
 metadata/_custom_type_script = "uid://bdtssx7vpj7jn"
 
-[connection signal="mode_changed" from="Player" to="Hud" method="_on_mode_changed"]
 [connection signal="attack_hit" from="Player" to="Hud" method="_on_attack_hit"]
 [connection signal="grabbing_changed" from="Player" to="Hud" method="_on_grabbing_changed"]
+[connection signal="mode_changed" from="Player" to="Hud" method="_on_mode_changed"]

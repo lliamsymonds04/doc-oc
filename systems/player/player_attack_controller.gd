@@ -117,4 +117,5 @@ func _impulse_rigid_body(body: RigidBody3D, hit_point: Vector3) -> void:
 	var hit_dir = player.camera_controller.get_camera_direction()
 	impulse = hit_dir * player.attack_config.impulse_strength
 	impulse.y = max(impulse.y, player.attack_config.impulse_min_y)
-	body.apply_impulse(impulse,local_hit_point)
+	# body.apply_impulse(impulse,local_hit_point)
+	body.call_deferred("apply_impulse", impulse, local_hit_point)
