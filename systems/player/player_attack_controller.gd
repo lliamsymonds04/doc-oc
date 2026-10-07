@@ -68,7 +68,10 @@ func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 	if player.is_in_grab_mode():
 		return
 
-	var is_enemy_hit: bool = collider is EnemyController or collider.is_in_group("enemy_corpse")
+	var ragdoll_enemy: EnemyController = null
+	if collider is RigidBody3D and collider.has_meta(EnemyRagdollController.ENEMY_META):
+		ragdoll_enemy = collider.get_meta(EnemyRagdollController.ENEMY_META)
+	var is_enemy_hit: bool = collider is EnemyController or ragdoll_enemy != null
 	if is_enemy_hit:
 		player.attack_hit.emit(hit, normal, collider)
 		_hit_audio_player.stream = player.attack_config.enemy_hit_sound
@@ -86,9 +89,13 @@ func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 		enemy.take_damage(player.attack_config.damage)
 
 		if enemy.is_dead():
-			var death_body := enemy.get_death_body()
-			if death_body:
-				_impulse_rigid_body(death_body, hit)
+			var ragdoll := enemy.get_ragdoll()
+			if ragdoll:
+				_impulse_rigid_body(ragdoll, hit)
+
+	elif ragdoll_enemy:
+		ragdoll_enemy.take_damage(player.attack_config.damage)
+		_impulse_rigid_body(collider as RigidBody3D, hit)
 
 	elif collider is RigidBody3D:
 		_impulse_rigid_body(collider, hit)
