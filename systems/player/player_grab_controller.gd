@@ -91,6 +91,12 @@ func _release_mount(mount: ArmMount) -> void:
 		grab_relative_rotations.erase(body)
 		body.collision_layer = original_layers[body]
 		original_layers.erase(body)
+
+		if body.has_meta(EnemyRagdollController.ENEMY_META):
+			var enemy: EnemyController = body.get_meta(EnemyRagdollController.ENEMY_META)
+			if not enemy.is_dead():
+				enemy.initiate_get_up()
+
 	mount.set_apply_pole(true)
 	# the per-tick set_apply_floor(false) in physics_update only gets restored here;
 	# air keeps the floor off so dangling arms match AirState.enter
@@ -264,6 +270,11 @@ func _register_grab(mount: ArmMount, body: RigidBody3D, hit_pos: Vector3) -> voi
 func arm_hit_detected(hit: Vector3, _normal: Vector3, collider: Object, mount: ArmMount) -> void:
 	if not player.is_in_grab_mode():
 		return
+
+	if collider is EnemyController:
+		var enemy: EnemyController = collider
+		enemy.swap_to_ragdoll()
+		collider = enemy.get_ragdoll()
 
 	if not collider is RigidBody3D:
 		return

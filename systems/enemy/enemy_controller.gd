@@ -33,13 +33,17 @@ func take_damage(dmg: float) -> void:
 	health_controller.apply_damage(dmg)
 
 	if is_dead():
-		_swap_to_ragdoll()
+		swap_to_ragdoll()
 
 func is_dead() -> bool:
 	return health_controller.is_dead()
 
 func get_ragdoll() -> RigidBody3D:
 	return _ragdoll.get_body()
+
+func initiate_get_up() -> void:
+	if _ragdoll.is_ragdoll():
+		_ragdoll.initiate_get_up()
 
 func _physics_process(dt: float) -> void:
 	_ragdoll.make_body_upright(dt)
@@ -53,13 +57,6 @@ func _process(dt: float) -> void:
 		if _death_timer <= 0.0:
 			_ragdoll.get_body().queue_free()
 			queue_free()
-
-	# temporary toggle
-	if Input.is_action_just_pressed("debug"):
-		if _ragdoll.is_ragdoll():
-			_swap_to_real_body()
-		else:
-			_swap_to_ragdoll()
 
 func _on_damage_taken(_dmg: float) -> void:
 	if health_bar:
@@ -77,15 +74,10 @@ func _on_death() -> void:
 
 	_death_timer = dead_body_cleanup_time
 
-func _swap_to_ragdoll() -> void:
+func swap_to_ragdoll() -> void:
 	if _ragdoll.is_ragdoll():
 		return
 	_ragdoll.activate()
-
-func _swap_to_real_body() -> void:
-	if not _ragdoll.is_ragdoll():
-		return
-	_ragdoll.deactivate()
 
 func _flash() -> void:
 	if _tween:

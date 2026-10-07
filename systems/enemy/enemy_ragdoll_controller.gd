@@ -1,6 +1,7 @@
 extends RefCounted
 class_name EnemyRagdollController
 
+const REST_LINEAR_SPEED := 0.5  # m/s below which the proxy counts as settled
 
 # Owns the rigid proxy body that replaces the enemy's CharacterBody when it dies.
 const ENEMY_META := "enemy"
@@ -56,8 +57,40 @@ func deactivate() -> void:
 	_enemy.visible = true
 	_enemy.hitbox.set_deferred("disabled", false)
 	_enemy.set_physics_process(true)
+	_enemy.velocity = _body.linear_velocity
 
 	_reallign_body = true
+
+var get_up_delay: float = 1.0  # seconds the proxy stays down after settling
+
+# bumps on every ragdoll()/cancel_get_up();
+var _downed_seq := 0
+
+func initiate_get_up() -> void:
+	_downed_seq += 1
+	var seq := _downed_seq
+
+	var calm := 0
+	while is_instance_valid(_body):
+		if absf(_body.linear_velocity.y) <= REST_LINEAR_SPEED:
+			calm += 1
+		else:
+			calm = 0
+		if calm >= 3:
+			break
+		await _wait(0.1)
+	await _wait(get_up_delay)
+
+	if seq != _downed_seq or not is_instance_valid(_enemy):
+		return
+	if not _enemy.is_dead():
+		deactivate()
+
+func cancel_get_up() -> void:
+	_downed_seq += 1
+
+func _wait(sec: float) -> void:
+	await _enemy.get_tree().create_timer(sec, false).timeout
 
 func _create_body() -> void:
 	_body = RigidBody3D.new()
