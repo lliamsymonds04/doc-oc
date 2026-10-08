@@ -4,6 +4,7 @@ class_name EnemyController
 @export var damage_flash_duration: float = 0.2
 @export var dead_body_cleanup_time: float = 10.0
 @export var upright_speed: float = 5.0
+@export var ragdoll_mass: float = 3.0
 
 @onready var health_controller: HealthController = $HealthController
 @onready var mesh: MeshInstance3D = $MeshInstance3D
@@ -27,7 +28,7 @@ func _ready() -> void:
 	health_controller.healed.connect(_on_healed)
 	health_controller.died.connect(_on_death)
 
-	_ragdoll = EnemyRagdollController.new(self, upright_speed)
+	_ragdoll = EnemyRagdollController.new(self, upright_speed, ragdoll_mass)
 
 func take_damage(dmg: float) -> void:
 	health_controller.apply_damage(dmg)
@@ -44,6 +45,9 @@ func get_ragdoll() -> RigidBody3D:
 func initiate_get_up() -> void:
 	if _ragdoll.is_ragdoll():
 		_ragdoll.initiate_get_up()
+
+func cancel_get_up() -> void:
+	_ragdoll.cancel_get_up()
 
 func _physics_process(dt: float) -> void:
 	_ragdoll.make_body_upright(dt)

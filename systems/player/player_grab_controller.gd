@@ -266,6 +266,10 @@ func _register_grab(mount: ArmMount, body: RigidBody3D, hit_pos: Vector3) -> voi
 	if was_empty:
 		player.grabbing_changed.emit(true)
 
+	if body.has_meta(EnemyRagdollController.ENEMY_META):
+		var enemy: EnemyController = body.get_meta(EnemyRagdollController.ENEMY_META)
+		enemy.cancel_get_up()
+
 
 func arm_hit_detected(hit: Vector3, _normal: Vector3, collider: Object, mount: ArmMount) -> void:
 	if not player.is_in_grab_mode():

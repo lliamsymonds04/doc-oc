@@ -16,14 +16,13 @@ var _reallign_body := false
 
 var _upright_speed: float
 
-
-func _init(enemy: EnemyController, upright_speed: float) -> void:
+func _init(enemy: EnemyController, upright_speed: float, ragdoll_mass: float) -> void:
 	_enemy = enemy
 	_hitbox = enemy.hitbox
 	_mesh = enemy.mesh
 	_upright_speed = upright_speed
 
-	_create_body()
+	_create_body(ragdoll_mass)
 
 func get_body() -> RigidBody3D:
 	return _body
@@ -92,10 +91,11 @@ func cancel_get_up() -> void:
 func _wait(sec: float) -> void:
 	await _enemy.get_tree().create_timer(sec, false).timeout
 
-func _create_body() -> void:
+func _create_body(ragdoll_mass: float) -> void:
 	_body = RigidBody3D.new()
 	_body.visible = false
 	_body.freeze = true
+	_body.mass = ragdoll_mass
 	# lets attack/grab controllers identify the proxy as an enemy without a subclass
 	_body.set_meta(ENEMY_META, _enemy)
 
