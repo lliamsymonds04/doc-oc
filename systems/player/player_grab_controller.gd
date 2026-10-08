@@ -5,13 +5,10 @@ var player: PlayerController
 var last_attack_time: float = -INF
 var config: PlayerGrabConfig
 
-var grabs: Dictionary = {}  # mount -> body
-var grab_offsets: Dictionary = {}  # mount -> body-local grip point; fixed at grab time
-var hold_offsets: Dictionary = {}  # mount -> mount-local hold position; mouse drag moves this
+var grabs: Dictionary = {}  # mount -> GrabHold
 var grab_relative_rotations: Dictionary = {}  # body -> Quaternion (body basis relative to player basis); fixed at the first grab
 var original_layers: Dictionary = {}  # body -> original collision_layer
-var _mouse_up_speed := 0.0  # smoothed upward mouse pixels per physics tick, for the release flick
-var _fov_charge := 0.0  # m/s-scale charge of upward mouse motion; drives the live FOV kick
+var _throw_meter := GrabThrowMeter.new()
 var _grab_audio_player: AudioStreamPlayer3D
 
 func _init(p: PlayerController, grab_config: PlayerGrabConfig) -> void:
@@ -36,15 +33,12 @@ func try_grab(side_dir: int) -> void:
 
 	var target = _get_target(side_dir)  # same aim-point math as attack
 
-	# fast path: join instantly when the crosshair rests on a body the other arm holds;
-	# otherwise the punch below sweeps with a HELD_LAYER-inclusive mask and joins at contact
 	var join_hit := _aimed_held_body(config.grab_cast_range)
 	if not join_hit.is_empty():
 		_register_grab(mount, join_hit["collider"] as RigidBody3D, join_hit["position"])
 		last_attack_time = now
 		return
 
-	# mask includes HELD_LAYER so the sweep can join a body the other arm already holds
 	mount.arm.start_punch(target, ~player.collision_layer)
 	AudioUtil.play_with_pitch(_grab_audio_player)
 	last_attack_time = now
@@ -53,8 +47,6 @@ func try_grab(side_dir: int) -> void:
 func release_grab(side_dir: int) -> void:
 	_release_mount(_get_mount_for_side(side_dir))
 
-## Mode switch can end a hold without a mouse release; drop every grab so each
-## arm's pole constraints and each body's collision layer are restored.
 func release_all() -> void:
 	for mount in grabs.keys():
 		_release_mount(mount as ArmMount)
@@ -63,31 +55,17 @@ func _release_mount(mount: ArmMount) -> void:
 	if mount == null or not is_mount_grabbing(mount):
 		return
 
-	var body: RigidBody3D = grabs[mount]
+	var hold: GrabHold = grabs[mount]
+	var body: RigidBody3D = hold.body
 
-	# flick skipped while the other arm still holds the body; the servo
-	# overwrites its velocity every tick
-	var still_held := false
-	for m in grabs:
-		if m != mount and grabs[m] == body:
-			still_held = true
-			break
-	if not still_held and _mouse_up_speed > config.RELEASE_MOUSE_UP_THRESHOLD:
-		var throw_speed := clampf(_mouse_up_speed * config.RELEASE_THROW_SENS, 0.0, config.RELEASE_THROW_MAX_SPEED)
-		var throw_dir := -player.camera_controller.get_flat_basis().z
-		# release runs outside the physics loop, so the servo's last chase velocity
-		# is stale; zero its vertical part or it dominates the throw
-		body.linear_velocity.y = 0.0
-		body.linear_velocity += throw_dir * throw_speed
-		body.linear_velocity.y += maxf(config.THROW_RELEASE_VELOCITY_Y - throw_speed * config.THROW_Y_Z_DROPOFF,
-			config.THROW_RELEASE_VELOCITY_Y_MIN)
-		_apply_release_spin(body)
-	_mouse_up_speed = 0.0
+	var still_held := _grip_count(body) > 1
+	if not still_held and _throw_meter.flick_pixels() > config.RELEASE_MOUSE_UP_THRESHOLD:
+		GrabThrowUtil.apply_throw(body, _throw_meter.throw_speed(config),
+			player.camera_controller.get_flat_basis(), config)
+	_throw_meter.reset_flick()
 
 	grabs.erase(mount)
-	grab_offsets.erase(mount)
-	hold_offsets.erase(mount)
-	if not grabs.values().has(body):
+	if _grip_count(body) == 0:
 		grab_relative_rotations.erase(body)
 		body.collision_layer = original_layers[body]
 		original_layers.erase(body)
@@ -98,57 +76,36 @@ func _release_mount(mount: ArmMount) -> void:
 				enemy.initiate_get_up()
 
 	mount.set_apply_pole(true)
-	# the per-tick set_apply_floor(false) in physics_update only gets restored here;
-	# air keeps the floor off so dangling arms match AirState.enter
 	mount.set_apply_floor(not player.is_airborne())
 
 	if grabs.is_empty():
 		player.grabbing_changed.emit(false)
 
-## Tumble the released body around the lateral axis of its release velocity;
-## spin rate scales with release speed.
-func _apply_release_spin(body: RigidBody3D) -> void:
-	var vel := body.linear_velocity
-	if vel.length() < 0.1:
-		return
-	var dir := vel.normalized()
-	# looking_at needs an up vector not parallel to the direction;
-	# straight up/down releases fall back to the right axis as up
-	var up := Vector3.UP if absf(dir.dot(Vector3.UP)) < 0.99 else Vector3.RIGHT
-	var basis := Basis.looking_at(dir, up)
-	body.angular_velocity = basis.x * (vel.length() * config.RELEASE_SPIN_SENS)
-
-## Velocity-magnet speed multiplier: 1.0 for a light body, falling to CARRY_MAGNET_MIN
-## at CARRY_WEIGHT_MASS_REF and above. Extra grips on one body divide its mass, easing the falloff.
 func carry_magnet_factor(body: RigidBody3D, grip_count: int) -> float:
 	var t := clampf(body.mass / grip_count / config.CARRY_WEIGHT_MASS_REF, 0.0, 1.0)
 	return lerpf(1.0, config.CARRY_MAGNET_MIN, t)
 
 func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
-	_sample_mouse_y_speed(mouse_delta)
-	_update_fov_charge(mouse_delta)
+	_throw_meter.tick(mouse_delta, not grabs.is_empty(), config)
+	var fov_kick := _throw_meter.fov_kick(config)
+	if fov_kick != 0.0:
+		player.camera_controller.kick_fov(fov_kick)
 	_apply_mouse_drag(mouse_delta, wheel_delta)
 	# two arms on one body: per-mount body writes would overwrite the other arm's error
 	var err_sum := {}    # body -> Vector3
 	var err_count := {}  # body -> int
 
-	for mount in grabs.keys():
-		if not is_mount_grabbing(mount):
-			continue
-		if not mount in grab_offsets:
-			continue
-		var body: RigidBody3D = grabs[mount]
-		var offset: Vector3 = grab_offsets[mount]
+	for hold_value in grabs.values():
+		var hold := hold_value as GrabHold
+		var grip_world: Vector3 = hold.grip_world()
+		var anchor: Vector3 = hold.hold_world()
 
-		var grip_world: Vector3 = body.to_global(offset)
-		var anchor: Vector3 = mount.to_global(hold_offsets[mount])
-
-		mount.set_target(grip_world)
-		mount.set_apply_floor(false)
+		hold.mount.set_target(grip_world)
+		hold.mount.set_apply_floor(false)
 
 		var error := anchor - grip_world
-		err_sum[body] = err_sum.get(body, Vector3.ZERO) + error
-		err_count[body] = err_count.get(body, 0) + 1
+		err_sum[hold.body] = err_sum.get(hold.body, Vector3.ZERO) + error
+		err_count[hold.body] = err_count.get(hold.body, 0) + 1
 
 	for body_key in err_sum:
 		var body := body_key as RigidBody3D
@@ -171,8 +128,6 @@ func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
 		else:
 			body.angular_velocity = Vector3.ZERO
 
-## Mouse X = lateral (flat cam X), mouse Y = height (world UP), wheel = depth
-## (flat cam Z; wheel-up pushes the body away, wheel-down pulls it in).
 func _apply_mouse_drag(mouse_delta: Vector2, wheel_delta: float) -> void:
 	if mouse_delta == Vector2.ZERO and is_zero_approx(wheel_delta):
 		return
@@ -188,44 +143,9 @@ func _apply_mouse_drag(mouse_delta: Vector2, wheel_delta: float) -> void:
 		-Vector3.UP * mouse_delta.y * config.HOLD_DRAG_SENS_Y * player.camera_controller.sensitivity + \
 		-cam_basis.z * wheel_delta * config.HOLD_WHEEL_SENS
 
-	for mount in grabs:
-		var local_delta: Vector3 = mount.global_transform.basis.inverse() * world_delta
-		var default := _default_hold_offset(mount)
-		var moved: Vector3 = (hold_offsets[mount] as Vector3) + local_delta - default
-		var new_offset := default + moved.limit_length(config.MAX_HOLD_DRAG)
-		hold_offsets[mount] = new_offset
-
-func _default_hold_offset(mount: ArmMount) -> Vector3:
-	return Vector3(config.HOLD_OFFSET.x * sign(mount.position.x), config.HOLD_OFFSET.y, config.HOLD_OFFSET.z)
-
-## FOV widen driven by _fov_charge, which shares the release throw's
-## pixels->m/s scale (RELEASE_THROW_SENS / RELEASE_THROW_MAX_SPEED).
-func _update_fov_charge(mouse_delta: Vector2) -> void:
-	if grabs.is_empty():
-		_fov_charge = move_toward(_fov_charge, 0.0, config.FOV_CHARGE_DECAY_PER_TICK)
-	else:
-		_charge_fov_mouse(mouse_delta)
-	if _fov_charge > 0.0:
-		player.camera_controller.kick_fov(config.charge_fov_kick * (_fov_charge / config.RELEASE_THROW_MAX_SPEED))
-
-func _charge_fov_mouse(mouse_delta: Vector2) -> void:
-	# input stores Y down-positive; flip so up-mouse charges
-	var up_pixels := maxf(-mouse_delta.y, 0.0)
-	if up_pixels > 0.0:
-		_fov_charge = minf(_fov_charge + up_pixels * config.RELEASE_THROW_SENS,
-			config.RELEASE_THROW_MAX_SPEED)
-	else:
-		_fov_charge = move_toward(_fov_charge, 0.0, config.FOV_CHARGE_DECAY_PER_TICK)
-
-## Exponential average of upward mouse pixels per physics tick while holding;
-## read at release so an upward stroke right before letting go throws the body.
-func _sample_mouse_y_speed(mouse_delta: Vector2) -> void:
-	if grabs.is_empty():
-		_mouse_up_speed = 0.0
-		return
-	# input stores Y down-positive; flip so up-mouse increases the tracker
-	var sample := maxf(-mouse_delta.y, 0.0)
-	_mouse_up_speed = lerpf(_mouse_up_speed, sample, config.RELEASE_MOUSE_SAMPLE)
+	for hold_value in grabs.values():
+		var hold := hold_value as GrabHold
+		hold.drag_hold(world_delta, config)
 
 func _get_target(side_dir: int = 0) -> Vector3:
 	return PlayerPunchUtil.get_punch_target(player, side_dir, config.grab_cast_range)
@@ -237,7 +157,6 @@ func _get_mount_for_side(side_dir: int) -> ArmMount:
 	return null
 
 ## Returns the full ray hit for a held body under the crosshair, or an empty Dictionary.
-## Keeps hit["position"] so the joining arm can grip the actual surface point.
 func _aimed_held_body(max_dist: float) -> Dictionary:
 	var from := player.camera_controller.cam.global_position
 	var to := from + player.camera_controller.get_camera_direction() * max_dist
@@ -247,20 +166,16 @@ func _aimed_held_body(max_dist: float) -> Dictionary:
 	if hit.is_empty():
 		return {}
 	var collider = hit["collider"]
-	return hit if grabs.values().has(collider) else {}
+	return hit if _grip_count(collider) > 0 else {}
 
-## grab_offsets values are body-local; physics_update does body.to_global(offset).
 func _register_grab(mount: ArmMount, body: RigidBody3D, hit_pos: Vector3) -> void:
 	var was_empty := grabs.is_empty()
-	grab_offsets[mount] = body.to_local(hit_pos)
-	hold_offsets[mount] = _default_hold_offset(mount)
-	# first grab on a body fixes its held orientation; a second arm keeps that lock
+	grabs[mount] = GrabHold.new(mount, body, body.to_local(hit_pos), config)
 	if not grab_relative_rotations.has(body):
 		grab_relative_rotations[body] = \
 			player.global_transform.basis.get_rotation_quaternion().inverse() \
 			* body.global_transform.basis.get_rotation_quaternion()
-	grabs[mount] = body
-	# pole off for the hold: the elbow keeps its bend plane instead of being re-aimed
+
 	mount.set_apply_pole(false)
 
 	if was_empty:
@@ -288,7 +203,6 @@ func arm_hit_detected(hit: Vector3, _normal: Vector3, collider: Object, mount: A
 
 	var body = collider as RigidBody3D
 	_register_grab(mount, body, hit)
-	# HELD_LAYER kills the player-vs-body pair: the player's mask doesn't include it
 	if not original_layers.has(body):
 		original_layers[body] = body.collision_layer
 	body.collision_layer = player.HELD_LAYER
@@ -296,18 +210,18 @@ func arm_hit_detected(hit: Vector3, _normal: Vector3, collider: Object, mount: A
 func is_mount_grabbing(mount: ArmMount) -> bool:
 	return grabs.has(mount)
 
-## Per render frame: re-aim grabbing arms using the interpolated mount/body transforms.
-## physics_update bakes the grip target with authoritative transforms at physics tick rate;
-## with physics interpolation on, that target oscillates against what is rendered.
 func frame_update() -> void:
-	for mount in grabs:
-		if not mount in grab_offsets:
-			continue
-		var body: RigidBody3D = grabs[mount]
-		var grip_world: Vector3 = body.get_global_transform_interpolated() \
-			* (grab_offsets[mount] as Vector3)
-		var arm: BasicArm = mount.arm
-		arm.target = arm.get_global_transform_interpolated().affine_inverse() * grip_world
+	for hold_value in grabs.values():
+		var hold := hold_value as GrabHold
+		var arm: BasicArm = hold.mount.arm
+		arm.target = arm.get_global_transform_interpolated().affine_inverse() * hold.grip_world_interpolated()
+
+func _grip_count(body: Object) -> int:
+	var count := 0
+	for hold_value in grabs.values():
+		if (hold_value as GrabHold).body == body:
+			count += 1
+	return count
 
 func is_grabbing() -> bool:
 	return not grabs.is_empty()
