@@ -5,30 +5,29 @@ class_name EnemyController
 @export var dead_body_cleanup_time: float = 10.0
 @export var upright_speed: float = 5.0
 @export var ragdoll_mass: float = 3.0
+@export var accel: float = 5.0
 
 @onready var health_controller: HealthController = $HealthController
 @onready var mesh: MeshInstance3D = $MeshInstance3D
 @onready var hitbox: CollisionShape3D = $Hitbox
 @export var health_bar: HealthBar
 
-const damage_shader = preload("res://shaders/damage_shader.gdshader")
-
-var _shader_mat: ShaderMaterial
-var _tween: Tween
 var _ragdoll: EnemyRagdollController
+var _damage_flash: DamageFlashUtil
+var _ragdoll_flash: DamageFlashUtil
 var _death_timer: float
 
 func _ready() -> void:
-	# create the shader material overlay
-	_shader_mat = ShaderMaterial.new()
-	_shader_mat.shader = damage_shader
-	mesh.material_overlay = _shader_mat
-
 	health_controller.damage_taken.connect(_on_damage_taken)
 	health_controller.healed.connect(_on_healed)
 	health_controller.died.connect(_on_death)
 
 	_ragdoll = EnemyRagdollController.new(self, upright_speed, ragdoll_mass)
+
+	var ragdoll_body: RigidBody3D = _ragdoll.get_body()
+	var ragdoll_mesh: MeshInstance3D = _ragdoll.get_ragdoll_mesh()
+	_ragdoll_flash = DamageFlashUtil.new(ragdoll_body, ragdoll_mesh, damage_flash_duration)
+	_damage_flash = DamageFlashUtil.new(self, mesh, damage_flash_duration)
 
 func take_damage(dmg: float) -> void:
 	health_controller.apply_damage(dmg)
@@ -42,6 +41,9 @@ func is_dead() -> bool:
 func get_ragdoll() -> RigidBody3D:
 	return _ragdoll.get_body()
 
+func is_ragdolled() -> bool:
+	return _ragdoll.is_ragdoll()
+
 func initiate_get_up() -> void:
 	if _ragdoll.is_ragdoll():
 		_ragdoll.initiate_get_up()
@@ -53,6 +55,10 @@ func _physics_process(dt: float) -> void:
 	_ragdoll.make_body_upright(dt)
 
 	velocity += get_gravity() * dt
+
+	var k := 1.0 - exp(-accel * dt)
+	velocity.x = lerpf(velocity.x, 0.0, k)
+	velocity.z = lerpf(velocity.z, 0.0, k)
 	move_and_slide()
 
 func _process(dt: float) -> void:
@@ -66,7 +72,7 @@ func _on_damage_taken(_dmg: float) -> void:
 	if health_bar:
 		health_bar.damage_health_bar_tween(health_controller.get_health_float())
 
-	_flash()
+	flash()
 
 func _on_healed(_heal: float) -> void:
 	if health_bar:
@@ -83,10 +89,6 @@ func swap_to_ragdoll() -> void:
 		return
 	_ragdoll.activate()
 
-func _flash() -> void:
-	if _tween:
-		_tween.kill()
-
-	_shader_mat.set_shader_parameter("flash_amount", 1.0)
-	_tween = create_tween()
-	_tween.tween_property(_shader_mat, "shader_parameter/flash_amount", 0.0, damage_flash_duration)
+func flash(strength: float = 1.0) -> void:
+	_ragdoll_flash.flash(strength)
+	_damage_flash.flash(strength)

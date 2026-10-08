@@ -6,15 +6,22 @@ const REST_LINEAR_SPEED := 0.5  # m/s below which the proxy counts as settled
 # Owns the rigid proxy body that replaces the enemy's CharacterBody when it dies.
 const ENEMY_META := "enemy"
 
+# original enemy nodes
 var _mesh: MeshInstance3D
 var _hitbox: CollisionShape3D
 var _enemy: EnemyController
+
+# ragdoll nodes
 var _body: RigidBody3D
 var _body_collision: CollisionShape3D
+var _ragdoll_mesh: MeshInstance3D
+
 var _is_ragdoll := false
 var _reallign_body := false
-
 var _upright_speed: float
+var _downed_seq: float = 0
+var get_up_delay: float = 1.0
+
 
 func _init(enemy: EnemyController, upright_speed: float, ragdoll_mass: float) -> void:
 	_enemy = enemy
@@ -26,6 +33,9 @@ func _init(enemy: EnemyController, upright_speed: float, ragdoll_mass: float) ->
 
 func get_body() -> RigidBody3D:
 	return _body
+
+func get_ragdoll_mesh() -> MeshInstance3D:
+	return _ragdoll_mesh
 
 func get_enemy() -> EnemyController:
 	return _enemy
@@ -60,11 +70,6 @@ func deactivate() -> void:
 
 	_reallign_body = true
 
-var get_up_delay: float = 1.0  # seconds the proxy stays down after settling
-
-# bumps on every ragdoll()/cancel_get_up();
-var _downed_seq := 0
-
 func initiate_get_up() -> void:
 	_downed_seq += 1
 	var seq := _downed_seq
@@ -96,13 +101,14 @@ func _create_body(ragdoll_mass: float) -> void:
 	_body.visible = false
 	_body.freeze = true
 	_body.mass = ragdoll_mass
+
 	# lets attack/grab controllers identify the proxy as an enemy without a subclass
 	_body.set_meta(ENEMY_META, _enemy)
 
-	var corpse_mesh := MeshInstance3D.new()
-	corpse_mesh.mesh = _mesh.mesh
-	corpse_mesh.position = _mesh.position
-	_body.add_child(corpse_mesh)
+	_ragdoll_mesh = MeshInstance3D.new()
+	_ragdoll_mesh.mesh = _mesh.mesh
+	_ragdoll_mesh.position = _mesh.position
+	_body.add_child(_ragdoll_mesh)
 
 	var corpse_shape := CollisionShape3D.new()
 	corpse_shape.shape = _hitbox.shape

@@ -194,6 +194,7 @@ func arm_hit_detected(hit: Vector3, _normal: Vector3, collider: Object, mount: A
 		var enemy: EnemyController = collider
 		enemy.swap_to_ragdoll()
 		collider = enemy.get_ragdoll()
+		enemy.flash(0.2)
 
 	if not collider is RigidBody3D:
 		return
