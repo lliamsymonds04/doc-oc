@@ -41,3 +41,16 @@ default.
   the files were actually changed.
 
 - dont create test scripts unless i ask you to.
+
+## GDScript Linting
+
+Always run gdformat first, then gdlint:
+
+1. `gdformat <files>` - auto-fixes formatting (whitespace, line
+   wrapping, indentation).
+2. `gdlint <files>` - reports style rule violations that formatting
+   cannot fix (definition order, naming, etc.). Fix these manually;
+   gdformat will not correct them.
+
+Neither tool fixes functional issues - review gdlint findings
+yourself.
