@@ -1,14 +1,5 @@
-extends Control
 class_name ModeHandler
-
-@onready var active_box: VBoxContainer = $ActiveBox
-@onready var active_button: Panel = $ActiveBox/ActivePanel
-@onready var inactive_button: Panel = $InactivePanel
-@onready var active_icon: TextureRect = $ActiveBox/ActivePanel/Texture
-@onready var inactive_icon: TextureRect = $InactivePanel/Texture
-
-## display state only; the player's mode is the source of truth
-var mode: PlayerController.Mode = PlayerController.Mode.ATTACK
+extends Control
 
 @export_category("Visuals")
 @export var attack_icon: Texture2D = preload("res://assets/ui/icons/attack_icon.svg")
@@ -21,12 +12,21 @@ var mode: PlayerController.Mode = PlayerController.Mode.ATTACK
 @export_category("Audio")
 @export var switch_sound: AudioStream = preload("res://assets/audio/ui/switch26.ogg")
 
+## display state only; the player's mode is the source of truth
+var mode: PlayerController.Mode = PlayerController.Mode.ATTACK
+
 var switch_sound_player: AudioStreamPlayer2D
 
 var active_button_tween: Tween
 var inactive_button_tween: Tween
 var active_box_starting_position: Vector2
 var inactive_box_starting_position: Vector2
+
+@onready var active_box: VBoxContainer = $ActiveBox
+@onready var active_button: Panel = $ActiveBox/ActivePanel
+@onready var inactive_button: Panel = $InactivePanel
+@onready var active_icon: TextureRect = $ActiveBox/ActivePanel/Texture
+@onready var inactive_icon: TextureRect = $InactivePanel/Texture
 
 
 func _ready() -> void:

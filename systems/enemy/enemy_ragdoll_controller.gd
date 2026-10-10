@@ -1,10 +1,12 @@
-extends RefCounted
 class_name EnemyRagdollController
+extends RefCounted
 
 const REST_LINEAR_SPEED := 0.5  # m/s below which the proxy counts as settled
 
 # Owns the rigid proxy body that replaces the enemy's CharacterBody when it dies.
 const ENEMY_META := "enemy"
+
+var get_up_delay: float = 1.0
 
 # original enemy nodes
 var _mesh: MeshInstance3D
@@ -22,7 +24,6 @@ var _is_ragdoll := false
 var _reallign_body := false
 var _upright_speed: float
 var _downed_seq: float = 0
-var get_up_delay: float = 1.0
 
 
 func _init(enemy: EnemyController, upright_speed: float, ragdoll_mass: float) -> void:

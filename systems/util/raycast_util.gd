@@ -1,5 +1,5 @@
-extends RefCounted
 class_name RaycastUtil
+extends RefCounted
 
 # ============================================================================
 # Debug visualization - safe to call even when DebugRayDrawer is not in tree.

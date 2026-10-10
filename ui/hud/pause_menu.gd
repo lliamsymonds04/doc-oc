@@ -1,5 +1,10 @@
-extends Control
 class_name PauseMenu
+extends Control
+
+const BUTTON_NAMES = ["Resume", "Settings", "Main Menu", "Quit"]
+const GRID_COLUMNS := 2
+const BUTTON_TWEEN_TRANS := Tween.TRANS_CUBIC
+const BUTTON_TWEEN_EASE := Tween.EASE_OUT
 
 @export_range(0.0, 10.0) var blur_strength = 3.0
 @export_range(0.0, 1.0) var color_mix = 0.15
@@ -14,19 +19,13 @@ class_name PauseMenu
 @export var close_sound: AudioStreamOggVorbis
 @export_range(-10.0, 5.0) var sound_volume: float = -5.0
 
+var is_paused: bool = false
+var blur_tween: Tween
+var buttons: Array[Control] = []
+
 @onready var blur_rect = $BlurRect
 @onready var grid = $GridContainer
 @onready var audio_player = $AudioStreamPlayer2D
-
-var is_paused: bool = false
-var blur_tween: Tween
-
-const BUTTON_NAMES = ["Resume", "Settings", "Main Menu", "Quit"]
-const GRID_COLUMNS := 2
-const BUTTON_TWEEN_TRANS := Tween.TRANS_CUBIC
-const BUTTON_TWEEN_EASE := Tween.EASE_OUT
-
-var buttons: Array[Control] = []
 
 
 func _ready():

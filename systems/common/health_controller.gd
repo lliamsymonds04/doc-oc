@@ -1,5 +1,5 @@
-extends Node
 class_name HealthController
+extends Node
 
 signal damage_taken(dmg: float)
 signal healed(heal: float)

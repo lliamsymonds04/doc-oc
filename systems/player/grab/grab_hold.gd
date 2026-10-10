@@ -1,5 +1,5 @@
-extends RefCounted
 class_name GrabHold
+extends RefCounted
 
 var mount: ArmMount
 var body: RigidBody3D
@@ -32,10 +32,10 @@ func drag_hold(world_delta: Vector3, config: PlayerGrabConfig) -> void:
 	var local_delta: Vector3 = mount.global_transform.basis.inverse() * world_delta
 	var default := _default_hold_offset(config)
 	var moved: Vector3 = hold_offset + local_delta - default
-	hold_offset = default + moved.limit_length(config.MAX_HOLD_DRAG)
+	hold_offset = default + moved.limit_length(config.max_hold_drag)
 
 
 func _default_hold_offset(config: PlayerGrabConfig) -> Vector3:
 	return Vector3(
-		config.HOLD_OFFSET.x * sign(mount.position.x), config.HOLD_OFFSET.y, config.HOLD_OFFSET.z
+		config.hold_offset.x * sign(mount.position.x), config.hold_offset.y, config.hold_offset.z
 	)

@@ -1,5 +1,5 @@
-extends Node3D
 class_name Dummy
+extends Node3D
 
 @export var enemy_scene: PackedScene
 @export var respawn_time: float = 3.0

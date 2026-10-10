@@ -1,5 +1,5 @@
-extends Node3D
 class_name DebugRayDrawer
+extends Node3D
 ## Drop-in debug drawer for raycasts.
 ## Add this as a child of Main (or any Node3D at world origin) and it will
 ## visualize rays queued via [method RaycastUtil.debug_ray] or [method draw_ray].
@@ -49,7 +49,8 @@ func _ready() -> void:
 ## Draw a line from [param from] to [param to] with [param color].
 ## [param duration] == 0.0 -> visible for 1 frame only.
 ## [param duration] > 0.0  -> lingering for that many seconds (e.g. 0.5).
-## [param thickness] < 0 -> use [member default_thickness], 0 -> 1px line, >0 -> tube radius in meters.
+## [param thickness] < 0 -> use [member default_thickness], 0 -> 1px line,
+## > 0 -> tube radius in meters.
 func draw_ray(
 	from: Vector3,
 	to: Vector3,

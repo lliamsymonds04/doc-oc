@@ -1,14 +1,13 @@
 class_name AirState
 extends PlayerState
 
-var _audio_player: AudioStreamPlayer3D
 var light_landing_sound := preload("res://assets/audio/light_landing.ogg")
 var hard_landing_sound := preload("res://assets/audio/hard_landing.ogg")
-
 var landing_vfx_scene := preload("res://assets/vfx/landing_vfx.tscn")
-var _landing_vfx: ImpactVFX
-
 var air_debounce := 0.0
+
+var _audio_player: AudioStreamPlayer3D
+var _landing_vfx: ImpactVFX
 
 
 func _init(p: PlayerController) -> void:
@@ -78,10 +77,10 @@ func physics_update(dt: float) -> void:
 	if air_debounce > 0.0:
 		air_debounce -= dt
 		return
-	else:
-		var is_grounded = _check_grounded()
-		if is_grounded:
-			return
+
+	var is_grounded = _check_grounded()
+	if is_grounded:
+		return
 
 	var wall_mounted = p.mount_prober.try_mount_wall(input_dir, p.velocity)
 	if wall_mounted:
@@ -101,17 +100,17 @@ func _update_camera_alignment(dt: float) -> void:
 func _update_tilt(dt: float) -> void:
 	var p := player
 
-	var velocityRotation := p.velocity.y * p.air.air_tilt_rotation_scale
+	var velocity_rotation := p.velocity.y * p.air.air_tilt_rotation_scale
 	var forward_limit := deg_to_rad(p.air.air_tilt_forward_limit_deg)
 	var backward_limit := deg_to_rad(p.air.air_tilt_backward_limit_deg)
 
-	if velocityRotation < -forward_limit:
-		velocityRotation = -forward_limit
-	if velocityRotation > backward_limit:
-		velocityRotation = backward_limit
+	if velocity_rotation < -forward_limit:
+		velocity_rotation = -forward_limit
+	if velocity_rotation > backward_limit:
+		velocity_rotation = backward_limit
 
 	var current_rot_x := p.tilt_pivot.rotation.x
-	var new_rot_x = lerp(current_rot_x, velocityRotation, dt * p.air.air_tilt_rotation_speed)
+	var new_rot_x = lerp(current_rot_x, velocity_rotation, dt * p.air.air_tilt_rotation_speed)
 	p.tilt_pivot.rotation.x = new_rot_x
 
 	# sideways tilt

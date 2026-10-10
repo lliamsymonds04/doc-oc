@@ -1,5 +1,5 @@
-extends PlayerState
 class_name WallClimbState
+extends PlayerState
 
 var min_wall_facing_dot: float
 var max_wall_normal_deviation_dot: float

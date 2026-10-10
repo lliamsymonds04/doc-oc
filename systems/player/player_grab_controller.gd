@@ -1,12 +1,12 @@
-extends RefCounted
 class_name PlayerGrabController
+extends RefCounted
 
 var player: PlayerController
 var last_attack_time: float = -INF
 var config: PlayerGrabConfig
 
 var grabs: Dictionary = {}  # mount -> GrabHold
-var grab_relative_rotations: Dictionary = {}  # body -> Quaternion (body basis relative to player basis); fixed at the first grab
+var grab_relative_rotations: Dictionary = {}  # body -> Quaternion, relative to player basis
 var original_layers: Dictionary = {}  # body -> original collision_layer
 var _throw_meter := GrabThrowMeter.new()
 var _grab_audio_player: AudioStreamPlayer3D
@@ -70,7 +70,7 @@ func _release_mount(mount: ArmMount) -> void:
 	var body: RigidBody3D = hold.body
 
 	var still_held := _grip_count(body) > 1
-	if not still_held and _throw_meter.flick_pixels() > config.RELEASE_MOUSE_UP_THRESHOLD:
+	if not still_held and _throw_meter.flick_pixels() > config.release_mouse_up_threshold:
 		GrabThrowUtil.apply_throw(
 			body,
 			_throw_meter.throw_speed(config),
@@ -98,8 +98,8 @@ func _release_mount(mount: ArmMount) -> void:
 
 
 func carry_magnet_factor(body: RigidBody3D, grip_count: int) -> float:
-	var t := clampf(body.mass / grip_count / config.CARRY_WEIGHT_MASS_REF, 0.0, 1.0)
-	return lerpf(1.0, config.CARRY_MAGNET_MIN, t)
+	var t := clampf(body.mass / grip_count / config.carry_weight_mass_ref, 0.0, 1.0)
+	return lerpf(1.0, config.carry_magnet_min, t)
 
 
 func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
@@ -128,7 +128,7 @@ func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
 		var body := body_key as RigidBody3D
 		body.linear_velocity = (
 			(err_sum[body] / err_count[body])
-			* config.MAGNET_GAIN
+			* config.magnet_gain
 			* carry_magnet_factor(body, err_count[body])
 		)
 
@@ -148,8 +148,8 @@ func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
 		var angle := q_err.get_angle()
 		if angle > 0.001 and axis.length() > 0.001:
 			body.angular_velocity = (
-				(axis.normalized() * angle * config.ROTATION_SERVO_GAIN)
-				. limit_length(config.MAX_GRAB_SPIN)
+				(axis.normalized() * angle * config.rotation_servo_gain)
+				. limit_length(config.max_grab_spin)
 			)
 		else:
 			body.angular_velocity = Vector3.ZERO
@@ -166,14 +166,14 @@ func _apply_mouse_drag(mouse_delta: Vector2, wheel_delta: float) -> void:
 
 	var cam_basis: Basis = player.camera_controller.get_flat_basis()
 	var world_delta: Vector3 = (
-		cam_basis.x * mouse_delta.x * config.HOLD_DRAG_SENS_X * player.camera_controller.sensitivity
+		cam_basis.x * mouse_delta.x * config.hold_drag_sens_x * player.camera_controller.sensitivity
 		+ (
 			-Vector3.UP
 			* mouse_delta.y
-			* config.HOLD_DRAG_SENS_Y
+			* config.hold_drag_sens_y
 			* player.camera_controller.sensitivity
 		)
-		+ -cam_basis.z * wheel_delta * config.HOLD_WHEEL_SENS
+		+ -cam_basis.z * wheel_delta * config.hold_wheel_sens
 	)
 
 	for hold_value in grabs.values():

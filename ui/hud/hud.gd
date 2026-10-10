@@ -1,5 +1,5 @@
-extends CanvasLayer
 class_name Hud
+extends CanvasLayer
 
 @onready var mode_handler: ModeHandler = $ModeButtons
 @onready var crosshair_controller: CrosshairController = $Crosshair

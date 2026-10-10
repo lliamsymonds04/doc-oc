@@ -1,19 +1,18 @@
-extends Control
 class_name CrosshairController
+extends Control
 
 enum Mode { ATTACK, GRAB, HOLD }
 
 @export var hit_display_time: float = 0.2
 
+var mode_crosshairs: Dictionary[Mode, TextureRect] = {}
+var mode: Mode = Mode.ATTACK
+var hit_timer: float = 0.0
+
 @onready var dot: TextureRect = $Dot
 @onready var circle: TextureRect = $Circle
 @onready var hit: TextureRect = $Hit
 @onready var hold: TextureRect = $Hold
-
-var mode_crosshairs: Dictionary[Mode, TextureRect] = {}
-
-var mode: Mode = Mode.ATTACK
-var hit_timer: float = 0.0
 
 
 func _ready() -> void:

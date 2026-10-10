@@ -1,5 +1,5 @@
-extends RefCounted
 class_name GrabThrowMeter
+extends RefCounted
 
 ## Upward-mouse meter for held bodies.
 
@@ -19,7 +19,7 @@ func flick_pixels() -> float:
 
 ## Throw speed in m/s for the current flick strength.
 func throw_speed(config: PlayerGrabConfig) -> float:
-	return clampf(_up_speed * config.RELEASE_THROW_SENS, 0.0, config.RELEASE_THROW_MAX_SPEED)
+	return clampf(_up_speed * config.release_throw_sens, 0.0, config.release_throw_max_speed)
 
 
 func reset_flick() -> void:
@@ -30,7 +30,7 @@ func reset_flick() -> void:
 func fov_kick(config: PlayerGrabConfig) -> float:
 	if _fov_charge <= 0.0:
 		return 0.0
-	return config.charge_fov_kick * (_fov_charge / config.RELEASE_THROW_MAX_SPEED)
+	return config.charge_fov_kick * (_fov_charge / config.release_throw_max_speed)
 
 
 func _sample_mouse_y_speed(mouse_delta: Vector2, holding: bool, config: PlayerGrabConfig) -> void:
@@ -39,12 +39,12 @@ func _sample_mouse_y_speed(mouse_delta: Vector2, holding: bool, config: PlayerGr
 		return
 
 	var sample := maxf(-mouse_delta.y, 0.0)
-	_up_speed = lerpf(_up_speed, sample, config.RELEASE_MOUSE_SAMPLE)
+	_up_speed = lerpf(_up_speed, sample, config.release_mouse_sample)
 
 
 func _update_fov_charge(mouse_delta: Vector2, holding: bool, config: PlayerGrabConfig) -> void:
 	if not holding:
-		_fov_charge = move_toward(_fov_charge, 0.0, config.FOV_CHARGE_DECAY_PER_TICK)
+		_fov_charge = move_toward(_fov_charge, 0.0, config.fov_charge_decay_per_tick)
 	else:
 		_charge_fov_mouse(mouse_delta, config)
 
@@ -53,7 +53,7 @@ func _charge_fov_mouse(mouse_delta: Vector2, config: PlayerGrabConfig) -> void:
 	var up_pixels := maxf(-mouse_delta.y, 0.0)
 	if up_pixels > 0.0:
 		_fov_charge = minf(
-			_fov_charge + up_pixels * config.RELEASE_THROW_SENS, config.RELEASE_THROW_MAX_SPEED
+			_fov_charge + up_pixels * config.release_throw_sens, config.release_throw_max_speed
 		)
 	else:
-		_fov_charge = move_toward(_fov_charge, 0.0, config.FOV_CHARGE_DECAY_PER_TICK)
+		_fov_charge = move_toward(_fov_charge, 0.0, config.fov_charge_decay_per_tick)

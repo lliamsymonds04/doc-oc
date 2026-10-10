@@ -1,12 +1,13 @@
-extends RefCounted
 class_name DamageFlashUtil
+extends RefCounted
 
 const DAMAGE_SHADER := preload("res://shaders/damage_shader.gdshader")
+
+var flash_duration: float
 
 var _node: Node
 var _shader_mat: ShaderMaterial
 var _tween: Tween
-var flash_duration: float
 
 
 func _init(node: Node, mesh: MeshInstance3D, duration: float = 0.2) -> void:

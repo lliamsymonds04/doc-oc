@@ -1,10 +1,12 @@
-extends Node3D
 class_name BasicArm
+extends Node3D
 
 signal move_finished(pos: Vector3)
 signal step_landed(pos: Vector3, normal: Vector3)
 signal step_started(pos: Vector3, normal: Vector3)
 signal hit_detected(pos: Vector3, normal: Vector3, collider: Object)
+
+const GROUNDED_DISTANCE_CHECK: float = 0.2
 
 @export_category("Limbs")
 @export var num_limbs: int = 3
@@ -23,12 +25,29 @@ signal hit_detected(pos: Vector3, normal: Vector3, collider: Object)
 @export var punch_ease_curve: float = 2.0
 @export var hit_probe_margin: float = 0.1  # extra radius beyond joint_radius for the hit sphere
 
-const GROUNDED_DISTANCE_CHECK: float = 0.2
-
 var target: Vector3 = Vector3.ZERO
 var target_world: Vector3 = Vector3.ZERO
 var pole: Node3D
 var is_leg: bool = false
+
+## state
+var is_moving := false
+
+## Physics mask for the hit probe; ignores the owner's layers.
+## Set by ArmMount from PlayerController.cast_mask().
+var cast_mask: int = ~0
+var solver: FabrikSolver
+var limb_meshes: Array[MeshInstance3D] = []
+var joint_meshes: Array[MeshInstance3D] = []
+
+var _profile: MotionProfile
+var _move_start: Vector3
+var _move_end: Vector3
+var _move_progress: float = 0.0
+var _hit_this_move: bool = false
+var _prev_probe_pos: Vector3 = Vector3.ZERO  # world-space fist position last frame
+var _probe_shape: SphereShape3D
+var _emit_step_landed := false
 
 
 class MotionProfile:
@@ -41,26 +60,6 @@ class MotionProfile:
 	var floor_normal: Variant = null  # null = don't touch solver.floor_normal
 	var detect_hits: bool = false
 	var cast_mask: int = -1  # -1 = use the arm's default cast_mask
-
-
-## state
-var is_moving := false
-var _profile: MotionProfile
-var _move_start: Vector3
-var _move_end: Vector3
-var _move_progress: float = 0.0
-var _hit_this_move: bool = false
-var _prev_probe_pos: Vector3 = Vector3.ZERO  # world-space fist position last frame
-var _probe_shape: SphereShape3D
-
-## Physics mask for the hit probe; ignores the owner's layers.
-## Set by ArmMount from PlayerController.cast_mask().
-var cast_mask: int = ~0
-
-var _emit_step_landed := false
-var solver: FabrikSolver
-var limb_meshes: Array[MeshInstance3D] = []
-var joint_meshes: Array[MeshInstance3D] = []
 
 
 func _ready() -> void:

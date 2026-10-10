@@ -79,7 +79,7 @@ func can_skip_property(prop_name: String) -> bool:
 	return false
 
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if not (original and dup):
 		return
 

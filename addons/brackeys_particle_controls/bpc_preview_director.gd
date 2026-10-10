@@ -27,7 +27,7 @@ func _exit_tree() -> void:
 	clean_up_previews()
 
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if is_playing and not is_paused:
 		if play_processed:
 			play_processed.emit()
@@ -257,7 +257,7 @@ func get_longest_sim_sime() -> float:
 	return max_time
 
 
-func _on_property_changed(prop_name: String, value):
+func _on_property_changed(prop_name: String, _value):
 	#print("Property changed: %s to %s" % [prop_name, value])
 	if (
 		prop_name == "explosiveness"

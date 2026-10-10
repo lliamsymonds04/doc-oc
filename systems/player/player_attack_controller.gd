@@ -1,5 +1,5 @@
-extends RefCounted
 class_name PlayerAttackController
+extends RefCounted
 
 var player: PlayerController
 var prev_attack_mount: ArmMount

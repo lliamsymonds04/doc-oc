@@ -1,5 +1,5 @@
-extends RefCounted
 class_name AudioUtil
+extends RefCounted
 
 
 static func play_with_pitch(player, deviation: float = 0.05) -> void:

@@ -1,9 +1,9 @@
-extends Panel
 class_name SquareButton
-
-@onready var flash_panel: Panel = $Panel
+extends Panel
 
 var _flash_tween: Tween
+
+@onready var flash_panel: Panel = $Panel
 
 
 ## Fades the flash overlay in and out over [param duration] seconds.

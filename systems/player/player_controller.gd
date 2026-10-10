@@ -1,5 +1,22 @@
-extends CharacterBody3D
 class_name PlayerController
+extends CharacterBody3D
+
+## the hud listens to this; wiring lives in main.tscn
+signal mode_changed(mode: Mode)
+
+## the hud listens to this; wiring lives in main.tscn
+signal attack_hit(hit_point: Vector3, normal: Vector3, collider: Object)
+
+## the hud listens to this; wiring lives in main.tscn.
+## emitted on the 0 <-> any grab transition, so it stays true while any arm holds
+signal grabbing_changed(active: bool)
+
+enum StateID { GROUNDED, WALL_CLIMB, AIR }
+
+enum Mode { ATTACK, GRAB }
+
+## Layer bodies are moved to while held; excluded from player casts via cast_mask.
+const HELD_LAYER := 4
 
 @export var movement: MovementConfig
 @export var hover: HoverConfig
@@ -22,44 +39,26 @@ class_name PlayerController
 @export var step_sound: AudioStreamOggVorbis
 @export var servo_sound: AudioStreamOggVorbis
 
-@onready var arms: Array[BasicArm] = []
-@onready var tilt_pivot: Node3D = $TiltPivot
-@onready var Bean: Node3D = $TiltPivot/Bean
-@onready var camera_controller: CameraController = $CameraController
-
-enum StateID { GROUNDED, WALL_CLIMB, AIR }
 var wall_climb_debounce: float = 0.0
-
-enum Mode { ATTACK, GRAB }
-
-## the hud listens to this; wiring lives in main.tscn
-signal mode_changed(mode: Mode)
-
-## the hud listens to this; wiring lives in main.tscn
-signal attack_hit(hit_point: Vector3, normal: Vector3, collider: Object)
-
-## the hud listens to this; wiring lives in main.tscn.
-## emitted on the 0 <-> any grab transition, so it stays true while any arm holds
-signal grabbing_changed(active: bool)
-
-var _states: Dictionary = {}
-var _current: PlayerState
-
-var _mode: Mode = Mode.ATTACK
 
 var mount_prober: MountProber
 var attack_controller: PlayerAttackController
 var grab_controller: PlayerGrabController
 
+var _states: Dictionary = {}
+var _current: PlayerState
+var _mode: Mode = Mode.ATTACK
 var _jump_audio_player: AudioStreamPlayer3D
-
 var _hit_vfx: ImpactVFX
 
-## Layer bodies are moved to while held; excluded from player casts via cast_mask.
-const HELD_LAYER := 4
+@onready var arms: Array[BasicArm] = []
+@onready var tilt_pivot: Node3D = $TiltPivot
+@onready var bean: Node3D = $TiltPivot/Bean
+@onready var camera_controller: CameraController = $CameraController
 
 
-## Mask for casts originating on the player: everything except the player's own layer and held bodies.
+## Mask for casts originating on the player: everything except the player's own layer
+## and held bodies.
 func cast_mask() -> int:
 	return ~(collision_layer | HELD_LAYER)
 

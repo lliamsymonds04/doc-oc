@@ -1,11 +1,5 @@
-extends SpringArm3D
 class_name CameraController
-
-# CameraOffset exists so the SpringArm can own its transform
-# CameraShakePivot below it is free for
-@onready var camera_pivot: Node3D = $CameraOffset/CameraShakePivot
-@onready var cam: Camera3D = $CameraOffset/CameraShakePivot/Camera3D
-@onready var _player: PlayerController = get_parent()
+extends SpringArm3D
 
 @export var sensitivity: float = 0.02
 
@@ -45,23 +39,30 @@ class_name CameraController
 @export_category("Hit")
 @export var cast_sphere_radius: float = 0.1
 
+## Raw mouse delta accumulated since the last physics tick (pixels). Snapshot of
+## _pending_mouse published for systems that need mouse motion without owning the accumulator.
+var mouse_delta_physics := Vector2.ZERO
+var wheel_delta_physics := 0.0
+
 var _trauma: float = 0.0
 var _current_speed: float = 0.0
 var _fov_kick: float = 0.0
 var _speed_fov: float
 var _trail := Vector3.ZERO
 var _pending_mouse := Vector2.ZERO
-## Raw mouse delta accumulated since the last physics tick (pixels). Snapshot of
-## _pending_mouse published for systems that need mouse motion without owning the accumulator.
-var mouse_delta_physics := Vector2.ZERO
 var _pending_wheel := 0.0  # notches since last physics tick, + = wheel-up
-var wheel_delta_physics := 0.0
 
 var _sprinting: bool = false
 var _sprint_weight: float = 0.0
 var _aim_weight: float = 0.0
 
 var _cast_sphere: SphereShape3D
+
+# CameraOffset exists so the SpringArm can own its transform
+# CameraShakePivot below it is free for effects
+@onready var camera_pivot: Node3D = $CameraOffset/CameraShakePivot
+@onready var cam: Camera3D = $CameraOffset/CameraShakePivot/Camera3D
+@onready var _player: PlayerController = get_parent()
 
 
 func _ready() -> void:

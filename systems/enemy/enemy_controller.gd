@@ -1,5 +1,5 @@
-extends CharacterBody3D
 class_name EnemyController
+extends CharacterBody3D
 
 @export var damage_flash_duration: float = 0.2
 @export var dead_body_cleanup_time: float = 10.0
@@ -8,10 +8,6 @@ class_name EnemyController
 @export var impact_min_dv: float = 4.0  # min velocity jump (m/s) for an impact to hurt
 @export var impact_damage_per_dv: float = 2.0
 @export var accel: float = 5.0
-
-@onready var health_controller: HealthController = $HealthController
-@onready var mesh: MeshInstance3D = $MeshInstance3D
-@onready var hitbox: CollisionShape3D = $Hitbox
 @export var health_bar: HealthBar
 
 var _ragdoll: EnemyRagdollController
@@ -19,6 +15,10 @@ var _impact: EnemyImpactController
 var _damage_flash: DamageFlashUtil
 var _ragdoll_flash: DamageFlashUtil
 var _death_timer: float
+
+@onready var health_controller: HealthController = $HealthController
+@onready var mesh: MeshInstance3D = $MeshInstance3D
+@onready var hitbox: CollisionShape3D = $Hitbox
 
 
 func _ready() -> void:

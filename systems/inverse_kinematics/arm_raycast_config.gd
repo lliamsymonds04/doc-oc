@@ -1,5 +1,5 @@
-extends Resource
 class_name ArmRaycastConfig
+extends Resource
 
 @export var step_raycast_distance: float = 3.0
 @export var max_target_displacement: float = 3.0

@@ -1,11 +1,5 @@
-extends Sprite3D
 class_name HealthBar
-
-@onready var sub_viewport: SubViewport = $SubViewport
-@onready var health_control: Control = $SubViewport/HealthControl
-@onready var trail_bar: ProgressBar = $SubViewport/HealthControl/TrailBar
-@onready var health_bar: ProgressBar = $SubViewport/HealthControl/TrailBar/HealthBar
-@onready var flash_panel: Panel = $SubViewport/HealthControl/TrailBar/Flash
+extends Sprite3D
 
 @export var health_tween_duration: float = 0.1
 @export var trail_tween_duration: float = 0.5
@@ -36,6 +30,12 @@ var _death_tween: Tween
 var _control_origin: Vector2
 var _sprite_origin: Vector3
 var _trail_color: Color
+
+@onready var sub_viewport: SubViewport = $SubViewport
+@onready var health_control: Control = $SubViewport/HealthControl
+@onready var trail_bar: ProgressBar = $SubViewport/HealthControl/TrailBar
+@onready var health_bar: ProgressBar = $SubViewport/HealthControl/TrailBar/HealthBar
+@onready var flash_panel: Panel = $SubViewport/HealthControl/TrailBar/Flash
 
 
 func _ready() -> void:

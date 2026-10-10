@@ -1,6 +1,6 @@
 @tool
-extends Button
 class_name TextureButtonHelper
+extends Button
 
 @export var hover_color := Color(1.25, 1.25, 1.25)
 @export var pressed_color := Color(0.7, 0.7, 0.7)
@@ -16,10 +16,10 @@ class_name TextureButtonHelper
 @export_range(-10, 5) var hover_volume = -5.0
 @export_range(-10, 5) var pressed_volume = 0.0
 
-@onready var audio_player = $AudioStreamPlayer2D
-
 var effect_tween: Tween
 var hovered := false
+
+@onready var audio_player = $AudioStreamPlayer2D
 
 
 func _ready() -> void:

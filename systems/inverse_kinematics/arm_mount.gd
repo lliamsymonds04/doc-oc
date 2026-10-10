@@ -1,5 +1,9 @@
-extends Node3D
 class_name ArmMount
+extends Node3D
+
+const EFFECT_SAME_BEAT_WINDOW: float = 0.15
+# how far off straight-up a ground surface normal can be and still count as ground
+const MAX_GROUND_NORMAL_ANGLE: float = deg_to_rad(60.0)
 
 @export var is_leg: bool = true
 # the mount above this
@@ -11,10 +15,6 @@ class_name ArmMount
 
 @export var servo_volume: float = -15.0
 
-const EFFECT_SAME_BEAT_WINDOW: float = 0.15
-# how far off straight-up a ground surface normal can be and still count as ground
-const MAX_GROUND_NORMAL_ANGLE: float = deg_to_rad(60.0)
-
 @export_category("Idle targeting")
 @export var idle_sway_x: float = 0.0
 @export var idle_sway_y: float = 0.0
@@ -22,25 +22,25 @@ const MAX_GROUND_NORMAL_ANGLE: float = deg_to_rad(60.0)
 @export var idle_sway_y_mult: float = 2.0
 @export_range(-3.1416, 3.1416) var sway_phase: float = 0.0
 
-@onready var pole: Node3D = $Pole
-@onready var ground_probe: Node3D = $GroundProbe
-@onready var wall_probe: Node3D = $WallProbe
-@onready var idle_target: Node3D = $IdleTarget
-
 var diagonal_mount: ArmMount
 var raycast_config: ArmRaycastConfig
 var player: PlayerController
 var arm: BasicArm
+var step_target: Variant
+var wall_surface_normal: Vector3 = Vector3.ZERO
+var last_landed_time: float = -INF
+var last_servo_time: float = -INF
+
 var _vfx: ImpactVFX
 var _cast_sphere: SphereShape3D
 var _audio_player: AudioStreamPlayer3D
 var _servo_player: AudioStreamPlayer3D
-
-var step_target: Variant
-var wall_surface_normal: Vector3 = Vector3.ZERO
 var _sway_time: float = 0.0
-var last_landed_time: float = -INF
-var last_servo_time: float = -INF
+
+@onready var pole: Node3D = $Pole
+@onready var ground_probe: Node3D = $GroundProbe
+@onready var wall_probe: Node3D = $WallProbe
+@onready var idle_target: Node3D = $IdleTarget
 
 
 func _process(dt: float) -> void:

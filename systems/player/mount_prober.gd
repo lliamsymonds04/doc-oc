@@ -1,14 +1,13 @@
-extends RefCounted
 class_name MountProber
+extends RefCounted
+
+const VERTICAL_SURFACE_NORMAL_CHECK := acos(deg_to_rad(45))
 
 var player: PlayerController
 
 
 func _init(p: PlayerController):
 	player = p
-
-
-const VERTICAL_SURFACE_NORMAL_CHECK := acos(deg_to_rad(45))
 
 
 func try_mount_wall(input: Vector2, player_velocity: Vector3) -> bool:
