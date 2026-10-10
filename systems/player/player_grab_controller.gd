@@ -51,6 +51,11 @@ func release_all() -> void:
 	for mount in grabs.keys():
 		_release_mount(mount as ArmMount)
 
+func _on_grabbed_body_exiting(body: Node3D) -> void:
+	for mount in grabs.keys():
+		if (grabs[mount] as GrabHold).body == body:
+			_release_mount(mount as ArmMount)
+
 func _release_mount(mount: ArmMount) -> void:
 	if mount == null or not is_mount_grabbing(mount):
 		return
@@ -171,6 +176,8 @@ func _aimed_held_body(max_dist: float) -> Dictionary:
 func _register_grab(mount: ArmMount, body: RigidBody3D, hit_pos: Vector3) -> void:
 	var was_empty := grabs.is_empty()
 	grabs[mount] = GrabHold.new(mount, body, body.to_local(hit_pos), config)
+	# enemy corpse cleanup queue_frees the body without notifying us; drop the grab
+	body.tree_exiting.connect(_on_grabbed_body_exiting.bind(body), CONNECT_ONE_SHOT)
 	if not grab_relative_rotations.has(body):
 		grab_relative_rotations[body] = \
 			player.global_transform.basis.get_rotation_quaternion().inverse() \
