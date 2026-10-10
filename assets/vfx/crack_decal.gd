@@ -13,12 +13,13 @@ const MAX_LIVE: int = 24
 
 static var _live: Array[CrackDecal] = []
 
-static func spawn(parent: Node, pos: Vector3, normal: Vector3) -> CrackDecal:
+static func spawn(parent: Node, pos: Vector3, normal: Vector3, size_factor: float = 1.0) -> CrackDecal:
 	if _live.size() >= MAX_LIVE:
 		var oldest: CrackDecal = _live.pop_front()
 		oldest.queue_free()
 	var decal := CrackDecal.new()
 	_live.append(decal)
+	decal.size = size_factor * SIZE
 	parent.add_child(decal)
 	decal.place(pos, normal)
 	return decal
@@ -29,8 +30,6 @@ func _init() -> void:
 	modulate = Color(1, 1, 1, 0.9)
 
 func place(pos: Vector3, normal: Vector3) -> void:
-	# A Decal projects along its local -Y, so align local +Y with the surface
-	# normal and sink the box's lower face slightly past the surface.
 	global_position = pos + normal * size.y * 0.05
 
 	var x := normal.cross(Vector3.UP)

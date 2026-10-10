@@ -5,6 +5,9 @@ extends Node
 ## Lives as a child of the ragdoll body and polls contact impulses
 
 const DAMAGE_COOLDOWN: float = 0.2  # seconds between damage applications
+const CRACK_DV: float = 15.0
+const BASE_DECAL_SIZE_FACTOR: float = 1.5
+const MAX_DECAL_SIZE_FACTOR: float = 3.0
 
 var _enemy: EnemyController
 var _body: RigidBody3D
@@ -42,4 +45,14 @@ func _physics_process(_dt: float) -> void:
 
 		_last_damage_physics_frame = frame
 		_enemy.take_damage(dv * _damage_per_dv)
-		break  # one damage application per step is plenty
+
+		if dv > CRACK_DV:
+			var hit_obj: Object = state.get_contact_collider_object(i)
+
+			var hit_normal: Vector3 = state.get_contact_local_normal(i)
+			var hit_pos: Vector3 = state.get_contact_local_position(i)
+			var strength = minf(dv/CRACK_DV * BASE_DECAL_SIZE_FACTOR, MAX_DECAL_SIZE_FACTOR)
+
+			CrackDecal.spawn(hit_obj, hit_pos, hit_normal, strength)
+
+		break
