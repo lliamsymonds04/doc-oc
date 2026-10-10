@@ -1,7 +1,14 @@
 extends SpringArm3D
 class_name CameraController
 
+# CameraOffset exists so the SpringArm can own its transform
+# CameraShakePivot below it is free for
+@onready var camera_pivot: Node3D = $CameraOffset/CameraShakePivot
+@onready var cam: Camera3D = $CameraOffset/CameraShakePivot/Camera3D
+@onready var _player: PlayerController = get_parent()
+
 @export var sensitivity: float = 0.02
+
 @export_category("Trauma")
 @export var max_trauma_offset: float = 0.05
 @export var max_trauma_roll: float = 1.4
@@ -22,17 +29,18 @@ class_name CameraController
 @export var max_trail: float = 0.8
 @export var max_trail_side: float = 1.0
 @export var max_trail_vert: float = 0.3
-# CameraOffset exists so the SpringArm can own its transform (it repositions
-# direct children every physics tick); CameraShakePivot below it is free for
-# per-frame trail/sprint offsets.
-@onready var camera_pivot: Node3D = $CameraOffset/CameraShakePivot
-@onready var cam: Camera3D = $CameraOffset/CameraShakePivot/Camera3D
-@onready var _player: PlayerController = get_parent()
 
 @export_category("Sprint")
 @export var sprint_blend_rate: float = 5.0
 @export var sprint_y_offset: float = 2.0
 @export var sprint_pitch_offset_deg = 12.0
+
+@export_category("Attack Aim")
+@export var aim_pitch_offset_deg: float = 15.0
+@export var aim_fov: float = 60.0
+@export var aim_blend_rate: float = 8.0
+@export var aim_forward_offset: float = 2.0
+@export var aim_up_offset: float = 1.5
 
 @export_category("Hit")
 @export var cast_sphere_radius: float = 0.1
@@ -51,6 +59,7 @@ var wheel_delta_physics := 0.0
 
 var _sprinting: bool = false
 var _sprint_weight: float = 0.0
+var _aim_weight: float = 0.0
 
 var _cast_sphere: SphereShape3D
 
@@ -92,8 +101,15 @@ func update_motion(dt: float, velocity: Vector3) -> void:
 	)
 	_trail = _trail.lerp(target, 1.0 - exp(-trail_rate * dt))
 
-	var world_offset := Vector3.UP * sprint_y_offset * _sprint_weight
+	var aim_offset := -get_flat_basis().z * aim_forward_offset \
+			+ Vector3.UP * aim_up_offset
+	var world_offset := Vector3.UP * sprint_y_offset * _sprint_weight \
+			+ aim_offset * _aim_weight
 	camera_pivot.position = _trail + global_transform.basis.inverse() * world_offset
+
+
+func get_flat_basis() -> Basis:
+	return Basis(Vector3.UP, global_rotation.y)
 
 func get_camera_center_hit(dist: float = 1000.0, offset: Vector3 = Vector3.ZERO) -> Dictionary:
 	var cam_pos = cam.global_position + offset
@@ -122,7 +138,11 @@ func _process(dt: float) -> void:
 
 	_sprint_weight = lerpf(_sprint_weight, 1.0 if _sprinting else 0.0, 1.0 - exp(-sprint_blend_rate*dt))
 
-	cam.rotation_degrees.x = -sprint_pitch_offset_deg * _sprint_weight
+	var want_aim := Input.is_action_pressed("right-click") and not _player.is_in_grab_mode() \
+			and not _sprinting
+	_aim_weight = lerpf(_aim_weight, 1.0 if want_aim else 0.0, 1.0 - exp(-aim_blend_rate*dt))
+
+	cam.rotation_degrees.x = -(sprint_pitch_offset_deg * _sprint_weight + aim_pitch_offset_deg * _aim_weight)
 
 
 func _input(event: InputEvent) -> void:
@@ -135,7 +155,7 @@ func _input(event: InputEvent) -> void:
 func _update_fov(dt: float) -> void:
 	var speed_float = min(_current_speed/speed_at_max_fov, 1.0)
 	speed_float = pow(speed_float,fov_curve_exponent)
-	var target_fov = lerpf(base_fov, max_fov, speed_float)
+	var target_fov = lerpf(lerpf(base_fov, max_fov, speed_float), aim_fov, _aim_weight)
 
 	_speed_fov = lerpf(_speed_fov, target_fov, dt*fov_change_rate)
 	_fov_kick = lerpf(_fov_kick, 0.0, 1.0 - exp(-fov_kick_recovery * dt))
@@ -152,9 +172,6 @@ func _physics_process(_dt: float) -> void:
 	_pending_mouse = Vector2.ZERO
 	wheel_delta_physics = _pending_wheel
 	_pending_wheel = 0.0
-
-func get_flat_basis() -> Basis:
-	return Basis(Vector3.UP, global_rotation.y)
 
 func get_input_direction(input_dir: Vector2) -> Vector3:
 	var b := get_flat_basis()
