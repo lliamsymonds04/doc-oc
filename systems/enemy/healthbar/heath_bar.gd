@@ -183,16 +183,19 @@ func play_death() -> void:
 	trail_bar.value = health_bar.value
 
 	_death_tween = create_tween()
-	# let the killing blow's drain read before the corpse animation starts
 	_death_tween.tween_interval(death_effect_duration)
 	_death_tween.parallel().tween_property(self, "position",
-			_sprite_origin + Vector3(0, -death_sink_amount, 0), death_effect_duration) \
-		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			Vector3(0, -death_sink_amount, 0), death_effect_duration) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN).as_relative()
 	_death_tween.parallel().tween_property(self, "modulate:a", 0.0, death_effect_duration)
 	await _death_tween.finished
 
 	visible = false
 	_reset_bar()
+
+
+func sync_sprite_origin() -> void:
+	_sprite_origin = position
 
 func set_bar_positions(pos: float) -> void:
 	trail_bar.value = pos

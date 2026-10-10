@@ -10,6 +10,8 @@ const ENEMY_META := "enemy"
 var _mesh: MeshInstance3D
 var _hitbox: CollisionShape3D
 var _enemy: EnemyController
+var _health_bar: HealthBar
+var _health_bar_local_xform: Transform3D
 
 # ragdoll nodes
 var _body: RigidBody3D
@@ -27,6 +29,7 @@ func _init(enemy: EnemyController, upright_speed: float, ragdoll_mass: float) ->
 	_enemy = enemy
 	_hitbox = enemy.hitbox
 	_mesh = enemy.mesh
+	_health_bar = enemy.health_bar
 	_upright_speed = upright_speed
 
 	_create_body(ragdoll_mass)
@@ -54,6 +57,11 @@ func activate() -> void:
 	_enemy.hitbox.set_deferred("disabled", true)
 	_enemy.set_physics_process(false)
 
+	if _health_bar:
+		_health_bar_local_xform = _health_bar.transform
+		_health_bar.reparent(_body)
+		_health_bar.sync_sprite_origin()
+
 func deactivate() -> void:
 	_is_ragdoll = false
 	_body.visible = false
@@ -67,6 +75,11 @@ func deactivate() -> void:
 	_enemy.hitbox.set_deferred("disabled", false)
 	_enemy.set_physics_process(true)
 	_enemy.velocity = _body.linear_velocity
+
+	if _health_bar and _health_bar.get_parent() == _body:
+		_health_bar.reparent(_enemy)
+		_health_bar.transform = _health_bar_local_xform
+		_health_bar.sync_sprite_origin()
 
 	_reallign_body = true
 
