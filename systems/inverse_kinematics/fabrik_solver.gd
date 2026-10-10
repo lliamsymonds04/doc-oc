@@ -21,6 +21,7 @@ var should_apply_floor: bool = true
 ## leaving pure FABRIK (length/root/tip). set_pole_constraints seeds the bend on disable.
 var use_pole_constraints: bool = true
 
+
 func _init(p_joints: PackedVector3Array):
 	joints = p_joints
 	lengths = PackedFloat32Array()
@@ -28,6 +29,7 @@ func _init(p_joints: PackedVector3Array):
 	for i in range(p_joints.size() - 1):
 		lengths.append((p_joints[i + 1] - p_joints[i]).length())
 		total_length += lengths[i]
+
 
 ## Rotates the whole chain about the root-target axis so the bend faces the pole.
 func apply_pole(target: Vector3, root: Vector3, pole: Vector3) -> void:
@@ -193,8 +195,7 @@ func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 		return joints
 
 	var max_dev := deg_to_rad(180.0 - min_joint_angle)
-	var has_hinges := not hinge_axes.is_empty() and joints.size() >= 3 \
-		and use_pole_constraints
+	var has_hinges := not hinge_axes.is_empty() and joints.size() >= 3 and use_pole_constraints
 
 	if use_pole_constraints:
 		apply_pole(target, root, pole)

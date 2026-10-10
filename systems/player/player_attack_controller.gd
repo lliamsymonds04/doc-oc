@@ -14,6 +14,7 @@ var _hit_audio_player: AudioStreamPlayer3D
 var _hit_vfx: ImpactVFX
 var _crack_decal_parent: Node3D
 
+
 func _init(p: PlayerController, attack_config: PlayerAttackConfig) -> void:
 	player = p
 	config = attack_config
@@ -35,6 +36,7 @@ func _init(p: PlayerController, attack_config: PlayerAttackConfig) -> void:
 
 	for mount in p.all_mounts():
 		mount.arm.hit_detected.connect(arm_hit_detected)
+
 
 func try_attack() -> void:
 	var now = _get_now()
@@ -59,10 +61,14 @@ func try_attack() -> void:
 
 		var gs := p.grounded_state()
 		var look_turn := absf(angle_difference(p.rotation.y, p.camera_controller.global_rotation.y))
-		if not gs.is_camera_aligned and look_turn <= deg_to_rad(config.max_force_align_turn_degrees):
+		if (
+			not gs.is_camera_aligned
+			and look_turn <= deg_to_rad(config.max_force_align_turn_degrees)
+		):
 			gs.force_align = true
 
 		return
+
 
 func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 	if player.is_in_grab_mode():
@@ -106,16 +112,20 @@ func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 	if _hit_vfx:
 		_hit_vfx.play(hit, normal)
 
+
 func process(_dt: float):
 	var now = _get_now()
 	if attack_tilt_y != 0.0 and now - last_attack_time >= config.tilt_reset_time:
 		attack_tilt_y = 0.0
 
+
 func _get_now() -> float:
 	return PlayerPunchUtil.get_now()
 
+
 func _get_target(side_dir: int = 0) -> Vector3:
 	return PlayerPunchUtil.get_punch_target(player, side_dir, config.attack_cast_range)
+
 
 func _impulse_rigid_body(body: RigidBody3D, hit_point: Vector3) -> void:
 	var local_hit_point = body.to_local(hit_point)

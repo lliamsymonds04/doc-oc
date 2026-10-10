@@ -6,9 +6,11 @@ class_name Dummy
 
 var respawn_timer: float
 
+
 func _ready() -> void:
 	if enemy_scene:
 		spawn_dummy()
+
 
 func spawn_dummy() -> void:
 	var dummy = enemy_scene.instantiate()
@@ -25,8 +27,10 @@ func spawn_dummy() -> void:
 	enemy_controller.health_bar.set_bar_positions(0.0)
 	hc.apply_heal(hc.max_health)
 
+
 func _start_respawn_timer() -> void:
 	respawn_timer = respawn_time
+
 
 func _process(delta: float) -> void:
 	if respawn_timer > 0:

@@ -36,15 +36,16 @@ var _cast_sphere: SphereShape3D
 var _audio_player: AudioStreamPlayer3D
 var _servo_player: AudioStreamPlayer3D
 
-
 var step_target: Variant
 var wall_surface_normal: Vector3 = Vector3.ZERO
 var _sway_time: float = 0.0
 var last_landed_time: float = -INF
 var last_servo_time: float = -INF
 
+
 func _process(dt: float) -> void:
 	_sway_time += dt
+
 
 func init(p: PlayerController) -> BasicArm:
 	if vertical_mount == null or horizontal_mount == null:
@@ -88,6 +89,7 @@ func init(p: PlayerController) -> BasicArm:
 
 	return arm
 
+
 func update_idle_target(dt: float, lerp_speed := 0.0, world_offset := Vector3.ZERO) -> void:
 	if arm == null or arm.is_moving:
 		return
@@ -103,10 +105,12 @@ func update_idle_target(dt: float, lerp_speed := 0.0, world_offset := Vector3.ZE
 
 	arm.target_world = arm.to_global(arm.target)
 
+
 func update_planted_target() -> void:
 	if arm == null or arm.is_moving:
 		return
 	arm.target = arm.to_local(arm.target_world)
+
 
 func compute_idle_target() -> Vector3:
 	if idle_target == null:
@@ -120,12 +124,21 @@ func compute_idle_target() -> Vector3:
 		idle_pos += Vector3.UP * sin(t * idle_sway_y_mult + sway_phase) * idle_sway_y
 	return idle_pos
 
+
 func update_ground_step_target(velocity: Vector3, force := false) -> void:
 	step_target = null
 
 	var velocity_xz := Vector3(velocity.x, 0, velocity.z) * raycast_config.anchor_lead_time
-	var probe_pos: Vector3 = ground_probe.global_position + velocity_xz + Vector3.UP * raycast_config.probe_vertical_offset
-	var hit = get_surface_hit(probe_pos, Vector3.DOWN, raycast_config.step_raycast_distance + raycast_config.probe_vertical_offset)
+	var probe_pos: Vector3 = (
+		ground_probe.global_position
+		+ velocity_xz
+		+ Vector3.UP * raycast_config.probe_vertical_offset
+	)
+	var hit = get_surface_hit(
+		probe_pos,
+		Vector3.DOWN,
+		raycast_config.step_raycast_distance + raycast_config.probe_vertical_offset
+	)
 
 	if hit != null and hit.normal.angle_to(Vector3.UP) <= MAX_GROUND_NORMAL_ANGLE:
 		var hit_pos: Vector3 = hit.position
@@ -135,6 +148,7 @@ func update_ground_step_target(velocity: Vector3, force := false) -> void:
 		var disp := (hit_pos - arm.target_world).length()
 		if disp > max_disp or force:
 			step_target = hit_pos
+
 
 func update_step(velocity: Vector3, dt: float) -> void:
 	step_target = null
@@ -146,19 +160,27 @@ func update_step(velocity: Vector3, dt: float) -> void:
 	if is_leg:
 		update_ground_step_target(velocity)
 
+
 func _step_effect_suppressed(is_servo: bool) -> bool:
 	var now := Time.get_ticks_msec() / 1000.0
 	if is_servo:
-		return now - horizontal_mount.last_servo_time < EFFECT_SAME_BEAT_WINDOW \
+		return (
+			now - horizontal_mount.last_servo_time < EFFECT_SAME_BEAT_WINDOW
 			or now - diagonal_mount.last_servo_time < EFFECT_SAME_BEAT_WINDOW
-	return now - horizontal_mount.last_landed_time < EFFECT_SAME_BEAT_WINDOW \
+		)
+	return (
+		now - horizontal_mount.last_landed_time < EFFECT_SAME_BEAT_WINDOW
 		or now - diagonal_mount.last_landed_time < EFFECT_SAME_BEAT_WINDOW
+	)
+
 
 func _stamp_landed() -> void:
 	last_landed_time = Time.get_ticks_msec() / 1000.0
 
+
 func _stamp_servo() -> void:
 	last_servo_time = Time.get_ticks_msec() / 1000.0
+
 
 func _play_landed_sound(pos, _normal) -> void:
 	if _step_effect_suppressed(false):
@@ -171,6 +193,7 @@ func _play_landed_sound(pos, _normal) -> void:
 
 	AudioUtil.play_with_pitch(_audio_player)
 
+
 func _play_servo(_pos, _normal) -> void:
 	if _step_effect_suppressed(true):
 		return
@@ -180,6 +203,7 @@ func _play_servo(_pos, _normal) -> void:
 
 	AudioUtil.play_with_pitch(_servo_player)
 
+
 func _shake_camera(_pos: Vector3, _normal: Vector3) -> void:
 	if _step_effect_suppressed(false):
 		return
@@ -188,10 +212,12 @@ func _shake_camera(_pos: Vector3, _normal: Vector3) -> void:
 	var trauma = player.sprint_step_trauma if player.is_sprinting() else player.step_trauma
 	player.camera_controller.add_trauma(trauma)
 
+
 func get_step_distance() -> float:
 	if step_target == null:
 		return INF
 	return (step_target - ground_probe.global_position).length()
+
 
 func get_wall_hit_pos(velocity: Vector3) -> Variant:
 	var wall_probe_pos := wall_probe.global_position
@@ -200,6 +226,7 @@ func get_wall_hit_pos(velocity: Vector3) -> Variant:
 	var cast_pos = wall_probe_pos + raycast_config.anchor_lead_time * velocity
 	var hit = get_surface_hit(cast_pos, cast_dir, raycast_config.wall_raycast_distance)
 	return hit
+
 
 func update_wall_climb(velocity: Vector3) -> Variant:
 	var hit = get_wall_hit_pos(velocity)
@@ -218,17 +245,23 @@ func update_wall_climb(velocity: Vector3) -> Variant:
 	update_planted_target()
 	return hit
 
+
 func get_surface_hit(from: Vector3, direction: Vector3, distance: float) -> Variant:
 	var space := get_world_3d().direct_space_state
-	return RaycastUtil.shape_cast(space, _cast_sphere, from, direction * distance, player.cast_mask())
+	return RaycastUtil.shape_cast(
+		space, _cast_sphere, from, direction * distance, player.cast_mask()
+	)
+
 
 func set_target(world_pos: Vector3) -> void:
 	if arm:
 		arm.target_world = world_pos
 		arm.target = arm.to_local(world_pos)
 
+
 func set_apply_floor(should_apply: bool) -> void:
 	arm.solver.should_apply_floor = should_apply
+
 
 func set_apply_pole(should_apply: bool) -> void:
 	arm.set_pole_constraints(should_apply)

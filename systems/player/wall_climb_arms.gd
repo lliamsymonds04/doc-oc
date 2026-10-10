@@ -45,6 +45,7 @@ func _init(p: PlayerController) -> void:
 	for mount in player.all_mounts():
 		debounces[mount] = 0
 
+
 func reset() -> void:
 	is_cornering = false
 	cornering_timer = 0.0
@@ -53,11 +54,13 @@ func reset() -> void:
 	for mount in player.all_mounts():
 		debounces[mount] = 0
 
+
 # cornering re-trigger countdown
 func tick(dt: float) -> void:
 	for mount in debounces:
 		if debounces[mount] > 0:
 			debounces[mount] -= dt
+
 
 # lerp toward the cornering target and travel to it; also keeps the facing normal
 func update_cornering(dt: float) -> void:
@@ -85,6 +88,7 @@ func update_cornering(dt: float) -> void:
 
 	wall_normal = p.basis.z
 
+
 # advance stepping arms and pick the best arm step for this frame
 func update_arms(dt: float, input_dir: Vector2, average_normal: Vector3) -> void:
 	var p := player
@@ -111,8 +115,10 @@ func update_arms(dt: float, input_dir: Vector2, average_normal: Vector3) -> void
 			continue
 
 		var side_dir := (right * input_dir.x).normalized()
-		var can_corner: bool = debounces[mount] <= 0 \
+		var can_corner: bool = (
+			debounces[mount] <= 0
 			and (mount.wall_probe.global_position - p.global_position).dot(side_dir) > 0
+		)
 
 		# inside corner: cast sideways toward the adjoining surface
 		if can_corner:
@@ -125,7 +131,13 @@ func update_arms(dt: float, input_dir: Vector2, average_normal: Vector3) -> void
 				continue
 
 		if mount.step_target != null:
-			var cand = _pick(mount, hit, mount.raycast_config.max_target_displacement, CorneringType.NONE, best_dist)
+			var cand = _pick(
+				mount,
+				hit,
+				mount.raycast_config.max_target_displacement,
+				CorneringType.NONE,
+				best_dist
+			)
 			if cand != null:
 				best_mount = cand.mount
 				best_hit = cand.hit
@@ -146,10 +158,12 @@ func update_arms(dt: float, input_dir: Vector2, average_normal: Vector3) -> void
 				mount.set_apply_floor(false)
 		_commit_step(best_mount, best_hit, cornering_mode)
 
+
 func _can_step(mount: ArmMount) -> bool:
 	var horizontal_grounded = mount.horizontal_mount.arm.is_grounded()
 	var diagonal_grounded = mount.vertical_mount.arm.is_grounded() and horizontal_grounded
 	return diagonal_grounded or mount.arm.is_fully_extended()
+
 
 # build a winning candidate dict {mount, hit, mode, dist} when it beats best_dist
 func _pick(mount: ArmMount, hit, min_dist: float, mode: CorneringType, best_dist: float):
@@ -160,11 +174,17 @@ func _pick(mount: ArmMount, hit, min_dist: float, mode: CorneringType, best_dist
 		return {"mount": mount, "hit": hit, "mode": mode, "dist": dist}
 	return null
 
+
 func _try_inside_corner(mount: ArmMount, side_dir: Vector3, best_dist: float):
 	var p := player
-	var ray_end: Vector3 = mount.wall_probe.global_position + side_dir * p.raycast_config.wall_inside_cornering_raycast_distance
+	var ray_end: Vector3 = (
+		mount.wall_probe.global_position
+		+ side_dir * p.raycast_config.wall_inside_cornering_raycast_distance
+	)
 	var motion := ray_end - mount.global_position
-	var side_result = mount.get_surface_hit(mount.global_position, motion.normalized(), motion.length())
+	var side_result = mount.get_surface_hit(
+		mount.global_position, motion.normalized(), motion.length()
+	)
 	if not side_result:
 		return null
 
@@ -183,16 +203,23 @@ func _try_inside_corner(mount: ArmMount, side_dir: Vector3, best_dist: float):
 	mount.step_target = side_result["position"]
 	return _pick(mount, side_result, corner_step_min_displacement, CorneringType.INSIDE, best_dist)
 
-func _try_outside_corner(mount: ArmMount, side_dir: Vector3, average_normal: Vector3, best_dist: float):
+
+func _try_outside_corner(
+	mount: ArmMount, side_dir: Vector3, average_normal: Vector3, best_dist: float
+):
 	var p := player
 	var space := p.get_world_3d().direct_space_state
 
 	var d := outside_corner_ray_lateral_offset
 	var ray_origin := mount.wall_probe.global_position + side_dir * d
-	var motion := -side_dir * (d + outside_corner_ray_reach) - average_normal * outside_corner_ray_depth
+	var motion := (
+		-side_dir * (d + outside_corner_ray_reach) - average_normal * outside_corner_ray_depth
+	)
 
 	# only cast if the ray origin is actually visible from the mount
-	var visible_query := PhysicsRayQueryParameters3D.create(mount.global_position, ray_origin, p.cast_mask())
+	var visible_query := PhysicsRayQueryParameters3D.create(
+		mount.global_position, ray_origin, p.cast_mask()
+	)
 	var visible := space.intersect_ray(visible_query).is_empty()
 
 	var side_result = mount.get_surface_hit(ray_origin, motion.normalized(), motion.length())
@@ -200,7 +227,10 @@ func _try_outside_corner(mount: ArmMount, side_dir: Vector3, average_normal: Vec
 		return null
 
 	var hit_normal: Vector3 = side_result["normal"]
-	if hit_normal.dot(side_dir) <= outside_corner_min_side_dot or wall_normal.dot(hit_normal) >= outside_corner_max_parallel_dot:
+	if (
+		hit_normal.dot(side_dir) <= outside_corner_min_side_dot
+		or wall_normal.dot(hit_normal) >= outside_corner_max_parallel_dot
+	):
 		return null
 
 	# reject hits on surfaces buried inside another wall (overlap seams)
@@ -216,32 +246,43 @@ func _try_outside_corner(mount: ArmMount, side_dir: Vector3, average_normal: Vec
 	mount.step_target = side_result["position"]
 	return _pick(mount, side_result, corner_step_min_displacement, CorneringType.OUTSIDE, best_dist)
 
+
 # line-of-sight test from the mount to the hit: surfaces buried inside another
 # wall's collider (overlapping CSG shells) are always occluded along that line,
 # while a genuine exposed corner hit is not
 func _hit_is_exposed(mount: ArmMount, hit: Dictionary) -> bool:
 	var space := player.get_world_3d().direct_space_state
 	var target: Vector3 = hit["position"] + (hit["normal"] as Vector3) * 0.2
-	var query := PhysicsRayQueryParameters3D.create(mount.global_position, target, player.cast_mask())
+	var query := PhysicsRayQueryParameters3D.create(
+		mount.global_position, target, player.cast_mask()
+	)
 	return space.intersect_ray(query).is_empty()
+
 
 func _commit_step(best_mount: ArmMount, best_hit, cornering_mode: CorneringType) -> void:
 	var p := player
 
 	if cornering_mode != CorneringType.NONE:
-		var debounce_time = inside_corner_duration if cornering_mode == CorneringType.INSIDE else outside_corner_duration
+		var debounce_time = (
+			inside_corner_duration
+			if cornering_mode == CorneringType.INSIDE
+			else outside_corner_duration
+		)
 		debounces[best_mount] = debounce_time
 		if not is_cornering:
 			is_cornering = true
 			cornering_timer = debounce_time
 			cornering_target_normal = -best_hit.normal
-			cornering_target_pos = best_mount.step_target + best_hit.normal * p.wall_climb.wall_offset
+			cornering_target_pos = (
+				best_mount.step_target + best_hit.normal * p.wall_climb.wall_offset
+			)
 			cornering_target_pos.y = p.position.y
 
 	var params := StepParams.new()
 	params.surface_normal = best_hit.normal
 	best_mount.arm.start_step(best_mount.step_target, params)
 	best_mount.wall_surface_normal = best_hit.normal
+
 
 static func wall_basis(normal: Vector3) -> Basis:
 	var up := (Vector3.UP - normal * normal.dot(Vector3.UP)).normalized()

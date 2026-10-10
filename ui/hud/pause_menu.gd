@@ -28,6 +28,7 @@ const BUTTON_TWEEN_EASE := Tween.EASE_OUT
 
 var buttons: Array[Control] = []
 
+
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
@@ -35,20 +36,25 @@ func _ready():
 	if button_scene:
 		_spawn_buttons()
 
+
 func toggle_pause(new: bool) -> void:
 	is_paused = new
 	get_tree().paused = is_paused
 
 	_blur_tween()
 
+
 func _placeholder() -> void:
 	pass
+
 
 func _resume():
 	toggle_pause(false)
 
+
 func _quit() -> void:
 	get_tree().quit()
+
 
 func _on_button_pressed(button_name: String) -> void:
 	match button_name:
@@ -61,10 +67,12 @@ func _on_button_pressed(button_name: String) -> void:
 		"Quit":
 			_quit()
 
+
 func _unhandled_input(event: InputEvent):
 	if event.is_action_pressed("pause"):
 		toggle_pause(not is_paused)
 		get_viewport().set_input_as_handled()
+
 
 func _blur_tween() -> void:
 	var blur_target = blur_strength if is_paused else 0.0
@@ -74,8 +82,12 @@ func _blur_tween() -> void:
 		blur_tween.kill()
 
 	blur_tween = create_tween().set_parallel(true)
-	blur_tween.tween_property(blur_rect, "material:shader_parameter/blur_amount", blur_target, blur_tween_duration)
-	blur_tween.tween_property(blur_rect, "material:shader_parameter/mix_amount", color_mix_target, blur_tween_duration)
+	blur_tween.tween_property(
+		blur_rect, "material:shader_parameter/blur_amount", blur_target, blur_tween_duration
+	)
+	blur_tween.tween_property(
+		blur_rect, "material:shader_parameter/mix_amount", color_mix_target, blur_tween_duration
+	)
 
 	if is_paused:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -85,6 +97,7 @@ func _blur_tween() -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		blur_tween.finished.connect(func(): visible = false)
 		_animate_buttons_out()
+
 
 func _spawn_buttons() -> void:
 	for i in BUTTON_NAMES.size():
@@ -104,11 +117,13 @@ func _spawn_buttons() -> void:
 		wrapper.add_child(button)
 		buttons.append(button)
 
+
 func _play_sound(sound: AudioStreamOggVorbis) -> void:
 	if sound != null:
 		audio_player.stream = sound
 		audio_player.volume_db = sound_volume
 		AudioUtil.play_with_pitch(audio_player)
+
 
 func _diagonal_dir(i: int) -> Vector2:
 	var col := i % GRID_COLUMNS
@@ -116,14 +131,21 @@ func _diagonal_dir(i: int) -> Vector2:
 	# map cell coords (0,0)..(1,1) to corner directions (-1,-1)..(1,1)
 	return Vector2(col, row) * 2.0 - Vector2.ONE
 
+
 func _animate_buttons_in() -> void:
 	_play_sound(open_sound)
 	for i in buttons.size():
 		var button := buttons[i]
 
 		var tw := create_tween().set_parallel(true)
-		tw.tween_property(button, "position", Vector2.ZERO, button_tween_duration).set_trans(BUTTON_TWEEN_TRANS).set_ease(BUTTON_TWEEN_EASE)
+		(
+			tw
+			. tween_property(button, "position", Vector2.ZERO, button_tween_duration)
+			. set_trans(BUTTON_TWEEN_TRANS)
+			. set_ease(BUTTON_TWEEN_EASE)
+		)
 		tw.tween_property(button, "modulate:a", 1.0, button_fade_duration)
+
 
 func _animate_buttons_out() -> void:
 	_play_sound(close_sound)
@@ -132,5 +154,10 @@ func _animate_buttons_out() -> void:
 		var dir := _diagonal_dir(i)
 
 		var tw := create_tween().set_parallel(true)
-		tw.tween_property(button, "position", dir * button_outset, button_tween_duration).set_trans(BUTTON_TWEEN_TRANS).set_ease(BUTTON_TWEEN_EASE)
+		(
+			tw
+			. tween_property(button, "position", dir * button_outset, button_tween_duration)
+			. set_trans(BUTTON_TWEEN_TRANS)
+			. set_ease(BUTTON_TWEEN_EASE)
+		)
 		tw.tween_property(button, "modulate:a", 0.0, button_fade_duration)

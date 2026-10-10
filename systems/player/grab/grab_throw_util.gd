@@ -1,15 +1,20 @@
 extends RefCounted
 class_name GrabThrowUtil
 
-static func apply_throw(body: RigidBody3D, throw_speed: float, flat_basis: Basis,
-		config: PlayerGrabConfig) -> void:
+
+static func apply_throw(
+	body: RigidBody3D, throw_speed: float, flat_basis: Basis, config: PlayerGrabConfig
+) -> void:
 	var throw_dir := -flat_basis.z
 
 	body.linear_velocity.y = 0.0
 	body.linear_velocity += throw_dir * throw_speed
-	body.linear_velocity.y += maxf(config.THROW_RELEASE_VELOCITY_Y - throw_speed * config.THROW_Y_Z_DROPOFF,
-		config.THROW_RELEASE_VELOCITY_Y_MIN)
+	body.linear_velocity.y += maxf(
+		config.THROW_RELEASE_VELOCITY_Y - throw_speed * config.THROW_Y_Z_DROPOFF,
+		config.THROW_RELEASE_VELOCITY_Y_MIN
+	)
 	apply_spin(body, config)
+
 
 static func apply_spin(body: RigidBody3D, config: PlayerGrabConfig) -> void:
 	var vel := body.linear_velocity

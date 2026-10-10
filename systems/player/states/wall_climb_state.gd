@@ -21,6 +21,7 @@ func exit() -> void:
 
 	arms.reset()
 
+
 func enter() -> void:
 	for mount in player.all_mounts():
 		mount.set_apply_floor(true)
@@ -36,6 +37,7 @@ func _init(p: PlayerController) -> void:
 	max_tilt_rad = deg_to_rad(c.wall_max_tilt_deg)
 	tilt_smoothing_speed = c.wall_tilt_smoothing_speed
 	arms = WallClimbArms.new(p)
+
 
 func physics_update(dt: float) -> void:
 	var p := player
@@ -81,6 +83,7 @@ func physics_update(dt: float) -> void:
 		p.set_state(p.StateID.AIR)
 		p.play_jump_effects(0.5)
 
+
 func _update_average_normal() -> bool:
 	average_normal = Vector3.ZERO
 	var valid_normals := 0
@@ -92,10 +95,15 @@ func _update_average_normal() -> bool:
 		average_normal = average_normal.normalized()
 	return valid_normals > 0
 
+
 func _apply_movement(dt: float) -> void:
 	var p := player
 	var space := p.get_world_3d().direct_space_state
-	var query := PhysicsRayQueryParameters3D.create(p.position, p.position + -p.basis.z * p.wall_climb.wall_offset * p.wall_climb.wall_raycast_dist, p.cast_mask())
+	var query := PhysicsRayQueryParameters3D.create(
+		p.position,
+		p.position + -p.basis.z * p.wall_climb.wall_offset * p.wall_climb.wall_raycast_dist,
+		p.cast_mask()
+	)
 	var result := space.intersect_ray(query)
 
 	# core rule: always face the wall directly in front (lerped), reject glancing hits
@@ -130,12 +138,18 @@ func _apply_movement(dt: float) -> void:
 			var distance_from_wall: float = (hit_pos - p.position).length()
 			arms.player_distance_from_wall = distance_from_wall
 			var distance_error := distance_from_wall - p.wall_climb.wall_offset
-			var target_normal_vel: Vector3 = -average_normal * distance_error * p.wall_climb.wall_offset_correction_rate
+			var target_normal_vel: Vector3 = (
+				-average_normal * distance_error * p.wall_climb.wall_offset_correction_rate
+			)
 			var normal_comp := average_normal * p.velocity.dot(average_normal)
-			p.velocity += (target_normal_vel - normal_comp) * minf(1.0, dt * p.wall_climb.wall_offset_correction_rate)
+			p.velocity += (
+				(target_normal_vel - normal_comp)
+				* minf(1.0, dt * p.wall_climb.wall_offset_correction_rate)
+			)
 
 	var goal_yaw := atan2(-goal_direction.x, -goal_direction.z)
 	p.rotation.y = lerp_angle(p.rotation.y, goal_yaw, dt * p.movement.turn_speed)
+
 
 func _detect_ledge(wall_normal: Vector3) -> Variant:
 	var p := player
@@ -145,7 +159,11 @@ func _detect_ledge(wall_normal: Vector3) -> Variant:
 
 	var space := p.get_world_3d().direct_space_state
 	var start := p.position + Vector3.UP * p.wall_climb.ledge_ray_offset
-	var end := start - wall_normal * p.wall_climb.ledge_ray_length + Vector3.DOWN * p.wall_climb.ledge_ray_offset
+	var end := (
+		start
+		- wall_normal * p.wall_climb.ledge_ray_length
+		+ Vector3.DOWN * p.wall_climb.ledge_ray_offset
+	)
 	var query := PhysicsRayQueryParameters3D.create(start, end, p.cast_mask())
 	var result := space.intersect_ray(query)
 	if result.is_empty():
@@ -155,6 +173,7 @@ func _detect_ledge(wall_normal: Vector3) -> Variant:
 		return null
 
 	return result
+
 
 func _dismount_to_ledge(ledge_result: Dictionary) -> void:
 	var p := player
@@ -169,7 +188,9 @@ func _dismount_to_ledge(ledge_result: Dictionary) -> void:
 
 	for mount in p.leg_mounts:
 		var foot_pos := ledge_pos + right * mount.ground_probe.position.x
-		var surface = mount.get_surface_hit(foot_pos, Vector3.DOWN, p.raycast_config.step_raycast_distance)
+		var surface = mount.get_surface_hit(
+			foot_pos, Vector3.DOWN, p.raycast_config.step_raycast_distance
+		)
 		if surface != null:
 			foot_pos = (surface["position"] as Vector3)
 
@@ -180,6 +201,7 @@ func _dismount_to_ledge(ledge_result: Dictionary) -> void:
 
 		step_count += 1
 
+
 func _check_floor_from_wall() -> bool:
 	var p := player
 
@@ -189,6 +211,7 @@ func _check_floor_from_wall() -> bool:
 		return true
 
 	return false
+
 
 func _update_tilt(dt: float) -> void:
 	var p := player

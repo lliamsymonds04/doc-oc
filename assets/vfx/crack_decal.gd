@@ -13,7 +13,10 @@ const MAX_LIVE: int = 24
 
 static var _live: Array[CrackDecal] = []
 
-static func spawn(parent: Node, pos: Vector3, normal: Vector3, size_factor: float = 1.0) -> CrackDecal:
+
+static func spawn(
+	parent: Node, pos: Vector3, normal: Vector3, size_factor: float = 1.0
+) -> CrackDecal:
 	if _live.size() >= MAX_LIVE:
 		var oldest: CrackDecal = _live.pop_front()
 		oldest.queue_free()
@@ -24,10 +27,12 @@ static func spawn(parent: Node, pos: Vector3, normal: Vector3, size_factor: floa
 	decal.place(pos, normal)
 	return decal
 
+
 func _init() -> void:
 	texture_albedo = TEXTURE
 	size = SIZE
 	modulate = Color(1, 1, 1, 0.9)
+
 
 func place(pos: Vector3, normal: Vector3) -> void:
 	global_position = pos + normal * size.y * 0.05
@@ -48,7 +53,8 @@ func place(pos: Vector3, normal: Vector3) -> void:
 	var tween := create_tween()
 	tween.tween_interval(LIFETIME)
 	tween.tween_property(self, "modulate:a", 0.0, FADE_TIME)
-	tween.tween_callback(func() -> void:
-		_live.erase(self)
-		queue_free()
+	tween.tween_callback(
+		func() -> void:
+			_live.erase(self)
+			queue_free()
 	)

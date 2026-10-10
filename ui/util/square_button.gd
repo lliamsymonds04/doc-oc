@@ -5,6 +5,7 @@ class_name SquareButton
 
 var _flash_tween: Tween
 
+
 ## Fades the flash overlay in and out over [param duration] seconds.
 func flash(duration: float = 0.25) -> void:
 	if _flash_tween:

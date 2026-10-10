@@ -24,6 +24,7 @@ var _min_dv: float
 var _damage_per_dv: float
 var _last_impact_physics_frame: int = -100
 
+
 func _init(enemy: EnemyController, body: RigidBody3D, min_dv: float, damage_per_dv: float) -> void:
 	_enemy = enemy
 	_body = body
@@ -53,8 +54,10 @@ func _physics_process(_dt: float) -> void:
 		if dv < _min_dv:
 			continue
 
-		if frame - _last_impact_physics_frame \
-			<= EFFECT_COOLDOWN * Engine.get_physics_ticks_per_second():
+		if (
+			frame - _last_impact_physics_frame
+			<= EFFECT_COOLDOWN * Engine.get_physics_ticks_per_second()
+		):
 			return
 		_last_impact_physics_frame = frame
 
@@ -64,8 +67,7 @@ func _physics_process(_dt: float) -> void:
 
 		_shake_camera(dv, state.get_contact_local_normal(i))
 
-
-		var vol_offset: float = clampf((dv - _min_dv)/IMPACT_DV - 1, 0, 1)
+		var vol_offset: float = clampf((dv - _min_dv) / IMPACT_DV - 1, 0, 1)
 		_impact_audio_player.volume_db = DEFAULT_VOL + vol_offset * VOL_RANGE
 		AudioUtil.play_with_pitch(_impact_audio_player)
 
@@ -76,13 +78,16 @@ func _spawn_crack_decal(dv: float, state: PhysicsDirectBodyState3D, i: int) -> v
 	if dv < IMPACT_DV:
 		return
 
-	var strength = minf(dv/IMPACT_DV * BASE_DECAL_SIZE_FACTOR, MAX_DECAL_SIZE_FACTOR)
+	var strength = minf(dv / IMPACT_DV * BASE_DECAL_SIZE_FACTOR, MAX_DECAL_SIZE_FACTOR)
 
-	CrackDecal.spawn(
-		state.get_contact_collider_object(i),
-		state.get_contact_local_position(i),
-		state.get_contact_local_normal(i),
-		strength,
+	(
+		CrackDecal
+		. spawn(
+			state.get_contact_collider_object(i),
+			state.get_contact_local_position(i),
+			state.get_contact_local_normal(i),
+			strength,
+		)
 	)
 
 
@@ -91,7 +96,9 @@ func _shake_camera(dv: float, normal: Vector3) -> void:
 	if absf(normal.y) > WALL_NORMAL_DOT_UP:
 		return
 
-	var cam_ctrl := _body.get_tree().get_first_node_in_group("camera_controller") as CameraController
+	var cam_ctrl := (
+		_body.get_tree().get_first_node_in_group("camera_controller") as CameraController
+	)
 	if cam_ctrl == null:
 		return
 

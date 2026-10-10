@@ -9,7 +9,7 @@ class_name DebugRayDrawer
 static var instance: DebugRayDrawer = null
 
 @export var default_thickness: float = 0.015
-@export var default_hit_thickness_scale: float = 1.0 # multiplier for hit normal/cross
+@export var default_hit_thickness_scale: float = 1.0  # multiplier for hit normal/cross
 @export_range(4, 12) var tube_sides: int = 6
 
 # Internal ray record: {from:Vector3, to:Vector3, color:Color, expires:int, thickness:float}
@@ -20,12 +20,15 @@ var _rays: Array[Dictionary] = []
 var _mi: MeshInstance3D
 var _mesh: ImmediateMesh
 
+
 func _enter_tree() -> void:
 	instance = self
+
 
 func _exit_tree() -> void:
 	if instance == self:
 		instance = null
+
 
 func _ready() -> void:
 	_mesh = ImmediateMesh.new()
@@ -38,28 +41,39 @@ func _ready() -> void:
 	mat.vertex_color_use_as_albedo = true
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
-	mat.no_depth_test = true # always visible, even through walls
+	mat.no_depth_test = true  # always visible, even through walls
 	_mi.material_override = mat
 	add_child(_mi)
+
 
 ## Draw a line from [param from] to [param to] with [param color].
 ## [param duration] == 0.0 -> visible for 1 frame only.
 ## [param duration] > 0.0  -> lingering for that many seconds (e.g. 0.5).
 ## [param thickness] < 0 -> use [member default_thickness], 0 -> 1px line, >0 -> tube radius in meters.
-func draw_ray(from: Vector3, to: Vector3, color: Color = Color.WHITE, duration: float = 0.0, thickness: float = -1.0) -> void:
+func draw_ray(
+	from: Vector3,
+	to: Vector3,
+	color: Color = Color.WHITE,
+	duration: float = 0.0,
+	thickness: float = -1.0
+) -> void:
 	var expires: int = -1
 	if duration > 0.0:
 		expires = Time.get_ticks_msec() + int(duration * 1000.0)
-	_rays.append({
-		"from": from,
-		"to": to,
-		"color": color,
-		"expires": expires,
-		"thickness": thickness
-	})
+	_rays.append(
+		{"from": from, "to": to, "color": color, "expires": expires, "thickness": thickness}
+	)
+
 
 ## Convenience: draw a short normal at [param pos] for hit visualization.
-func draw_hit(pos: Vector3, normal: Vector3, color: Color = Color.GREEN, duration: float = 0.0, length: float = 0.4, thickness: float = -1.0) -> void:
+func draw_hit(
+	pos: Vector3,
+	normal: Vector3,
+	color: Color = Color.GREEN,
+	duration: float = 0.0,
+	length: float = 0.4,
+	thickness: float = -1.0
+) -> void:
 	var t := thickness if thickness >= 0.0 else default_thickness * default_hit_thickness_scale
 	draw_ray(pos, pos + normal * length, color, duration, t)
 	# small cross at hit point so it's visible even at grazing angles
@@ -68,8 +82,15 @@ func draw_hit(pos: Vector3, normal: Vector3, color: Color = Color.GREEN, duratio
 	draw_ray(pos + Vector3(0, s, 0), pos - Vector3(0, s, 0), color, duration, t)
 	draw_ray(pos + Vector3(0, 0, s), pos - Vector3(0, 0, s), color, duration, t)
 
+
 ## Optional: draw a wire sphere at [param pos] for shape-cast hit volume visualization.
-func draw_sphere(pos: Vector3, radius: float, color: Color = Color.GREEN, duration: float = 0.0, thickness: float = -1.0) -> void:
+func draw_sphere(
+	pos: Vector3,
+	radius: float,
+	color: Color = Color.GREEN,
+	duration: float = 0.0,
+	thickness: float = -1.0
+) -> void:
 	var t := thickness if thickness >= 0.0 else default_thickness
 	# 3 axis-aligned circles
 	var segs := 12
@@ -79,21 +100,23 @@ func draw_sphere(pos: Vector3, radius: float, color: Color = Color.GREEN, durati
 			var a1 := TAU * float(i + 1) / float(segs)
 			var p0: Vector3
 			var p1: Vector3
-			if axis == 0: # YZ
+			if axis == 0:  # YZ
 				p0 = pos + Vector3(0, cos(a0), sin(a0)) * radius
 				p1 = pos + Vector3(0, cos(a1), sin(a1)) * radius
-			elif axis == 1: # XZ
+			elif axis == 1:  # XZ
 				p0 = pos + Vector3(cos(a0), 0, sin(a0)) * radius
 				p1 = pos + Vector3(cos(a1), 0, sin(a1)) * radius
-			else: # XY
+			else:  # XY
 				p0 = pos + Vector3(cos(a0), sin(a0), 0) * radius
 				p1 = pos + Vector3(cos(a1), sin(a1), 0) * radius
 			draw_ray(p0, p1, color, duration, t)
+
 
 func clear() -> void:
 	_rays.clear()
 	if _mesh:
 		_mesh.clear_surfaces()
+
 
 func _add_tube(a: Vector3, b: Vector3, color: Color, radius: float) -> void:
 	var dir := b - a
@@ -130,6 +153,7 @@ func _add_tube(a: Vector3, b: Vector3, color: Color, radius: float) -> void:
 		_mesh.surface_add_vertex(v3)
 		_mesh.surface_set_color(color)
 		_mesh.surface_add_vertex(v2)
+
 
 func _process(_delta: float) -> void:
 	if _mesh == null:

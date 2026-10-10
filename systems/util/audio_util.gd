@@ -1,6 +1,7 @@
 extends RefCounted
 class_name AudioUtil
 
+
 static func play_with_pitch(player, deviation: float = 0.05) -> void:
 	if player == null:
 		return

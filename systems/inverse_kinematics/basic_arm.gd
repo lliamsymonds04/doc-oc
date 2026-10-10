@@ -21,7 +21,7 @@ signal hit_detected(pos: Vector3, normal: Vector3, collider: Object)
 @export_category("Attack")
 @export var punch_duration: float = 0.15
 @export var punch_ease_curve: float = 2.0
-@export var hit_probe_margin: float = 0.1 # extra radius beyond joint_radius for the hit sphere
+@export var hit_probe_margin: float = 0.1  # extra radius beyond joint_radius for the hit sphere
 
 const GROUNDED_DISTANCE_CHECK: float = 0.2
 
@@ -30,16 +30,18 @@ var target_world: Vector3 = Vector3.ZERO
 var pole: Node3D
 var is_leg: bool = false
 
+
 class MotionProfile:
 	var duration: float = 0.25
-	var delay: float = 0.0 # hold at start position before moving
+	var delay: float = 0.0  # hold at start position before moving
 	var speed_multiplier: float = 1.0
 	var arc_height: float = 0.0
 	var arc_axis: Vector3 = Vector3.UP
-	var ease_curve: float = 1.0 # Godot's ease(): 1.0 = linear
-	var floor_normal: Variant = null # null = don't touch solver.floor_normal
+	var ease_curve: float = 1.0  # Godot's ease(): 1.0 = linear
+	var floor_normal: Variant = null  # null = don't touch solver.floor_normal
 	var detect_hits: bool = false
-	var cast_mask: int = -1 # -1 = use the arm's default cast_mask
+	var cast_mask: int = -1  # -1 = use the arm's default cast_mask
+
 
 ## state
 var is_moving := false
@@ -48,7 +50,7 @@ var _move_start: Vector3
 var _move_end: Vector3
 var _move_progress: float = 0.0
 var _hit_this_move: bool = false
-var _prev_probe_pos: Vector3 = Vector3.ZERO # world-space fist position last frame
+var _prev_probe_pos: Vector3 = Vector3.ZERO  # world-space fist position last frame
 var _probe_shape: SphereShape3D
 
 ## Physics mask for the hit probe; ignores the owner's layers.
@@ -82,6 +84,7 @@ func _ready() -> void:
 
 	_build_visualizer()
 
+
 ## public methods
 func is_grounded() -> bool:
 	if is_moving:
@@ -92,11 +95,13 @@ func is_grounded() -> bool:
 	var distance := (end_effector - target_pos).length()
 	return distance <= GROUNDED_DISTANCE_CHECK
 
+
 func is_fully_extended(length_percent: float = 1.0) -> bool:
 	var mount_pos := solver.joints[0]
 	var target_pos := to_local(target_world)
 	var distance := (mount_pos - target_pos).length()
 	return distance > solver.total_length * length_percent
+
 
 func begin_move(to: Vector3, profile: MotionProfile) -> void:
 	is_moving = true
@@ -109,6 +114,7 @@ func begin_move(to: Vector3, profile: MotionProfile) -> void:
 
 	if profile.floor_normal != null:
 		solver.floor_normal = _to_local_dir(profile.floor_normal)
+
 
 func advance_move(dt: float) -> void:
 	if not is_moving or _profile == null:
@@ -133,12 +139,15 @@ func advance_move(dt: float) -> void:
 			var hit_result: Variant = query_end_effector(pos)
 			if hit_result:
 				_hit_this_move = true
-				hit_detected.emit(hit_result["position"], hit_result["normal"], hit_result["collider"])
+				hit_detected.emit(
+					hit_result["position"], hit_result["normal"], hit_result["collider"]
+				)
 		_prev_probe_pos = pos
 
 	if _move_progress >= 1.0:
 		is_moving = false
 		move_finished.emit(_move_end)
+
 
 func start_step(to: Vector3, params: StepParams = null) -> void:
 	if params == null:
@@ -157,6 +166,7 @@ func start_step(to: Vector3, params: StepParams = null) -> void:
 
 	step_started.emit(_move_start, params.surface_normal)
 
+
 func start_punch(to: Vector3, p_cast_mask: int = -1) -> void:
 	var profile := MotionProfile.new()
 	profile.duration = punch_duration
@@ -166,10 +176,12 @@ func start_punch(to: Vector3, p_cast_mask: int = -1) -> void:
 
 	begin_move(to, profile)
 
+
 ## Owns the solver call convention (root at the arm origin, pole in arm-local space)
 ## so external callers can't diverge from what _process passes to solve().
 func set_pole_constraints(enabled: bool) -> void:
 	solver.set_pole_constraints(enabled, target, Vector3.ZERO, pole.position)
+
 
 func query_end_effector(to: Vector3) -> Variant:
 	if solver == null:
@@ -182,13 +194,17 @@ func query_end_effector(to: Vector3) -> Variant:
 	if motion.length() < 0.001:
 		return null
 
-	return RaycastUtil.shape_cast(
-		space,
-		_probe_shape,
-		_prev_probe_pos,
-		motion,
-		_profile.cast_mask if _profile.cast_mask != -1 else cast_mask,
+	return (
+		RaycastUtil
+		. shape_cast(
+			space,
+			_probe_shape,
+			_prev_probe_pos,
+			motion,
+			_profile.cast_mask if _profile.cast_mask != -1 else cast_mask,
+		)
 	)
+
 
 ## private methods
 func _process(_delta: float) -> void:
@@ -197,14 +213,17 @@ func _process(_delta: float) -> void:
 	var solved := solver.solve(target, Vector3.ZERO, pole.position)
 	_update_visualizer(solved)
 
+
 func _on_move_finished(pos: Vector3) -> void:
 	if _emit_step_landed:
 		_emit_step_landed = false
 		step_landed.emit(pos, _profile.arc_axis)
 
+
 ## Converts a world-space direction into the solver's local space.
 func _to_local_dir(world_dir: Vector3) -> Vector3:
 	return (global_transform.basis.inverse() * world_dir).normalized()
+
 
 func _build_visualizer() -> void:
 	var limb_mat := StandardMaterial3D.new()

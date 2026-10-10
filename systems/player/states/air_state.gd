@@ -10,6 +10,7 @@ var _landing_vfx: ImpactVFX
 
 var air_debounce := 0.0
 
+
 func _init(p: PlayerController) -> void:
 	super._init(p)
 
@@ -23,6 +24,7 @@ func _init(p: PlayerController) -> void:
 	_landing_vfx.top_level = true
 	p.add_child(_landing_vfx)
 
+
 func enter() -> void:
 	var p := player
 	air_debounce = p.air.air_debounce
@@ -30,11 +32,13 @@ func enter() -> void:
 	for mount in p.all_mounts():
 		mount.set_apply_floor(false)
 
+
 func calculate_hand_velocity_offset(velocity: Vector3) -> Vector3:
 	var c := player.air
 	var mag = velocity.length()
 	var new_mag = min(mag * c.hand_velocity_offset_scale, c.hand_velocity_offset_max)
 	return velocity.normalized() * new_mag
+
 
 func physics_update(dt: float) -> void:
 	var p := player
@@ -83,6 +87,7 @@ func physics_update(dt: float) -> void:
 	if wall_mounted:
 		_play_landed_effect()
 
+
 func _update_camera_alignment(dt: float) -> void:
 	var p := player
 	var target_yaw := p.camera_controller.global_rotation.y
@@ -91,6 +96,7 @@ func _update_camera_alignment(dt: float) -> void:
 
 	p.rotation.y = new_yaw
 	p.camera_controller.rotation.y -= delta
+
 
 func _update_tilt(dt: float) -> void:
 	var p := player
@@ -103,7 +109,6 @@ func _update_tilt(dt: float) -> void:
 		velocityRotation = -forward_limit
 	if velocityRotation > backward_limit:
 		velocityRotation = backward_limit
-
 
 	var current_rot_x := p.tilt_pivot.rotation.x
 	var new_rot_x = lerp(current_rot_x, velocityRotation, dt * p.air.air_tilt_rotation_speed)
@@ -118,6 +123,7 @@ func _update_tilt(dt: float) -> void:
 	var new_rot_z = lerp(current_rot_z, target_rot_z, dt * p.air.air_tilt_rotation_speed)
 	p.tilt_pivot.rotation.z = new_rot_z
 
+
 func frame_update(dt: float) -> void:
 	var p := player
 
@@ -126,6 +132,7 @@ func frame_update(dt: float) -> void:
 		if p.grab_controller.is_mount_grabbing(mount):
 			continue
 		mount.update_idle_target(dt, p.air.arm_target_speed, world_offset)
+
 
 func _check_grounded() -> bool:
 	var p := player
@@ -150,6 +157,7 @@ func _check_grounded() -> bool:
 
 	return false
 
+
 func _play_landed_effect() -> void:
 	var p := player
 
@@ -170,7 +178,9 @@ func _play_landed_effect() -> void:
 	# cast from the player in direction of velocity
 	var space_state = p.get_world_3d().direct_space_state
 	var player_pos := p.position
-	var query := PhysicsRayQueryParameters3D.create(player_pos, player_pos + v_dir * p.air.landing_vfx_raycast_distance, p.cast_mask())
+	var query := PhysicsRayQueryParameters3D.create(
+		player_pos, player_pos + v_dir * p.air.landing_vfx_raycast_distance, p.cast_mask()
+	)
 	var result = space_state.intersect_ray(query)
 
 	if result:

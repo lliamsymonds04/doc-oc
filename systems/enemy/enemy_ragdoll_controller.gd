@@ -34,17 +34,22 @@ func _init(enemy: EnemyController, upright_speed: float, ragdoll_mass: float) ->
 
 	_create_body(ragdoll_mass)
 
+
 func get_body() -> RigidBody3D:
 	return _body
+
 
 func get_ragdoll_mesh() -> MeshInstance3D:
 	return _ragdoll_mesh
 
+
 func get_enemy() -> EnemyController:
 	return _enemy
 
+
 func is_ragdoll() -> bool:
 	return _is_ragdoll
+
 
 func activate() -> void:
 	_is_ragdoll = true
@@ -61,6 +66,7 @@ func activate() -> void:
 		_health_bar_local_xform = _health_bar.transform
 		_health_bar.reparent(_body)
 		_health_bar.sync_sprite_origin()
+
 
 func deactivate() -> void:
 	_is_ragdoll = false
@@ -83,6 +89,7 @@ func deactivate() -> void:
 
 	_reallign_body = true
 
+
 func initiate_get_up() -> void:
 	_downed_seq += 1
 	var seq := _downed_seq
@@ -103,11 +110,14 @@ func initiate_get_up() -> void:
 	if not _enemy.is_dead():
 		deactivate()
 
+
 func cancel_get_up() -> void:
 	_downed_seq += 1
 
+
 func _wait(sec: float) -> void:
 	await _enemy.get_tree().create_timer(sec, false).timeout
+
 
 func _create_body(ragdoll_mass: float) -> void:
 	_body = RigidBody3D.new()
@@ -133,6 +143,7 @@ func _create_body(ragdoll_mass: float) -> void:
 	_enemy.get_parent().add_child(_body)
 	_body.global_transform = _enemy.global_transform
 	corpse_shape.disabled = true
+
 
 func make_body_upright(dt: float) -> void:
 	if not _reallign_body:

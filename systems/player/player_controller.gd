@@ -1,7 +1,6 @@
 extends CharacterBody3D
 class_name PlayerController
 
-
 @export var movement: MovementConfig
 @export var hover: HoverConfig
 @export var grounded: GroundedConfig
@@ -59,9 +58,11 @@ var _hit_vfx: ImpactVFX
 ## Layer bodies are moved to while held; excluded from player casts via cast_mask.
 const HELD_LAYER := 4
 
+
 ## Mask for casts originating on the player: everything except the player's own layer and held bodies.
 func cast_mask() -> int:
 	return ~(collision_layer | HELD_LAYER)
+
 
 func _init() -> void:
 	if movement == null:
@@ -80,6 +81,7 @@ func _init() -> void:
 		attack_config = PlayerAttackConfig.new()
 	if grab == null:
 		grab = PlayerGrabConfig.new()
+
 
 func _ready() -> void:
 	for mount in arm_mounts + leg_mounts:
@@ -107,32 +109,42 @@ func _ready() -> void:
 		_hit_vfx.top_level = true
 		add_child(_hit_vfx)
 
+
 func all_mounts() -> Array[ArmMount]:
 	return leg_mounts + arm_mounts
+
 
 func is_sprinting() -> bool:
 	return _current is GroundedState and _current.is_sprinting
 
+
 func current_state() -> PlayerState:
 	return _current
+
 
 func grounded_state() -> GroundedState:
 	return _states[StateID.GROUNDED]
 
+
 func air_state() -> AirState:
 	return _states[StateID.AIR]
+
 
 func wall_climb_state() -> WallClimbState:
 	return _states[StateID.WALL_CLIMB]
 
+
 func is_in_state(id: StateID) -> bool:
 	return _current == _states[id]
+
 
 func is_airborne() -> bool:
 	return _current is AirState
 
+
 func is_in_grab_mode() -> bool:
 	return _mode == Mode.GRAB
+
 
 func set_mode(new_mode: Mode) -> void:
 	if new_mode == _mode:
@@ -144,11 +156,14 @@ func set_mode(new_mode: Mode) -> void:
 	mode_changed.emit(_mode)
 	camera_controller.kick_fov(grab.mode_switch_fov_kick)
 
+
 func is_wall_climbing() -> bool:
 	return _current is WallClimbState
 
+
 func is_idle() -> bool:
 	return _current is GroundedState and (velocity * Vector3(1, 0, 1)).length() < 0.1
+
 
 func set_state(id: StateID) -> void:
 	if _current == _states[id]:
@@ -162,9 +177,11 @@ func set_state(id: StateID) -> void:
 	_current = _states[id]
 	_current.enter()
 
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("mode-switch"):
 		set_mode(Mode.GRAB if _mode == Mode.ATTACK else Mode.ATTACK)
+
 
 func _physics_process(dt: float) -> void:
 	if _current == null:
@@ -172,17 +189,20 @@ func _physics_process(dt: float) -> void:
 
 	_current.input_dir = Input.get_vector("left", "right", "forward", "back")
 	_current.physics_update(dt)
-	grab_controller.physics_update(camera_controller.mouse_delta_physics, camera_controller.wheel_delta_physics)
+	grab_controller.physics_update(
+		camera_controller.mouse_delta_physics, camera_controller.wheel_delta_physics
+	)
 
 	move_and_slide()
-	camera_controller.update_motion(dt,velocity)
+	camera_controller.update_motion(dt, velocity)
+
 
 func _process(dt: float) -> void:
 	if _current:
 		_current.frame_update(dt)
 	grab_controller.frame_update()
 
-	var horizontal_velocity = velocity * Vector3(1,0,1)
+	var horizontal_velocity = velocity * Vector3(1, 0, 1)
 	var hs := horizontal_velocity.length()
 
 	if _current.input_dir.length() == 0 and _current != _states[StateID.AIR]:
@@ -190,6 +210,7 @@ func _process(dt: float) -> void:
 
 	camera_controller.set_current_speed(hs)
 	attack_controller.process(dt)
+
 
 func play_jump_effects(strength: float) -> void:
 	AudioUtil.play_with_pitch(_jump_audio_player)

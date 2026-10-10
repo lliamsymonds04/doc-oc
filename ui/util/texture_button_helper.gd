@@ -16,11 +16,11 @@ class_name TextureButtonHelper
 @export_range(-10, 5) var hover_volume = -5.0
 @export_range(-10, 5) var pressed_volume = 0.0
 
-
 @onready var audio_player = $AudioStreamPlayer2D
 
 var effect_tween: Tween
 var hovered := false
+
 
 func _ready() -> void:
 	var normal := get_theme_stylebox("normal") as StyleBoxTexture
@@ -36,12 +36,13 @@ func _ready() -> void:
 		sb.modulate_color = variants[state]
 		add_theme_stylebox_override(state, sb)
 
-	pivot_offset = size/2.0
+	pivot_offset = size / 2.0
 
 	self.mouse_entered.connect(_mouse_entered)
 	self.mouse_exited.connect(_mouse_exited)
 	self.button_down.connect(_on_button_down)
 	self.button_up.connect(_on_button_up)
+
 
 func _animate_scale(t: float) -> void:
 	if effect_tween != null:
@@ -49,24 +50,29 @@ func _animate_scale(t: float) -> void:
 	effect_tween = create_tween()
 	effect_tween.tween_property(self, "scale", Vector2(t, t), scale_tween_duration)
 
+
 func _play_sound(sound: AudioStreamOggVorbis, volume: float) -> void:
 	if sound != null:
 		audio_player.stream = sound
 		audio_player.volume_db = volume
 		AudioUtil.play_with_pitch(audio_player)
 
+
 func _mouse_entered() -> void:
 	_animate_scale(hover_size_factor)
 	hovered = true
 	_play_sound(hover_sound, hover_volume)
 
+
 func _mouse_exited() -> void:
 	_animate_scale(1.0)
 	hovered = false
 
+
 func _on_button_down() -> void:
 	_animate_scale(pressed_size_factor)
 	_play_sound(pressed_sound, pressed_volume)
+
 
 func _on_button_up() -> void:
 	_animate_scale(hover_size_factor if is_hovered else 1.0)

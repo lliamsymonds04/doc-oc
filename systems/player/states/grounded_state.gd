@@ -19,6 +19,7 @@ var is_sprinting := false
 var leg_probe_hits: Dictionary = {}
 var floor_normal := Vector3.UP
 
+
 func _init(p: PlayerController) -> void:
 	super._init(p)
 	var c := p.grounded
@@ -29,6 +30,7 @@ func _init(p: PlayerController) -> void:
 	tilt_speed = c.tilt_speed
 	align_angle = deg_to_rad(c.align_angle_deg)
 	disalign_angle = deg_to_rad(c.disalign_angle_deg)
+
 
 func enter() -> void:
 	var p := player
@@ -53,10 +55,12 @@ func enter() -> void:
 				params.emit_landed = false
 				mount.arm.start_step(mount.to_global(idle_pos), params)
 
+
 func exit() -> void:
 	if is_sprinting:
 		is_sprinting = false
 		_set_arms_as_legs(false)
+
 
 func physics_update(dt: float) -> void:
 	var p := player
@@ -141,6 +145,7 @@ func physics_update(dt: float) -> void:
 		if player.is_in_grab_mode():
 			p.grab_controller.release_grab(1)
 
+
 func frame_update(dt: float) -> void:
 	for mount in player.all_mounts():
 		if player.grab_controller.is_mount_grabbing(mount):
@@ -149,6 +154,7 @@ func frame_update(dt: float) -> void:
 			mount.update_planted_target()
 		else:
 			mount.update_idle_target(dt, player.grounded.arm_idle_lerp_speed)
+
 
 func _update_camera_alignment(dt: float, is_moving: bool) -> void:
 	var p := player
@@ -182,13 +188,14 @@ func _handle_jump(direction: Vector3):
 		jump_hold_time = 0.0
 
 	if Input.is_action_just_released("jump"):
-		var charge_f = min(jump_hold_time/p.jump.max_jump_hold_time, 1.0)
+		var charge_f = min(jump_hold_time / p.jump.max_jump_hold_time, 1.0)
 		var jump_charge = lerp(p.jump.min_jump_charge, 1.0, charge_f)
 
 		p.velocity.y = p.jump.jump_vertical_velocity * jump_charge
 		p.velocity += direction * p.jump.jump_horizontal_velocity
 		p.set_state(p.StateID.AIR)
 		p.play_jump_effects(jump_charge)
+
 
 func _update_tilt(dt: float) -> void:
 	var p := player
@@ -221,11 +228,14 @@ func _update_tilt(dt: float) -> void:
 
 	var tilted_x = lerp(current_tilt_x, target_tilt_x, dt * tilt_speed)
 	var tilted_z = lerp(current_tilt_z, target_tilt_z, dt * tilt_speed)
-	var tilted_y = lerp(current_tilt_y, target_tilt_y, dt * tilt_speed * p.grounded.yaw_tilt_speed_multiplier)
+	var tilted_y = lerp(
+		current_tilt_y, target_tilt_y, dt * tilt_speed * p.grounded.yaw_tilt_speed_multiplier
+	)
 
 	p.tilt_pivot.rotation.x = tilted_x
 	p.tilt_pivot.rotation.z = tilted_z
 	p.tilt_pivot.rotation.y = tilted_y
+
 
 func _update_legs(dt: float) -> void:
 	var p := player
@@ -252,8 +262,12 @@ func _update_legs(dt: float) -> void:
 		else:
 			other_mounts_grounded = is_horizontal_mount_grounded
 
-		var can_step: bool = mount.step_target != null and ((mount.arm.is_grounded()
-			and other_mounts_grounded) or mount.arm.is_fully_extended())
+		var can_step: bool = (
+			mount.step_target != null
+			and (
+				(mount.arm.is_grounded() and other_mounts_grounded) or mount.arm.is_fully_extended()
+			)
+		)
 
 		if can_step:
 			var dist = mount.get_step_distance()
@@ -271,6 +285,7 @@ func _update_legs(dt: float) -> void:
 	leg_probe_hits = p.mount_prober.get_leg_probe_hits()
 	if leg_probe_hits.size() == 0 and grounded_debounce <= 0.0:
 		p.set_state(p.StateID.AIR)
+
 
 func _update_arms(dt: float) -> void:
 	if is_sprinting:
@@ -304,6 +319,7 @@ func _calculate_average_target_y() -> Variant:
 
 	return total_y / grounded_legs
 
+
 func _calculate_y_body_offset(dt: float) -> void:
 	var p := player
 
@@ -311,6 +327,7 @@ func _calculate_y_body_offset(dt: float) -> void:
 		body_y_offset = min(body_y_offset + p.hover.target_change_rate * dt, p.hover.max_y_offset)
 	if Input.is_action_pressed("down"):
 		body_y_offset = max(body_y_offset - p.hover.target_change_rate * dt, p.hover.min_y_offset)
+
 
 func _update_floor_normal(dt: float) -> void:
 	var p := player
@@ -325,9 +342,10 @@ func _update_floor_normal(dt: float) -> void:
 
 	avg = avg.normalized()
 	var w := 1.0 - exp(-p.grounded.normal_smoothing_rate * dt)
-	floor_normal = floor_normal.lerp(avg,w).normalized()
+	floor_normal = floor_normal.lerp(avg, w).normalized()
 
-func _update_body_y_offset(dt:float) -> void:
+
+func _update_body_y_offset(dt: float) -> void:
 	var p := player
 
 	var average_y = _calculate_average_target_y()
@@ -338,17 +356,18 @@ func _update_body_y_offset(dt:float) -> void:
 	var current_y = p.global_position.y
 	var height_error = goal_y - current_y
 
-	var tracking := p.hover.hover_speed * p.hover.damping * 4.0 # 4 is critical damping factor here
+	var tracking := p.hover.hover_speed * p.hover.damping * 4.0  # 4 is critical damping factor here
 	var w := 1.0 - exp(-tracking * dt)
 
 	var gravity_ff := -p.get_gravity().y / tracking
 
 	var climb_ff := 0.0
 	if floor_normal.y > 0.2:
-		climb_ff = -(p.velocity.x * floor_normal.x + p.velocity.z * floor_normal.z)/floor_normal.y
+		climb_ff = -(p.velocity.x * floor_normal.x + p.velocity.z * floor_normal.z) / floor_normal.y
 
 	var target_y_vel = height_error * p.hover.hover_speed + gravity_ff + climb_ff
 	p.velocity.y = lerp(p.velocity.y, target_y_vel, w)
+
 
 func _set_arms_as_legs(active: bool) -> void:
 	for mount in player.arm_mounts:

@@ -8,6 +8,7 @@ var _shader_mat: ShaderMaterial
 var _tween: Tween
 var flash_duration: float
 
+
 func _init(node: Node, mesh: MeshInstance3D, duration: float = 0.2) -> void:
 	_node = node
 	flash_duration = duration
@@ -15,6 +16,7 @@ func _init(node: Node, mesh: MeshInstance3D, duration: float = 0.2) -> void:
 	_shader_mat = ShaderMaterial.new()
 	_shader_mat.shader = DAMAGE_SHADER
 	mesh.material_overlay = _shader_mat
+
 
 func flash(strength: float = 1.0) -> void:
 	if _tween:
