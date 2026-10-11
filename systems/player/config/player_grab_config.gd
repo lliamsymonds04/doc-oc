@@ -36,6 +36,7 @@ extends Resource
 @export var release_spin_sens := 0.2  # rad/s per m/s of release speed; sign flips tumble direction
 @export_range(0, 10, 0.5) var charge_fov_kick := 4.0  # FOV widen at full charge; + = widen
 @export var fov_charge_decay_per_tick := 0.3  # m/s of charge drained per idle physics tick
+
 @export_group("Carry Weight")
 @export var carry_weight_mass_ref := 10.0  # mass at which the magnet slowdown saturates
 @export var carry_magnet_min := 0.35  # magnet multiplier at or above carry_weight_mass_ref
