@@ -9,16 +9,21 @@ var grabs: Dictionary = {}  # mount -> GrabHold
 var grab_relative_rotations: Dictionary = {}  # body -> Quaternion, relative to player basis
 var original_layers: Dictionary = {}  # body -> original collision_layer
 var _throw_meter := GrabThrowMeter.new()
-var _grab_audio_player: AudioStreamPlayer3D
+var _grab_attempt_player: AudioStreamPlayer3D
+var _grab_success_player: AudioStreamPlayer3D
 
 
 func _init(p: PlayerController, grab_config: PlayerGrabConfig) -> void:
 	player = p
 	config = grab_config
 
-	_grab_audio_player = AudioStreamPlayer3D.new()
-	_grab_audio_player.stream = config.grab_sound
-	p.add_child(_grab_audio_player)
+	_grab_attempt_player = AudioStreamPlayer3D.new()
+	_grab_attempt_player.stream = config.grab_attempted_sound
+	p.add_child(_grab_attempt_player)
+
+	_grab_success_player = AudioStreamPlayer3D.new()
+	_grab_success_player.stream = config.grab_sound
+	p.add_child(_grab_success_player)
 
 	for mount in p.all_mounts():
 		mount.arm.hit_detected.connect(arm_hit_detected.bind(mount))
@@ -41,10 +46,10 @@ func try_grab(side_dir: int) -> void:
 		last_attack_time = now
 		return
 
-	mount.arm.start_punch(target, ~player.collision_layer)
-	AudioUtil.play_with_pitch(_grab_audio_player)
 	last_attack_time = now
+	mount.arm.start_punch(target, ~player.collision_layer)
 	player.camera_controller.kick_fov(config.grab_fov_kick)
+	AudioUtil.play_with_pitch(_grab_attempt_player)
 
 
 func release_grab(side_dir: int) -> void:
@@ -227,6 +232,9 @@ func _register_grab(mount: ArmMount, body: RigidBody3D, hit_pos: Vector3) -> voi
 	if body.has_meta(EnemyRagdollController.ENEMY_META):
 		var enemy: EnemyController = body.get_meta(EnemyRagdollController.ENEMY_META)
 		enemy.cancel_get_up()
+
+	# play audio
+	AudioUtil.play_with_pitch(_grab_success_player)
 
 
 func arm_hit_detected(hit: Vector3, _normal: Vector3, collider: Object, mount: ArmMount) -> void:

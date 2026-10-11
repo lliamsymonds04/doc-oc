@@ -2,7 +2,8 @@ class_name PlayerGrabConfig
 extends Resource
 
 @export_group("Audio")
-@export var grab_sound: AudioStream = preload("res://assets/audio/throw_robot_punch.ogg")
+@export var grab_attempted_sound: AudioStream = preload("res://assets/audio/throw_robot_punch.ogg")
+@export var grab_sound: AudioStream = preload("res://assets/audio/grab.ogg")
 
 @export_group("Mode Switch")
 @export var mode_switch_fov_kick: float = -0.5
