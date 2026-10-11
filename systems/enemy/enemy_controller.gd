@@ -1,6 +1,9 @@
 class_name EnemyController
 extends CharacterBody3D
 
+## Enemies register here; throw homing scans it for cone targets.
+const ENEMY_GROUP := &"enemy"
+
 @export var damage_flash_duration: float = 0.2
 @export var dead_body_cleanup_time: float = 10.0
 @export var upright_speed: float = 5.0
@@ -22,6 +25,7 @@ var _death_timer: float
 
 
 func _ready() -> void:
+	add_to_group(ENEMY_GROUP)
 	health_controller.damage_taken.connect(_on_damage_taken)
 	health_controller.healed.connect(_on_healed)
 	health_controller.died.connect(_on_death)

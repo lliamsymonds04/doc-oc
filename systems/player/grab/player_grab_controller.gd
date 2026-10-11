@@ -9,6 +9,7 @@ var grabs: Dictionary = {}  # mount -> GrabHold
 var grab_relative_rotations: Dictionary = {}  # body -> Quaternion, relative to player basis
 var original_layers: Dictionary = {}  # body -> original collision_layer
 var _throw_meter := GrabThrowMeter.new()
+var _throw_homing: GrabThrowHoming
 var _grab_attempt_player: AudioStreamPlayer3D
 var _grab_success_player: AudioStreamPlayer3D
 
@@ -16,6 +17,7 @@ var _grab_success_player: AudioStreamPlayer3D
 func _init(p: PlayerController, grab_config: PlayerGrabConfig) -> void:
 	player = p
 	config = grab_config
+	_throw_homing = GrabThrowHoming.new(player, config)
 
 	_grab_attempt_player = AudioStreamPlayer3D.new()
 	_grab_attempt_player.stream = config.grab_attempted_sound
@@ -82,6 +84,7 @@ func _release_mount(mount: ArmMount) -> void:
 			player.camera_controller.get_flat_basis(),
 			config
 		)
+		_throw_homing.start(body, _homing_exclude(body))
 	_throw_meter.reset_flick()
 
 	grabs.erase(mount)
@@ -108,6 +111,7 @@ func carry_magnet_factor(body: RigidBody3D, grip_count: int) -> float:
 
 
 func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
+	_throw_homing.physics_tick()
 	_throw_meter.tick(mouse_delta, not grabs.is_empty(), config)
 	var fov_kick := _throw_meter.fov_kick(config)
 	if fov_kick != 0.0:
@@ -188,6 +192,15 @@ func _apply_mouse_drag(mouse_delta: Vector2, wheel_delta: float) -> void:
 
 func _get_target(side_dir: int = 0) -> Vector3:
 	return PlayerPunchUtil.get_punch_target(player, side_dir, config.grab_cast_range)
+
+
+## Objects a released throw must not home onto: the thrown body itself and
+## anything still gripped by the other arms.
+func _homing_exclude(thrown: RigidBody3D) -> Array[Object]:
+	var exclude: Array[Object] = [thrown]
+	for hold_value in grabs.values():
+		exclude.append((hold_value as GrabHold).body)
+	return exclude
 
 
 func _get_mount_for_side(side_dir: int) -> ArmMount:
