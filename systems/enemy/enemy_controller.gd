@@ -14,7 +14,6 @@ const ENEMY_GROUP := &"enemy"
 @export var health_bar: HealthBar
 
 var _ragdoll: EnemyRagdollController
-var _impact: EnemyImpactController
 var _damage_flash: DamageFlashUtil
 var _ragdoll_flash: DamageFlashUtil
 var _death_timer: float
@@ -31,13 +30,12 @@ func _ready() -> void:
 	health_controller.died.connect(_on_death)
 
 	_ragdoll = EnemyRagdollController.new(self, upright_speed, ragdoll_mass)
-	_impact = EnemyImpactController.new(
-		self, _ragdoll.get_body(), impact_min_dv, impact_damage_per_dv
-	)
 	var ragdoll_body: RigidBody3D = _ragdoll.get_body()
 	var ragdoll_mesh: MeshInstance3D = _ragdoll.get_ragdoll_mesh()
 	_ragdoll_flash = DamageFlashUtil.new(ragdoll_body, ragdoll_mesh, damage_flash_duration)
 	_damage_flash = DamageFlashUtil.new(self, mesh, damage_flash_duration)
+
+	EnemyUtil.attach_self_damage(self, ragdoll_body, impact_min_dv, impact_damage_per_dv)
 
 
 func take_damage(dmg: float) -> void:

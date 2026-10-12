@@ -1,23 +1,32 @@
 class_name ImpactSensorRegistry
 extends RefCounted
 
-## Attaches an ImpactSensor to every RigidBody3D in ImpactSensor.GROUP_IMPACT.
+## Attaches impact behaviour to every RigidBody3D in a registered group, mapping
+## each group to a factory called as `factory.call(body, DEFAULT_MIN_DV)`.
 
 const DEFAULT_MIN_DV: float = 2.0
+const BEHAVIOURS_META := &"impact_behaviours"
 
+var _factories: Dictionary = {}
 var _tree: SceneTree
 
 
 func _init(tree: SceneTree) -> void:
 	_tree = tree
+	_factories[ImpactSensor.GROUP_IMPACT] = _damage_enemy_on_impact
 	_tree.node_added.connect(_on_node_added)
 
 
 ## Sweeps bodies already in the tree. Safe to call more than once.
 func scan() -> void:
-	for body in _tree.get_nodes_in_group(ImpactSensor.GROUP_IMPACT):
-		if body is RigidBody3D:
-			ImpactSensor.attach(body, DEFAULT_MIN_DV)
+	for group in _factories:
+		for body in _tree.get_nodes_in_group(group):
+			if body is RigidBody3D:
+				_attach(body, group)
+
+
+func _damage_enemy_on_impact(body: RigidBody3D, min_dv: float) -> void:
+	EnemyUtil.attach_impact_damage(body, min_dv)
 
 
 func _on_node_added(node: Node) -> void:
@@ -32,7 +41,16 @@ func _try_attach(node: Node) -> void:
 	if not is_instance_valid(body) or not body.is_inside_tree():
 		return
 
-	if not body.is_in_group(ImpactSensor.GROUP_IMPACT):
+	for group in _factories:
+		if body.is_in_group(group):
+			_attach(body, group)
+
+
+func _attach(body: RigidBody3D, group: StringName) -> void:
+	var attached: Array = body.get_meta(BEHAVIOURS_META, [])
+	if group in attached:
 		return
 
-	ImpactSensor.attach(body, DEFAULT_MIN_DV)
+	attached.append(group)
+	body.set_meta(BEHAVIOURS_META, attached)
+	_factories[group].call(body, DEFAULT_MIN_DV)

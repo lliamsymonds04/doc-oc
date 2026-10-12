@@ -66,7 +66,7 @@ var _cast_sphere: SphereShape3D
 
 
 func _ready() -> void:
-	# lookup point for systems without a player reference (EnemyImpactController shake)
+	# lookup point for systems without a player reference (ImpactSensor shake)
 	add_to_group("camera_controller")
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	cam.fov = base_fov
