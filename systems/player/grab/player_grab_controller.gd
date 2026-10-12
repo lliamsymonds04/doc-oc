@@ -12,6 +12,7 @@ var _throw_meter := GrabThrowMeter.new()
 var _throw_homing: GrabThrowHoming
 var _grab_attempt_player: AudioStreamPlayer3D
 var _grab_success_player: AudioStreamPlayer3D
+var _release_player: AudioStreamPlayer3D
 
 
 func _init(p: PlayerController, grab_config: PlayerGrabConfig) -> void:
@@ -26,6 +27,9 @@ func _init(p: PlayerController, grab_config: PlayerGrabConfig) -> void:
 	_grab_success_player = AudioStreamPlayer3D.new()
 	_grab_success_player.stream = config.grab_sound
 	p.add_child(_grab_success_player)
+
+	_release_player = AudioStreamPlayer3D.new()
+	p.add_child(_release_player)
 
 	for mount in p.all_mounts():
 		mount.arm.hit_detected.connect(arm_hit_detected.bind(mount))
@@ -77,7 +81,8 @@ func _release_mount(mount: ArmMount) -> void:
 	var body: RigidBody3D = hold.body
 
 	var still_held := _grip_count(body) > 1
-	if not still_held and _throw_meter.flick_pixels() > config.release_mouse_up_threshold:
+	var throw := not still_held and _throw_meter.flick_pixels() > config.release_mouse_up_threshold
+	if throw:
 		GrabThrowUtil.apply_throw(
 			body,
 			_throw_meter.throw_speed(config),
@@ -86,6 +91,8 @@ func _release_mount(mount: ArmMount) -> void:
 		)
 		_throw_homing.start(body, _homing_exclude(body))
 	_throw_meter.reset_flick()
+	_release_player.stream = config.release_throw_sound if throw else config.release_normal_sound
+	AudioUtil.play_with_pitch(_release_player)
 
 	grabs.erase(mount)
 	if _grip_count(body) == 0:
