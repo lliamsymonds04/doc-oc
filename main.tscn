@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://c34dnohk30mk" path="res://systems/util/debug_ray_drawer.gd" id="9_dbg"]
 [ext_resource type="PackedScene" uid="uid://dqbd8ih3ynaal" path="res://systems/enemy/basic_enemy.tscn" id="10_4c57u"]
 [ext_resource type="Script" uid="uid://bdtssx7vpj7jn" path="res://systems/enemy/dummy.gd" id="11_efxa6"]
+[ext_resource type="Script" uid="uid://ctgilxfxha04r" path="res://main.gd" id="12_main"]
 
 [sub_resource type="StandardMaterial3D" id="FloorMat"]
 albedo_texture = ExtResource("1_h2yge")
@@ -100,6 +101,7 @@ albedo_color = Color(1, 0.45, 0.4, 1)
 roughness = 0.45
 
 [node name="Main" type="Node3D" unique_id=1606965912]
+script = ExtResource("12_main")
 
 [node name="Sun" type="DirectionalLight3D" parent="." unique_id=145132705]
 transform = Transform3D(0.819152, 0, 0.5735764, 0.4055798, 0.7071068, -0.579228, -0.4055798, 0.7071068, 0.579228, 0, 12, 0)
@@ -124,7 +126,7 @@ use_collision = true
 size = Vector3(16.420837, 1.6240845, 5.967285)
 material = SubResource("BoxMat_red")
 
-[node name="BoxOrange" type="RigidBody3D" parent="." unique_id=145132774]
+[node name="BoxOrange" type="RigidBody3D" parent="." unique_id=145132774 groups=["impact_group"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 1, 6)
 mass = 8.0
 
@@ -135,7 +137,7 @@ material = SubResource("BoxMat_orange")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BoxOrange" unique_id=145132775]
 shape = SubResource("BoxShape3D_orange")
 
-[node name="BoxYellow" type="RigidBody3D" parent="." unique_id=145132776]
+[node name="BoxYellow" type="RigidBody3D" parent="." unique_id=145132776 groups=["impact_group"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 0.75, 1)
 mass = 3.0
 
@@ -146,7 +148,7 @@ material = SubResource("BoxMat_yellow")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BoxYellow" unique_id=145132777]
 shape = SubResource("BoxShape3D_m2c1y")
 
-[node name="BoxPink" type="RigidBody3D" parent="." unique_id=145132778]
+[node name="BoxPink" type="RigidBody3D" parent="." unique_id=145132778 groups=["impact_group"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 1.5, 7)
 mass = 1.5
 
@@ -156,7 +158,7 @@ material = SubResource("BoxMat_pink")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BoxPink" unique_id=145132779]
 shape = SubResource("BoxShape3D_pink")
 
-[node name="BoxPurple" type="RigidBody3D" parent="." unique_id=145132780]
+[node name="BoxPurple" type="RigidBody3D" parent="." unique_id=145132780 groups=["impact_group"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 0.75, 12)
 mass = 2.0
 
@@ -212,7 +214,7 @@ script = ExtResource("9_dbg")
 
 [node name="Hud" parent="." unique_id=1447860461 instance=ExtResource("8_5vw27")]
 
-[node name="BoxCoral" type="RigidBody3D" parent="." unique_id=589689143]
+[node name="BoxCoral" type="RigidBody3D" parent="." unique_id=589689143 groups=["impact_group"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.865284, 1.7930105, 13.972524)
 mass = 4.0
 

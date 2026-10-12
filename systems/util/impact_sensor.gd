@@ -7,6 +7,8 @@ extends Node
 
 signal impacted(dv: float, local_position: Vector3, local_normal: Vector3, collider: Object)
 
+const SENSOR_META := &"impact_sensor"
+const GROUP_IMPACT := &"impact_group"  # membership marks a body as sensored
 const EFFECT_COOLDOWN: float = 0.2  # seconds between impact events
 const IMPACT_DV: float = 15.0
 const BASE_DECAL_SIZE_FACTOR: float = 1.5
@@ -30,6 +32,16 @@ var _audio_player: AudioStreamPlayer3D
 var _last_impact_physics_frame: int = -100
 
 
+static func attach(body: RigidBody3D, min_vel_change: float) -> ImpactSensor:
+	# get_meta's default must not be null: absent and nil are indistinguishable
+	if body.has_meta(SENSOR_META):
+		var existing := body.get_meta(SENSOR_META) as ImpactSensor
+		if is_instance_valid(existing):
+			return existing
+
+	return ImpactSensor.new(body, min_vel_change)
+
+
 func _init(body: RigidBody3D, min_vel_change: float) -> void:
 	min_dv = min_vel_change
 	_body = body
@@ -42,6 +54,7 @@ func _init(body: RigidBody3D, min_vel_change: float) -> void:
 	_audio_player.volume_db = DEFAULT_VOL
 	add_child(_audio_player)
 
+	body.set_meta(SENSOR_META, self)
 	body.add_child(self)
 
 

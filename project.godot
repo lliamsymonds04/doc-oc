@@ -27,6 +27,10 @@ mouse_cursor/custom_image="uid://cl1drg2xypbs1"
 
 enabled=PackedStringArray("res://addons/brackeys_particle_controls/plugin.cfg")
 
+[global_group]
+
+impact_group=""
+
 [input]
 
 forward={
