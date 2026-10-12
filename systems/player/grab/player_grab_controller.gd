@@ -170,9 +170,6 @@ func _apply_mouse_drag(mouse_delta: Vector2, wheel_delta: float) -> void:
 	if grabs.is_empty():
 		return
 
-	if not player.is_idle():
-		return
-
 	var cam_basis: Basis = player.camera_controller.get_flat_basis()
 	var world_delta: Vector3 = (
 		cam_basis.x * mouse_delta.x * config.hold_drag_sens_x * player.camera_controller.sensitivity

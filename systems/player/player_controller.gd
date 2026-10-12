@@ -160,10 +160,6 @@ func is_wall_climbing() -> bool:
 	return _current is WallClimbState
 
 
-func is_idle() -> bool:
-	return _current is GroundedState and (velocity * Vector3(1, 0, 1)).length() < 0.1
-
-
 func set_state(id: StateID) -> void:
 	if _current == _states[id]:
 		return
