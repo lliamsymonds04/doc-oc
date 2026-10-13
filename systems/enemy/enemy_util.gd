@@ -3,6 +3,7 @@ extends RefCounted
 
 ## Damage per m/s of impact velocity change.
 const DEFAULT_PROJECTILE_DAMAGE_PER_DV: float = 2.0
+const RAGDOLL_DV_THRESHOLD: float = 10.0
 
 
 static func attach_impact_damage(
@@ -15,6 +16,10 @@ static func attach_impact_damage(
 				return
 
 			enemy.take_damage(dv * damage_per_dv)
+
+			if not enemy.is_dead():
+				if dv > RAGDOLL_DV_THRESHOLD:
+					enemy.initiate_ragdoll()
 	)
 
 

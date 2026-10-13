@@ -6,7 +6,7 @@ extends Decal
 
 const TEXTURE: Texture2D = preload("res://assets/textures/ground_crack.png")
 
-const SIZE: Vector3 = Vector3(1.5, 0.01, 1.5)
+const SIZE: Vector3 = Vector3(1.5, 0.1, 1.5)
 const LIFETIME: float = 10.0
 const FADE_TIME: float = 2.0
 const MAX_LIVE: int = 24

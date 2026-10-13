@@ -260,7 +260,7 @@ func arm_hit_detected(hit: Vector3, _normal: Vector3, collider: Object, mount: A
 
 	if collider is EnemyController:
 		var enemy: EnemyController = collider
-		enemy.swap_to_ragdoll()
+		enemy.initiate_ragdoll(false)
 		collider = enemy.get_ragdoll()
 		enemy.flash(0.2)
 

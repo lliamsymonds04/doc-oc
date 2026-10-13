@@ -42,7 +42,7 @@ func take_damage(dmg: float) -> void:
 	health_controller.apply_damage(dmg)
 
 	if is_dead():
-		swap_to_ragdoll()
+		initiate_ragdoll(false)
 
 
 func is_dead() -> bool:
@@ -104,10 +104,13 @@ func _on_death() -> void:
 	_death_timer = dead_body_cleanup_time
 
 
-func swap_to_ragdoll() -> void:
+func initiate_ragdoll(should_get_up: bool = true) -> void:
 	if _ragdoll.is_ragdoll():
 		return
 	_ragdoll.activate()
+
+	if should_get_up:
+		_ragdoll.initiate_get_up()
 
 
 func flash(strength: float = 1.0) -> void:

@@ -10,7 +10,7 @@ signal impacted(dv: float, local_position: Vector3, local_normal: Vector3, colli
 const SENSOR_META := &"impact_sensor"
 const GROUP_IMPACT := &"impact_group"  # membership marks a body as sensored
 const EFFECT_COOLDOWN: float = 0.2  # seconds between impact events
-const IMPACT_DV: float = 15.0
+const IMPACT_DV: float = 5.0
 const BASE_DECAL_SIZE_FACTOR: float = 1.5
 const MAX_DECAL_SIZE_FACTOR: float = 3.0
 const SHAKE_STRENGTH: float = 1.0  # max trauma at point-blank, max-dv hits
@@ -109,10 +109,17 @@ func _spawn_crack_decal(dv: float, state: PhysicsDirectBodyState3D, i: int) -> v
 
 	var strength = minf(dv / IMPACT_DV * BASE_DECAL_SIZE_FACTOR, MAX_DECAL_SIZE_FACTOR)
 
+	var object := state.get_contact_collider_object(i)
+	if object == null:
+		return
+
+	if object is CharacterBody3D or object is RigidBody3D:
+		return
+
 	(
 		CrackDecal
 		. spawn(
-			state.get_contact_collider_object(i),
+			object,
 			state.get_contact_local_position(i),
 			state.get_contact_local_normal(i),
 			strength,
