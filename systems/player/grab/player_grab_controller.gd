@@ -143,9 +143,12 @@ func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
 	for body_key in err_sum:
 		var body := body_key as RigidBody3D
 		body.linear_velocity = (
-			(err_sum[body] / err_count[body])
-			* config.magnet_gain
-			* carry_magnet_factor(body, err_count[body])
+			(
+				(err_sum[body] / err_count[body])
+				* config.magnet_gain
+				* carry_magnet_factor(body, err_count[body])
+			)
+			. limit_length(config.max_magnet_speed)
 		)
 
 		# rotation servo: keep the body's orientation locked relative to the player

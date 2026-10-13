@@ -23,6 +23,7 @@ var release_normal_sound: AudioStream = preload("res://assets/audio/player/grab/
 @export var hold_wheel_sens := 0.5  # notches -> world meters of depth
 @export var max_hold_drag := 2.4  # max move from the default hold, relative to the player
 @export var magnet_gain := 15.0  # chase speed in m/s per meter of hold error
+@export var max_magnet_speed := 12.0  # m/s cap for the carry-pull velocity
 
 @export_group("Servo")
 @export var max_grab_spin := 15.0  # rad/s cap for the rotation servo
