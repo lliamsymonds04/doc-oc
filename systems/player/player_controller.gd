@@ -209,4 +209,6 @@ func _process(dt: float) -> void:
 
 func play_jump_effects(strength: float) -> void:
 	AudioUtil.play_with_pitch(_jump_audio_player)
-	camera_controller.add_trauma(strength * strength)
+	# only a committed vertical hop shakes the camera; dashes read through FOV instead
+	var shake := maxf(strength - 0.6, 0.0) / 0.4
+	camera_controller.add_trauma(shake * shake)

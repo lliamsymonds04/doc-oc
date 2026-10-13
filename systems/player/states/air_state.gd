@@ -5,6 +5,9 @@ var light_landing_sound := preload("res://assets/audio/light_landing.ogg")
 var hard_landing_sound := preload("res://assets/audio/hard_landing.ogg")
 var landing_vfx_scene := preload("res://assets/vfx/landing_vfx.tscn")
 var air_debounce := 0.0
+var jump_gravity_multiplier := 1.0
+var fall_gravity_multiplier := 1.0
+var launch_grace := 0.0
 
 var _audio_player: AudioStreamPlayer3D
 var _landing_vfx: ImpactVFX
@@ -28,8 +31,22 @@ func enter() -> void:
 	var p := player
 	air_debounce = p.air.air_debounce
 
+	# default arc, for entering air without jumping (walked off a ledge).
+	# a jump overrides this via set_jump_gravity() right after enter().
+	jump_gravity_multiplier = 1.0
+	fall_gravity_multiplier = p.jump.fall_gravity_multiplier
+	launch_grace = 0.0
+
 	for mount in p.all_mounts():
 		mount.set_apply_floor(false)
+
+
+## Called by GroundedState at launch so the arc matches the jump's charge:
+## low charge gets heavier gravity, so a dash lands fast instead of floating.
+func set_jump_gravity(rising_multiplier: float) -> void:
+	jump_gravity_multiplier = rising_multiplier
+	fall_gravity_multiplier = player.jump.fall_gravity_multiplier
+	launch_grace = player.air.launch_grace_time
 
 
 func calculate_hand_velocity_offset(velocity: Vector3) -> Vector3:
@@ -42,7 +59,10 @@ func calculate_hand_velocity_offset(velocity: Vector3) -> Vector3:
 func physics_update(dt: float) -> void:
 	var p := player
 
-	p.velocity += p.get_gravity() * dt
+	var gravity_scale := jump_gravity_multiplier
+	if p.velocity.y <= 0.0:
+		gravity_scale *= fall_gravity_multiplier
+	p.velocity += p.get_gravity() * gravity_scale * dt
 
 	_update_tilt(dt)
 	_update_camera_alignment(dt)
@@ -52,7 +72,9 @@ func physics_update(dt: float) -> void:
 	var hvel := Vector3(p.velocity.x, 0.0, p.velocity.z)
 	var speed := hvel.length()
 
-	if speed > p.air.air_speed:
+	if launch_grace > 0.0:
+		launch_grace -= dt
+	elif speed > p.air.air_speed:
 		# Fast: bleed off excess speed, then steer with what's left.
 		if p.air.air_drag > 0.0:
 			var new_speed := move_toward(speed, p.air.air_speed, p.air.air_drag * dt)
@@ -137,17 +159,19 @@ func _check_grounded() -> bool:
 	var p := player
 
 	var probe_hits := p.mount_prober.get_leg_probe_hits()
-	if probe_hits.size() >= 1 and p.velocity.y <= 0.0:
+	if probe_hits.size() == 2 and p.velocity.y <= 0.0:
 		for mount in p.leg_mounts:
 			if probe_hits.has(mount):
 				var hit_pos: Vector3 = probe_hits[mount]["position"]
 				if hit_pos:
 					mount.set_target(hit_pos)
 
-		for mount in p.arm_mounts:
-			if p.grab_controller.is_mount_grabbing(mount):
-				continue
-			mount.set_target(mount.to_global(mount.compute_idle_target()))
+		# sprinting upper limbs are legs: let GroundedState plant them instead
+		if not p.grounded_state().is_sprinting:
+			for mount in p.arm_mounts:
+				if p.grab_controller.is_mount_grabbing(mount):
+					continue
+				mount.set_target(mount.to_global(mount.compute_idle_target()))
 
 		p.set_state(p.StateID.GROUNDED)
 		_play_landed_effect()

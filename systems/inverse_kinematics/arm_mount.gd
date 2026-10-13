@@ -4,6 +4,8 @@ extends Node3D
 const EFFECT_SAME_BEAT_WINDOW: float = 0.15
 # how far off straight-up a ground surface normal can be and still count as ground
 const MAX_GROUND_NORMAL_ANGLE: float = deg_to_rad(60.0)
+# fraction of the limb's total length a step target is allowed to ask for
+const REACH_FRACTION: float = 0.85
 
 @export var is_leg: bool = true
 # the mount above this
@@ -125,10 +127,25 @@ func compute_idle_target() -> Vector3:
 	return idle_pos
 
 
+## Never ask the solver for a target further than the limb can extend.
+func _clamp_to_reach(world_pos: Vector3) -> Vector3:
+	var from := arm.global_position
+	var offset := world_pos - from
+	var reach := arm.solver.total_length * REACH_FRACTION
+	if offset.length() > reach:
+		return from + offset.normalized() * reach
+	return world_pos
+
+
+## Lead the probe along velocity and place step_target at the nearest ground.
 func update_ground_step_target(velocity: Vector3, force := false) -> void:
 	step_target = null
 
 	var velocity_xz := Vector3(velocity.x, 0, velocity.z) * raycast_config.anchor_lead_time
+	var lead := velocity_xz.length()
+	if lead > raycast_config.max_probe_lead_distance:
+		velocity_xz *= raycast_config.max_probe_lead_distance / lead
+
 	var probe_pos: Vector3 = (
 		ground_probe.global_position
 		+ velocity_xz
@@ -147,7 +164,7 @@ func update_ground_step_target(velocity: Vector3, force := false) -> void:
 			max_disp *= raycast_config.sprint_displacement_mult
 		var disp := (hit_pos - arm.target_world).length()
 		if disp > max_disp or force:
-			step_target = hit_pos
+			step_target = _clamp_to_reach(hit_pos)
 
 
 func update_step(velocity: Vector3, dt: float) -> void:

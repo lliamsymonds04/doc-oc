@@ -2,6 +2,8 @@ class_name AirConfig
 extends Resource
 
 @export_group("Movement")
+## Time after launch where drag/steering are suspended, so a dash impulse is felt.
+@export var launch_grace_time: float = 0.15
 @export var air_accel: float = 2.0
 @export var air_speed: float = 5.0
 @export var air_turn_speed: float = 4.0

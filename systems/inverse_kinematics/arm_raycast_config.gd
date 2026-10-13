@@ -5,6 +5,8 @@ extends Resource
 @export var max_target_displacement: float = 3.0
 @export var sprint_displacement_mult: float = 1.3
 @export var anchor_lead_time: float = 0.4
+## Caps velocity * anchor_lead_time so post-impact speed can't put targets out of reach.
+@export var max_probe_lead_distance: float = 3.5
 @export var wall_raycast_distance: float = 1.5
 @export var wall_inside_cornering_raycast_distance: float = 4.0
 @export var wall_outside_ray_lead: float = 3.0

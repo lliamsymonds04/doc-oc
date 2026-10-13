@@ -12,6 +12,7 @@ var force_align: bool = false
 
 var grounded_debounce := 0.0
 var is_holding_jump := false
+var keep_sprint := false
 var jump_hold_time := 0.0
 var body_y_offset := 0.0
 var is_camera_aligned := false
@@ -34,6 +35,7 @@ func _init(p: PlayerController) -> void:
 
 func enter() -> void:
 	var p := player
+	keep_sprint = false
 
 	grounded_debounce = grounded_debounce_time
 	jump_hold_time = 0.0
@@ -45,21 +47,26 @@ func enter() -> void:
 	for mount in p.leg_mounts:
 		mount.set_apply_floor(true)
 
-	for mount in p.arm_mounts:
-		if mount.idle_target:
-			var idle_pos := mount.compute_idle_target()
-			var end_effector_pos := mount.arm.solver.get_end_effector()
-			var dist := (idle_pos - end_effector_pos).length()
-			if dist > 1.0:
-				var params := StepParams.new()
-				params.emit_landed = false
-				mount.arm.start_step(mount.to_global(idle_pos), params)
+	# sprinting limbs are legs, so they plant on landing instead of returning to idle
+	if is_sprinting:
+		_plant_sprint_limbs()
+	else:
+		for mount in p.arm_mounts:
+			if mount.idle_target:
+				var idle_pos := mount.compute_idle_target()
+				var end_effector_pos := mount.arm.solver.get_end_effector()
+				var dist := (idle_pos - end_effector_pos).length()
+				if dist > 1.0:
+					var params := StepParams.new()
+					params.emit_landed = false
+					mount.arm.start_step(mount.to_global(idle_pos), params)
 
 
 func exit() -> void:
-	if is_sprinting:
+	if is_sprinting and not keep_sprint:
 		is_sprinting = false
 		_set_arms_as_legs(false)
+	keep_sprint = false
 
 
 func physics_update(dt: float) -> void:
@@ -180,7 +187,7 @@ func _update_camera_alignment(dt: float, is_moving: bool) -> void:
 		is_camera_aligned = false
 
 
-func _handle_jump(direction: Vector3):
+func _handle_jump(direction: Vector3) -> void:
 	var p := player
 
 	if Input.is_action_just_pressed("jump"):
@@ -188,13 +195,35 @@ func _handle_jump(direction: Vector3):
 		jump_hold_time = 0.0
 
 	if Input.is_action_just_released("jump"):
-		var charge_f = min(jump_hold_time / p.jump.max_jump_hold_time, 1.0)
-		var jump_charge = lerp(p.jump.min_jump_charge, 1.0, charge_f)
+		var j := p.jump
+		var charge := clampf(jump_hold_time / j.max_jump_hold_time, 0.0, 1.0)
 
-		p.velocity.y = p.jump.jump_vertical_velocity * jump_charge
-		p.velocity += direction * p.jump.jump_horizontal_velocity
+		# charge trades vertical for horizontal: 0 is a flat dash, 1 is a high hop
+		var vertical := lerpf(j.dash_vertical_velocity, j.hop_vertical_velocity, charge)
+		var horizontal := lerpf(j.dash_horizontal_velocity, j.hop_horizontal_velocity, charge)
+
+		# with no stick input, commit forward so a tap is always a dash, never a pop
+		var dir := direction
+		if dir.length_squared() < 0.01:
+			dir = p.camera_controller.get_input_direction(Vector2(0, -1))
+
+		p.velocity.y = vertical
+
+		# max-blend so running dashes and standing dashes launch at the same speed
+		var hvel := Vector3(p.velocity.x, 0.0, p.velocity.z)
+		var along := hvel.dot(dir)
+		var perp := hvel - dir * along
+		var launch := dir * maxf(along, horizontal) + perp * 0.35
+		p.velocity.x = launch.x
+		p.velocity.z = launch.z
+
+		keep_sprint = true
 		p.set_state(p.StateID.AIR)
-		p.play_jump_effects(jump_charge)
+		p.air_state().set_jump_gravity(
+			lerpf(j.dash_gravity_multiplier, j.hop_gravity_multiplier, charge)
+		)
+		p.play_jump_effects(charge)
+		p.camera_controller.kick_fov(lerpf(5.0, 0.0, charge))
 
 
 func _update_tilt(dt: float) -> void:
@@ -376,10 +405,28 @@ func _set_arms_as_legs(active: bool) -> void:
 			var params := StepParams.new()
 			params.emit_landed = false
 			mount.arm.start_step(mount.to_global(mount.compute_idle_target()), params)
-		else:
-			mount.update_ground_step_target(player.velocity, true)
-			var step_target = mount.step_target
-			if step_target:
-				var params := StepParams.new()
-				params.speed_multiplier = 2.0
-				mount.arm.start_step(step_target, params)
+
+	if active:
+		_plant_sprint_limbs()
+
+
+## Puts the upper limbs into leg mode and grounds them immediately.
+## Lead is computed from run speed, not player.velocity: landing from a dash the
+## raw velocity is several times sprint speed and its step lead is out of reach.
+func _plant_sprint_limbs() -> void:
+	var p := player
+	var run_speed := p.movement.speed * p.grounded.sprint_multiplier
+	var lead_vel := Vector3(p.velocity.x, 0.0, p.velocity.z)
+	if lead_vel.length() > run_speed:
+		lead_vel = lead_vel.normalized() * run_speed
+
+	for mount in p.arm_mounts:
+		mount.is_leg = true
+		if p.grab_controller.is_mount_grabbing(mount):
+			continue
+		mount.update_ground_step_target(lead_vel, true)
+		if mount.step_target == null:
+			continue
+		var params := StepParams.new()
+		params.speed_multiplier = p.grounded.sprint_speed_step_multiplier
+		mount.arm.start_step(mount.step_target, params)
