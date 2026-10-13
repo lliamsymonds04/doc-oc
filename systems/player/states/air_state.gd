@@ -5,9 +5,11 @@ var light_landing_sound := preload("res://assets/audio/light_landing.ogg")
 var hard_landing_sound := preload("res://assets/audio/hard_landing.ogg")
 var landing_vfx_scene := preload("res://assets/vfx/landing_vfx.tscn")
 var air_debounce := 0.0
+var launch_grace := 0.0
+
+# gravity arc for this air entry; enter() defaults it, begin_launch() shapes it for a jump
 var jump_gravity_multiplier := 1.0
 var fall_gravity_multiplier := 1.0
-var launch_grace := 0.0
 
 var _audio_player: AudioStreamPlayer3D
 var _landing_vfx: ImpactVFX
@@ -31,8 +33,8 @@ func enter() -> void:
 	var p := player
 	air_debounce = p.air.air_debounce
 
-	# default arc, for entering air without jumping (walked off a ledge).
-	# a jump overrides this via set_jump_gravity() right after enter().
+	# default arc for entering air without jumping (walked off a ledge);
+	# a ground jump overrides it via begin_launch() right after the transition
 	jump_gravity_multiplier = 1.0
 	fall_gravity_multiplier = p.jump.fall_gravity_multiplier
 	launch_grace = 0.0
@@ -41,12 +43,18 @@ func enter() -> void:
 		mount.set_apply_floor(false)
 
 
-## Called by GroundedState at launch so the arc matches the jump's charge:
-## low charge gets heavier gravity, so a dash lands fast instead of floating.
-func set_jump_gravity(rising_multiplier: float) -> void:
-	jump_gravity_multiplier = rising_multiplier
-	fall_gravity_multiplier = player.jump.fall_gravity_multiplier
+## Called by GroundedState right after set_state(AIR) so the arc matches the jump's
+## charge: low charge gets heavier gravity, so a dash lands fast instead of floating.
+func begin_launch(rising_gravity: float) -> void:
+	jump_gravity_multiplier = rising_gravity
 	launch_grace = player.air.launch_grace_time
+
+
+func gravity_scale() -> float:
+	var scale := jump_gravity_multiplier
+	if player.velocity.y <= 0.0:
+		scale *= fall_gravity_multiplier
+	return scale
 
 
 func calculate_hand_velocity_offset(velocity: Vector3) -> Vector3:
@@ -59,10 +67,7 @@ func calculate_hand_velocity_offset(velocity: Vector3) -> Vector3:
 func physics_update(dt: float) -> void:
 	var p := player
 
-	var gravity_scale := jump_gravity_multiplier
-	if p.velocity.y <= 0.0:
-		gravity_scale *= fall_gravity_multiplier
-	p.velocity += p.get_gravity() * gravity_scale * dt
+	p.velocity += p.get_gravity() * gravity_scale() * dt
 
 	_update_tilt(dt)
 	_update_camera_alignment(dt)
@@ -185,8 +190,8 @@ func _play_landed_effect() -> void:
 	var p := player
 
 	var trauma := p.air.landing_trauma
-	var speed = p.velocity.length()
-	var is_hard_landing = speed >= p.air.hard_landing_speed
+	var speed = p.velocity.y
+	var is_hard_landing = speed <= -p.air.hard_landing_speed
 
 	if is_hard_landing:
 		_audio_player.stream = hard_landing_sound

@@ -44,6 +44,7 @@ var wall_climb_debounce: float = 0.0
 var mount_prober: MountProber
 var attack_controller: PlayerAttackController
 var grab_controller: PlayerGrabController
+var jump_controller: PlayerJumpController
 
 var _states: Dictionary = {}
 var _current: PlayerState
@@ -98,6 +99,8 @@ func _ready() -> void:
 	_states[StateID.WALL_CLIMB] = WallClimbState.new(self)
 	_states[StateID.AIR] = AirState.new(self)
 	_current = _states[StateID.GROUNDED]
+
+	jump_controller = PlayerJumpController.new(self, jump)
 
 	_jump_audio_player = AudioStreamPlayer3D.new()
 	_jump_audio_player.stream = preload("res://assets/audio/robot_jump.ogg")

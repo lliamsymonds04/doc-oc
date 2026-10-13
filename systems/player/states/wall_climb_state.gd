@@ -71,15 +71,7 @@ func physics_update(dt: float) -> void:
 		return
 
 	if Input.is_action_just_pressed("jump"):
-		if input_dir.y < 0:
-			p.velocity = Vector3.UP * p.jump.wall_jump_upward_velocity
-		elif input_dir.x != 0:
-			p.velocity = p.basis.x * input_dir.x * p.jump.wall_jump_sideways_velocity
-		elif input_dir.y > 0:
-			p.velocity = p.basis.z * p.jump.wall_jump_backward_velocity
-		else:
-			p.velocity = Vector3.ZERO
-
+		p.velocity = p.jump_controller.wall_jump_velocity(input_dir)
 		p.set_state(p.StateID.AIR)
 		p.play_jump_effects(0.5)
 

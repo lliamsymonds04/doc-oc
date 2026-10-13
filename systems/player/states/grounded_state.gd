@@ -11,9 +11,7 @@ var disalign_angle: float
 var force_align: bool = false
 
 var grounded_debounce := 0.0
-var is_holding_jump := false
 var keep_sprint := false
-var jump_hold_time := 0.0
 var body_y_offset := 0.0
 var is_camera_aligned := false
 var is_sprinting := false
@@ -38,8 +36,7 @@ func enter() -> void:
 	keep_sprint = false
 
 	grounded_debounce = grounded_debounce_time
-	jump_hold_time = 0.0
-	is_holding_jump = false
+	p.jump_controller.cancel_hold()
 	body_y_offset = (p.hover.min_y_offset + p.hover.max_y_offset) / 2.0
 	is_camera_aligned = absf(p.camera_controller.rotation.y) <= align_angle
 	floor_normal = Vector3.UP
@@ -115,8 +112,8 @@ func physics_update(dt: float) -> void:
 
 	_update_floor_normal(dt)
 
-	if is_holding_jump:
-		jump_hold_time += dt
+	p.jump_controller.tick_hold(dt)
+	if p.jump_controller.is_holding_jump:
 		body_y_offset = 0.5
 	else:
 		_calculate_y_body_offset(dt)
@@ -191,39 +188,17 @@ func _handle_jump(direction: Vector3) -> void:
 	var p := player
 
 	if Input.is_action_just_pressed("jump"):
-		is_holding_jump = true
-		jump_hold_time = 0.0
+		p.jump_controller.begin_hold()
 
 	if Input.is_action_just_released("jump"):
-		var j := p.jump
-		var charge := clampf(jump_hold_time / j.max_jump_hold_time, 0.0, 1.0)
-
-		# charge trades vertical for horizontal: 0 is a flat dash, 1 is a high hop
-		var vertical := lerpf(j.dash_vertical_velocity, j.hop_vertical_velocity, charge)
-		var horizontal := lerpf(j.dash_horizontal_velocity, j.hop_horizontal_velocity, charge)
-
-		# with no stick input, commit forward so a tap is always a dash, never a pop
-		var dir := direction
-		if dir.length_squared() < 0.01:
-			dir = p.camera_controller.get_input_direction(Vector2(0, -1))
-
-		p.velocity.y = vertical
-
-		# max-blend so running dashes and standing dashes launch at the same speed
-		var hvel := Vector3(p.velocity.x, 0.0, p.velocity.z)
-		var along := hvel.dot(dir)
-		var perp := hvel - dir * along
-		var launch := dir * maxf(along, horizontal) + perp * 0.35
-		p.velocity.x = launch.x
-		p.velocity.z = launch.z
-
+		var launch := p.jump_controller.create_launch(direction)
+		# keep_sprint must be set before set_state(): set_state runs exit(), which reads it
 		keep_sprint = true
+		p.velocity = launch.velocity
 		p.set_state(p.StateID.AIR)
-		p.air_state().set_jump_gravity(
-			lerpf(j.dash_gravity_multiplier, j.hop_gravity_multiplier, charge)
-		)
-		p.play_jump_effects(charge)
-		p.camera_controller.kick_fov(lerpf(5.0, 0.0, charge))
+		p.air_state().begin_launch(launch.rising_gravity)
+		p.play_jump_effects(launch.charge)
+		p.camera_controller.kick_fov(lerpf(5.0, 0.0, launch.charge))
 
 
 func _update_tilt(dt: float) -> void:
