@@ -196,20 +196,20 @@ func _play_landed_effect() -> void:
 	if is_hard_landing:
 		_audio_player.stream = hard_landing_sound
 		trauma *= p.air.hard_landing_trauma_multiplier
+
+		var v_dir := p.velocity.normalized()
+		# cast from the player in direction of velocity
+		var space_state = p.get_world_3d().direct_space_state
+		var player_pos := p.position
+		var query := PhysicsRayQueryParameters3D.create(
+			player_pos, player_pos + v_dir * p.air.landing_vfx_raycast_distance, p.cast_mask()
+		)
+		var result = space_state.intersect_ray(query)
+
+		if result:
+			_landing_vfx.play(result.position, result.normal)
 	else:
 		_audio_player.stream = light_landing_sound
 
 	AudioUtil.play_with_pitch(_audio_player)
 	p.camera_controller.add_trauma(trauma)
-
-	var v_dir := p.velocity.normalized()
-	# cast from the player in direction of velocity
-	var space_state = p.get_world_3d().direct_space_state
-	var player_pos := p.position
-	var query := PhysicsRayQueryParameters3D.create(
-		player_pos, player_pos + v_dir * p.air.landing_vfx_raycast_distance, p.cast_mask()
-	)
-	var result = space_state.intersect_ray(query)
-
-	if result:
-		_landing_vfx.play(result.position, result.normal)
