@@ -40,15 +40,18 @@ func cancel_hold() -> void:
 
 
 ## pure jump math: builds the launch velocity and charge from hold time.
-## does not mutate the player or the state machine; the caller applies the result
 func create_launch(direction: Vector3) -> LaunchData:
-	var j := config
 	var data := LaunchData.new()
-	data.charge = clampf(hold_time / j.max_jump_hold_time, 0.0, 1.0)
 
-	# charge trades vertical for horizontal: 0 is a flat dash, 1 is a high hop
-	var vertical := lerpf(j.dash_vertical_velocity, j.hop_vertical_velocity, data.charge)
-	var horizontal := lerpf(j.dash_horizontal_velocity, j.hop_horizontal_velocity, data.charge)
+	if hold_time < config.dash_jump_ceiling:
+		data.charge = 0.0
+	else:
+		data.charge = clampf(hold_time / config.max_jump_hold_time, 0.0, 1.0)
+
+	var vertical := lerpf(config.dash_vertical_velocity, config.hop_vertical_velocity, data.charge)
+	var horizontal := lerpf(
+		config.dash_horizontal_velocity, config.hop_horizontal_velocity, data.charge
+	)
 
 	# with no stick input, commit forward so a tap is always a dash, never a pop
 	var dir := direction
@@ -66,7 +69,9 @@ func create_launch(direction: Vector3) -> LaunchData:
 	velocity.z = launch.z
 
 	data.velocity = velocity
-	data.rising_gravity = lerpf(j.dash_gravity_multiplier, j.hop_gravity_multiplier, data.charge)
+	data.rising_gravity = lerpf(
+		config.dash_gravity_multiplier, config.hop_gravity_multiplier, data.charge
+	)
 	return data
 
 

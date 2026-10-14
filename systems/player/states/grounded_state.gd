@@ -80,8 +80,6 @@ func physics_update(dt: float) -> void:
 	if direction.length_squared() > 0.0:
 		direction = direction.normalized()
 
-	# ramp toward the target velocity so acceleration is a real, sustained
-	# signal instead of an instantaneous step (feeds the camera's pitch/trail)
 	var w := 1.0 - exp(-p.movement.accel * dt)
 	var target := direction * speed
 	p.velocity.x = lerpf(p.velocity.x, target.x, w)
@@ -120,6 +118,11 @@ func physics_update(dt: float) -> void:
 
 	_update_body_y_offset(dt)
 	_handle_jump(direction)
+	_handle_input()
+
+
+func _handle_input() -> void:
+	var p := player
 
 	var want_sprint := Input.is_action_pressed("sprint")
 	if want_sprint and !is_sprinting:
@@ -385,9 +388,6 @@ func _set_arms_as_legs(active: bool) -> void:
 		_plant_sprint_limbs()
 
 
-## Puts the upper limbs into leg mode and grounds them immediately.
-## Lead is computed from run speed, not player.velocity: landing from a dash the
-## raw velocity is several times sprint speed and its step lead is out of reach.
 func _plant_sprint_limbs() -> void:
 	var p := player
 	var run_speed := p.movement.speed * p.grounded.sprint_multiplier
