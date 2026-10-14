@@ -11,6 +11,7 @@ var disalign_angle: float
 var force_align: bool = false
 
 var grounded_debounce := 0.0
+var jump_debounce := 0.0
 var keep_sprint := false
 var body_y_offset := 0.0
 var is_camera_aligned := false
@@ -36,6 +37,7 @@ func enter() -> void:
 	keep_sprint = false
 
 	grounded_debounce = grounded_debounce_time
+	jump_debounce = p.grounded.jump_debounce_time
 	p.jump_controller.cancel_hold()
 	body_y_offset = (p.hover.min_y_offset + p.hover.max_y_offset) / 2.0
 	is_camera_aligned = absf(p.camera_controller.rotation.y) <= align_angle
@@ -117,7 +119,7 @@ func physics_update(dt: float) -> void:
 		_calculate_y_body_offset(dt)
 
 	_update_body_y_offset(dt)
-	_handle_jump(direction)
+	_handle_jump(direction, dt)
 	_handle_input()
 
 
@@ -187,8 +189,12 @@ func _update_camera_alignment(dt: float, is_moving: bool) -> void:
 		is_camera_aligned = false
 
 
-func _handle_jump(direction: Vector3) -> void:
+func _handle_jump(direction: Vector3, dt: float) -> void:
 	var p := player
+
+	if jump_debounce > 0.0:
+		jump_debounce -= dt
+		return
 
 	if Input.is_action_just_pressed("jump"):
 		p.jump_controller.begin_hold()
