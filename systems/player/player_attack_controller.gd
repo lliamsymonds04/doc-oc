@@ -13,6 +13,7 @@ var _hit_audio_player: AudioStreamPlayer3D
 
 var _hit_vfx: ImpactVFX
 var _crack_decal_parent: Node3D
+var _aiming_at_enemy_in_range: bool = false
 
 
 func _init(p: PlayerController, attack_config: PlayerAttackConfig) -> void:
@@ -117,6 +118,19 @@ func process(_dt: float):
 	var now = _get_now()
 	if attack_tilt_y != 0.0 and now - last_attack_time >= config.tilt_reset_time:
 		attack_tilt_y = 0.0
+	_update_aim_enemy_state()
+
+
+func _update_aim_enemy_state() -> void:
+	var in_range: bool = false
+	var hit = player.camera_controller.get_camera_center_hit(config.attack_cast_range)
+	if not hit.is_empty():
+		var enemy := EnemyUtil.resolve_enemy(hit["collider"])
+		in_range = enemy != null and not enemy.is_dead()
+	var changed := in_range != _aiming_at_enemy_in_range
+	_aiming_at_enemy_in_range = in_range
+	if changed:
+		player.aim_at_enemy_changed.emit(in_range)
 
 
 func _get_now() -> float:

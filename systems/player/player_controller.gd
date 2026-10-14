@@ -1,13 +1,10 @@
 class_name PlayerController
 extends CharacterBody3D
 
-## the hud listens to this; wiring lives in main.tscn
 signal mode_changed(mode: Mode)
-
-## the hud listens to this; wiring lives in main.tscn
 signal attack_hit(hit_point: Vector3, normal: Vector3, collider: Object)
-
-## the hud listens to this; wiring lives in main.tscn.
+## emitted when the crosshair aim target gains/loses a living enemy in attack range
+signal aim_at_enemy_changed(in_range: bool)
 ## emitted on the 0 <-> any grab transition, so it stays true while any arm holds
 signal grabbing_changed(active: bool)
 

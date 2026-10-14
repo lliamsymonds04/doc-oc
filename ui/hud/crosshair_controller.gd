@@ -8,6 +8,7 @@ enum Mode { ATTACK, GRAB, HOLD }
 var mode_crosshairs: Dictionary[Mode, TextureRect] = {}
 var mode: Mode = Mode.ATTACK
 var hit_timer: float = 0.0
+var enemy_in_range: bool = false
 
 @onready var dot: TextureRect = $Dot
 @onready var circle: TextureRect = $Circle
@@ -35,6 +36,17 @@ func set_hold(active: bool) -> void:
 	update_crosshair()
 
 
+## Red tint applies to the attack dot and grab circle, but not hold or hit flash.
+func set_enemy_in_range(in_range: bool) -> void:
+	enemy_in_range = in_range
+	update_crosshair()
+
+
+## Aiming at a living enemy within attack range -> red, unless holding or flashing.
+func _is_red() -> bool:
+	return enemy_in_range and mode != Mode.HOLD and hit_timer <= 0.0
+
+
 func flash_hit() -> void:
 	hit_timer = hit_display_time
 	update_crosshair()
@@ -49,5 +61,7 @@ func _process(delta: float) -> void:
 
 func update_crosshair() -> void:
 	var crosshair: TextureRect = hit if hit_timer > 0.0 else mode_crosshairs[mode]
+	var tint_color := Color.RED if _is_red() else Color.WHITE
 	for other_crosshair: TextureRect in [dot, circle, hit, hold]:
 		other_crosshair.visible = other_crosshair == crosshair
+		other_crosshair.modulate = tint_color

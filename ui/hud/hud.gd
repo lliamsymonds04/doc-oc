@@ -20,3 +20,7 @@ func _on_attack_hit(_hit_point: Vector3, _normal: Vector3, _collider: Object) ->
 
 func _on_grabbing_changed(active: bool) -> void:
 	crosshair_controller.set_hold(active)
+
+
+func _on_aim_at_enemy_changed(in_range: bool) -> void:
+	crosshair_controller.set_enemy_in_range(in_range)
