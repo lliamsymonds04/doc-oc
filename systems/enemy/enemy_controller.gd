@@ -36,6 +36,7 @@ func _ready() -> void:
 	_damage_flash = DamageFlashUtil.new(self, mesh, damage_flash_duration)
 
 	EnemyUtil.attach_self_damage(self, ragdoll_body, impact_min_dv, impact_damage_per_dv)
+	EnemyUtil.attach_impact_damage(ragdoll_body, impact_min_dv)
 
 
 func take_damage(dmg: float) -> void:
