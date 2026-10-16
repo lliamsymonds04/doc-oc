@@ -79,7 +79,7 @@ func physics_update(dt: float) -> void:
 
 	if launch_grace > 0.0:
 		launch_grace -= dt
-	elif speed > p.air.air_speed:
+	elif speed > p.air.air_speed and not p.tackle_controller.is_tackling():
 		# Fast: bleed off excess speed, then steer with what's left.
 		if p.air.air_drag > 0.0:
 			var new_speed := move_toward(speed, p.air.air_speed, p.air.air_drag * dt)

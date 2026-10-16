@@ -23,6 +23,7 @@ const HELD_LAYER := 4
 @export var wall_climb: WallClimbConfig
 @export var attack_config: PlayerAttackConfig
 @export var grab: PlayerGrabConfig
+@export var tackle: PlayerTackleConfig
 @export var arm_mounts: Array[ArmMount] = []
 @export var leg_mounts: Array[ArmMount] = []
 @export var raycast_config: ArmRaycastConfig
@@ -41,6 +42,7 @@ var wall_climb_debounce: float = 0.0
 var mount_prober: MountProber
 var attack_controller: PlayerAttackController
 var grab_controller: PlayerGrabController
+var tackle_controller: PlayerTackleController
 var jump_controller: PlayerJumpController
 
 var _states: Dictionary = {}
@@ -78,6 +80,8 @@ func _init() -> void:
 		attack_config = PlayerAttackConfig.new()
 	if grab == null:
 		grab = PlayerGrabConfig.new()
+	if tackle == null:
+		tackle = PlayerTackleConfig.new()
 
 
 func _ready() -> void:
@@ -91,6 +95,7 @@ func _ready() -> void:
 	mount_prober = MountProber.new(self)
 	attack_controller = PlayerAttackController.new(self, attack_config)
 	grab_controller = PlayerGrabController.new(self, grab)
+	tackle_controller = PlayerTackleController.new(self, tackle)
 
 	_states[StateID.GROUNDED] = GroundedState.new(self)
 	_states[StateID.WALL_CLIMB] = WallClimbState.new(self)
@@ -184,6 +189,7 @@ func _physics_process(dt: float) -> void:
 
 	_current.input_dir = Input.get_vector("left", "right", "forward", "back")
 	_current.physics_update(dt)
+	tackle_controller.physics_update(dt)
 	grab_controller.physics_update(
 		camera_controller.mouse_delta_physics, camera_controller.wheel_delta_physics
 	)
@@ -196,6 +202,8 @@ func _process(dt: float) -> void:
 	if _current:
 		_current.frame_update(dt)
 	grab_controller.frame_update()
+
+	tackle_controller.frame_update()
 
 	var horizontal_velocity = velocity * Vector3(1, 0, 1)
 	var hs := horizontal_velocity.length()
