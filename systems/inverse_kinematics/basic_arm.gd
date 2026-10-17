@@ -148,6 +148,13 @@ func advance_move(dt: float) -> void:
 		move_finished.emit(_move_end)
 
 
+## Redirect a move that is already in flight, keeping its progress and duration.
+func retarget_move(to: Vector3) -> void:
+	if not is_moving:
+		return
+	_move_end = to
+
+
 func start_step(to: Vector3, params: StepParams = null) -> void:
 	if params == null:
 		params = StepParams.new()
@@ -166,9 +173,10 @@ func start_step(to: Vector3, params: StepParams = null) -> void:
 	step_started.emit(_move_start, params.surface_normal)
 
 
-func start_punch(to: Vector3, p_cast_mask: int = -1) -> void:
+func start_punch(to: Vector3, p_cast_mask: int = -1, p_speed_multiplier: float = 1.0) -> void:
 	var profile := MotionProfile.new()
 	profile.duration = punch_duration
+	profile.speed_multiplier = p_speed_multiplier
 	profile.ease_curve = punch_ease_curve
 	profile.detect_hits = true
 	profile.cast_mask = p_cast_mask

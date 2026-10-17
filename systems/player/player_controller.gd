@@ -203,8 +203,6 @@ func _process(dt: float) -> void:
 		_current.frame_update(dt)
 	grab_controller.frame_update()
 
-	tackle_controller.frame_update()
-
 	var horizontal_velocity = velocity * Vector3(1, 0, 1)
 	var hs := horizontal_velocity.length()
 

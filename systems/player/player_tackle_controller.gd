@@ -1,17 +1,20 @@
 class_name PlayerTackleController
 extends RefCounted
 
-# below this the tackle has effectively stalled; pushing from a near-zero velocity
-# just flings the player somewhere arbitrary
+enum Phase { IDLE, WINDUP, FLOATING }
+
 const MIN_PUSH_SOURCE_SPEED: float = 0.5
 
 var player: PlayerController
 var config: PlayerTackleConfig
 
 var _sphere: SphereShape3D
-var _carried: RigidBody3D
+var _body: RigidBody3D
 var _original_layer: int
-var _carry_remaining: float = 0.0
+var _original_gravity_scale: float
+var _original_linear_damp: float
+var _phase: Phase = Phase.IDLE
+var _timer: float = 0.0
 
 
 func _init(p: PlayerController, tackle_config: PlayerTackleConfig) -> void:
@@ -22,35 +25,33 @@ func _init(p: PlayerController, tackle_config: PlayerTackleConfig) -> void:
 
 
 func is_tackling() -> bool:
-	return _carried != null
+	return _phase == Phase.WINDUP
 
 
-## Ticked from PlayerController._physics_process: after the state has set velocity,
-## before move_and_slide(), so contact resolves in the tick it is predicted.
 func physics_update(dt: float) -> void:
-	if _carried != null and not is_instance_valid(_carried):
-		_carried = null  # corpse cleanup queue_free'd the body mid-carry
+	if _phase != Phase.IDLE and not is_instance_valid(_body):
+		_abort()  # corpse cleanup freed the body mid-tackle
 
-	if _carried == null:
+	if _phase == Phase.IDLE:
 		_scan_contact(dt)
 		return
 
-	_update_carry(dt)
+	# nothing in AIR advances limb motion, so the tackle has to tick the punches itself
+	for mount in player.arm_mounts:
+		if mount.arm.is_moving:
+			mount.arm.retarget_move(_punch_aim(mount))
+			mount.arm.advance_move(dt)
 
-
-## Hand placement has to happen after the state's frame_update, which rewrites every
-## arm target with its idle pose; same reason PlayerGrabController has a frame pass.
-func frame_update() -> void:
-	if _carried == null:
+	_timer -= dt
+	if _timer > 0.0:
+		if _phase == Phase.WINDUP:
+			_ride_with_player()
 		return
 
-	var grip := _grip_world()
-	var right := player.global_transform.basis.x
-	for mount in player.arm_mounts:
-		if mount.arm.is_moving or player.grab_controller.is_mount_grabbing(mount):
-			continue
-		var side := signf(mount.position.x)
-		mount.set_target(grip + right * side * config.grip_side_offset)
+	if _phase == Phase.WINDUP:
+		_launch()
+	else:
+		_end_float()
 
 
 func _scan_contact(dt: float) -> void:
@@ -77,77 +78,145 @@ func _scan_contact(dt: float) -> void:
 
 
 func _begin(enemy: EnemyController) -> void:
-	# ragdoll first, so everything below deals with one node: the proxy RigidBody3D
+	# ragdoll first: everything below operates on the proxy RigidBody3D
 	enemy.initiate_ragdoll(false)
 
-	var body := enemy.get_ragdoll()
-	_carried = body
-	_carry_remaining = config.carry_time
-	_original_layer = body.collision_layer
-	# HELD_LAYER keeps it out of cast_mask() and out of the player's way while carried
-	body.collision_layer = player.HELD_LAYER
+	_body = enemy.get_ragdoll()
+	_original_layer = _body.collision_layer
+	_original_gravity_scale = _body.gravity_scale
+	_original_linear_damp = _body.linear_damp
+	_body.collision_layer = player.HELD_LAYER
 
-	# deferred write lands after activate()'s deferred unfreeze; matching the dash
-	# speed here stops the body being left behind before the magnet takes over
-	body.call_deferred("set", "linear_velocity", player.velocity)
+	# deferred because activate() unfreezes the body with set_deferred too
+	_apply_ride.call_deferred(_clearance_push(), player.velocity)
+
+	_phase = Phase.WINDUP
+	_timer = _windup_time()
 
 	_strike()
 
 
 func _strike() -> void:
-	var aim := _carry_anchor() + Vector3.UP * config.aim_height
 	for mount in player.arm_mounts:
-		var side := signf(mount.position.x)
-		var side_aim := aim + player.global_transform.basis.x * side * config.grip_side_offset
 		mount.set_apply_floor(false)
-		# explicit mask: the carried body is on HELD_LAYER, excluded from cast_mask()
-		mount.arm.start_punch(side_aim, ~player.collision_layer)
+		mount.arm.start_punch(
+			_punch_aim(mount), ~player.collision_layer, config.punch_speed_multiplier
+		)
 
 
-func _update_carry(dt: float) -> void:
-	# nothing in AIR advances limb motion, so the tackle has to tick the punches itself
+func _windup_time() -> float:
+	var longest := 0.0
 	for mount in player.arm_mounts:
-		if mount.arm.is_moving:
-			mount.arm.advance_move(dt)
-
-	var anchor := _carry_anchor()
-	var error := anchor - _carried.global_position
-	_carried.linear_velocity = (error * config.carry_gain).limit_length(config.max_carry_speed)
-	_carried.angular_velocity = Vector3.ZERO
-
-	_carry_remaining -= dt
-	if _carry_remaining <= 0.0:
-		_release()
+		longest = maxf(longest, mount.arm.punch_duration / config.punch_speed_multiplier)
+	return longest + config.launch_delay
 
 
-func _release() -> void:
-	var body := _carried
-	_carried = null
+func _ride_with_player() -> void:
+	_body.linear_velocity = player.velocity
+	_body.angular_velocity = Vector3.ZERO
 
-	for mount in player.arm_mounts:
-		mount.set_apply_floor(not player.is_airborne())
+
+## Signed along the tackle direction
+func _clearance_push() -> Vector3:
+	var forward := _flat_forward()
+	var offset := _body.global_position - player.global_position
+	var ahead := Vector3(offset.x, 0.0, offset.z).dot(forward)
+	var overlap := config.carry_clearance - ahead
+	if overlap <= 0.0:
+		return Vector3.ZERO
+	return forward * overlap
+
+
+func _apply_ride(push: Vector3, velocity: Vector3) -> void:
+	if not is_instance_valid(_body):
+		return
+
+	if push != Vector3.ZERO:
+		_body.global_position += push
+		_body.reset_physics_interpolation()
+	_body.linear_velocity = velocity
+
+
+## Relative to the player, not the enemy; physics_update re-aims it every tick.
+func _punch_aim(mount: ArmMount) -> Vector3:
+	var aim := player.global_position + _flat_forward() * config.punch_distance
+	aim.y = _body.global_position.y + config.aim_height
+	aim += player.global_transform.basis.x * signf(mount.position.x) * config.grip_side_offset
+	return aim
+
+
+func _flat_forward() -> Vector3:
+	var forward := player.camera_controller.get_camera_direction()
+	forward.y = 0.0
+	if forward.length_squared() < 0.001:
+		forward = -player.global_transform.basis.z
+		forward.y = 0.0
+	return forward.normalized()
+
+
+func _launch() -> void:
+	var horizontal := _flat_forward()
+
+	# clears the ground without dragging a body already above the player down to them
+	var pos := _body.global_position
+	pos.y = maxf(player.global_position.y + config.snap_lift, pos.y)
+
+	var velocity := horizontal * config.launch_speed + Vector3.UP * config.launch_up_speed
+	var spin := (
+		player.global_transform.basis.x * randf_range(-config.tumble_speed, config.tumble_speed)
+	)
+	_body.gravity_scale = config.float_gravity_scale
+	_body.linear_damp = config.float_linear_damp
+
+	# deferred for the same reason as _apply_ride
+	_apply_launch_state.call_deferred(pos, velocity, spin)
+
+	_apply_release_push()
+	_juice()
+
+	_phase = Phase.FLOATING
+	_timer = config.float_time
+
+
+## Order matters: reset_physics_interpolation() has to follow the teleport.
+func _apply_launch_state(pos: Vector3, velocity: Vector3, spin: Vector3) -> void:
+	if not is_instance_valid(_body):
+		return
+
+	_body.global_position = pos
+	_body.linear_velocity = velocity
+	_body.angular_velocity = spin
+	_body.reset_physics_interpolation()
+
+
+func _end_float() -> void:
+	var body := _body
+	_body = null
+	_phase = Phase.IDLE
 
 	body.collision_layer = _original_layer
+	body.gravity_scale = _original_gravity_scale
+	body.linear_damp = _original_linear_damp
 	var enemy: EnemyController = body.get_meta(EnemyRagdollController.ENEMY_META)
 	if not enemy.is_dead():
 		enemy.initiate_get_up()
 
-	_apply_release_push()
+
+func _abort() -> void:
+	_body = null
+	_phase = Phase.IDLE
+	_timer = 0.0
 
 
-## Follow-through: keep the exit direction but overwrite the magnitude with the
-## configured push so the tackle never ends on a weakling dribble of speed.
 func _apply_release_push() -> void:
 	var dir := player.velocity
 	var speed := dir.length()
 	if speed < MIN_PUSH_SOURCE_SPEED:
 		return
 	player.velocity = dir / speed * config.release_push_speed
+	player.velocity.y = maxf(player.velocity.y, config.release_lift)
 
 
-func _carry_anchor() -> Vector3:
-	return player.global_position + player.global_transform.basis * config.carry_offset
-
-
-func _grip_world() -> Vector3:
-	return _carried.get_global_transform_interpolated().origin + Vector3.UP * config.aim_height
+func _juice() -> void:
+	player.camera_controller.add_trauma(config.launch_trauma)
+	player.camera_controller.kick_fov(config.launch_fov_kick)

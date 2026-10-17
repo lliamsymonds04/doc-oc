@@ -59,6 +59,7 @@ func activate() -> void:
 	_body.visible = true
 	_body_collision.set_deferred("disabled", false)
 	_body.set_deferred("freeze", false)
+	_body.gravity_scale = 1.0
 	_enemy.visible = false
 	_enemy.hitbox.set_deferred("disabled", true)
 	_enemy.set_physics_process(false)
