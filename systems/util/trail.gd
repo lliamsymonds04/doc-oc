@@ -23,6 +23,11 @@ const TOTAL_MAX_POINTS := 100
 
 @export var trail_lifetime: float = 0.5
 
+# When false, existing points keep aging out but no new ones are recorded;
+# re-enabling starts a fresh trail with no leftover tail.
+@export var emitting: bool = true:
+	set = _set_emitting
+
 # Records by distance, not frames, so trail length is framerate-independent.
 @export var min_point_distance: float = 0.05
 
@@ -87,6 +92,16 @@ func _update_width(value: float) -> void:
 	material_override.set_shader_parameter("TRAIL_WIDTH", value)
 
 
+func _set_emitting(value: bool) -> void:
+	emitting = value
+	if not value or not is_inside_tree():
+		return
+	position_history.clear()
+	_expiry_times.clear()
+	# Reset so the first recorded point starts here, not at the stale position.
+	_last_recorded = _tracked_position()
+
+
 func _tracked_position() -> Vector3:
 	# A freed or unset target leaves the trail in place to recede by lifetime.
 	return target.global_position if is_instance_valid(target) else global_position
@@ -128,7 +143,7 @@ func _process(delta: float) -> void:
 		_expiry_times.push_back(-1.0)
 
 	var dist_sq := min_point_distance * min_point_distance
-	if _last_recorded.distance_squared_to(tracked) > dist_sq:
+	if emitting and _last_recorded.distance_squared_to(tracked) > dist_sq:
 		_last_recorded = tracked
 		position_history.push_front(tracked)
 		_expiry_times.push_front(_elapsed + trail_lifetime)
