@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://ct7ail2q4yamq"]
+
+[ext_resource type="Shader" uid="uid://dnuymf04yqeca" path="res://shaders/trail_shader.gdshader" id="1_trail"]
+[ext_resource type="Script" uid="uid://k1o6eyujcqam" path="res://systems/util/trail.gd" id="2_trail"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_trail"]
+render_priority = 0
+shader = ExtResource("1_trail")
+shader_parameter/MAX_POINTS = 30
+shader_parameter/TRAIL_COLOR = Vector4(1, 1, 1, 1)
+shader_parameter/BILLBOARD = true
+shader_parameter/TRAIL_WIDTH = 0.2
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_trail"]
+subdivide_depth = 8
+
+[node name="Trail" type="MeshInstance3D"]
+material_override = SubResource("ShaderMaterial_trail")
+mesh = SubResource("PlaneMesh_trail")
+script = ExtResource("2_trail")
+billboard = true
