@@ -6,6 +6,12 @@ extends MeshInstance3D
 const CURVE_SAMPLES := 16
 const TOTAL_MAX_POINTS := 100
 
+## The scene carries the ShaderMaterial, subdivided PlaneMesh, and billboard
+## setup the script depends on; a bare Trail.new() would have no
+## material_override, so every setter would silently no-op.
+## load() (not preload) avoids a parse-time script -> scene -> script cycle.
+const SCENE_PATH := "res://assets/vfx/trail.tscn"
+
 @export_range(3, 100, 2, "prefer_slider") var max_points: int = 30:
 	set = _update_max_points
 
@@ -39,6 +45,13 @@ var position_history: Array[Vector3] = []
 var _expiry_times: Array[float] = []
 var _last_recorded: Vector3
 var _elapsed := 0.0
+
+
+## Factory: the scene is the only way to get a working Trail (material + mesh
+## live there), so construction is owned here instead of by each caller.
+static func create() -> Trail:
+	var scene: PackedScene = load(SCENE_PATH)
+	return scene.instantiate() as Trail
 
 
 func _update_max_points(value: int) -> void:
@@ -137,7 +150,11 @@ func _process(delta: float) -> void:
 
 	var tracked := _tracked_position()
 
-	# The shader indexes two points minimum; degenerate padding stays invisible.
+	# The shader indexes two points minimum. Padding keeps it happy, but it must
+	# not count as a trail point: a padding slot holds the live hand position, so
+	# counting it would stretch a ribbon from the last real point to the hand.
+	var real_count := position_history.size()
+	visible = real_count >= 2
 	while position_history.size() < 2:
 		position_history.push_back(tracked)
 		_expiry_times.push_back(-1.0)
@@ -155,4 +172,4 @@ func _process(delta: float) -> void:
 		var packed := PackedVector3Array(position_history)
 		packed.resize(TOTAL_MAX_POINTS)
 		material_override.set_shader_parameter("positions", packed)
-		material_override.set_shader_parameter("POINT_COUNT", position_history.size())
+		material_override.set_shader_parameter("POINT_COUNT", real_count)

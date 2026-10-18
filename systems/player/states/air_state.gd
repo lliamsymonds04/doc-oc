@@ -33,8 +33,6 @@ func enter() -> void:
 	var p := player
 	air_debounce = p.air.air_debounce
 
-	# default arc for entering air without jumping (walked off a ledge);
-	# a ground jump overrides it via begin_launch() right after the transition
 	jump_gravity_multiplier = 1.0
 	fall_gravity_multiplier = p.jump.fall_gravity_multiplier
 	launch_grace = 0.0
@@ -43,11 +41,20 @@ func enter() -> void:
 		mount.set_apply_floor(false)
 
 
-## Called by GroundedState right after set_state(AIR) so the arc matches the jump's
-## charge: low charge gets heavier gravity, so a dash lands fast instead of floating.
+func exit() -> void:
+	for mount in player.all_mounts():
+		mount.arm.set_end_effector_trail(false)
+
+
+## Called by GroundedState right after set_state(AIR); the single launch path
+## for every jump (dash or hop), so launch-only effects go here, not in enter()
 func begin_launch(rising_gravity: float) -> void:
 	jump_gravity_multiplier = rising_gravity
 	launch_grace = player.air.launch_grace_time
+
+	for mount in player.all_mounts():
+		mount.arm.set_end_effector_trail(true)
+		mount.arm.set_trail_style(player.air.trail_width, player.air.trail_transparency)
 
 
 func gravity_scale() -> float:

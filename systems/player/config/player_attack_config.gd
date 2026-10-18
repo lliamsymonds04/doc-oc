@@ -7,7 +7,6 @@ extends Resource
 @export var tilt_reset_time: float = 0.3
 
 @export_group("Casting")
-## How far the punch raycast reaches, in meters.
 @export var attack_cast_range: float = 15.0
 ## Body tilt per punch, in degrees (positive = lean into the punch).
 @export var attack_tilt_degrees: float = 15.0
@@ -27,3 +26,7 @@ extends Resource
 @export_group("Impulse Physics")
 @export var impulse_strength: float = 7.0
 @export var impulse_min_y: float = 1.0
+
+@export_group("Visuals")
+@export var trail_width: float = 0.4
+@export var trail_transparency: float = 0.4

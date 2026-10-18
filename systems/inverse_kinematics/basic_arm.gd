@@ -25,6 +25,10 @@ const GROUNDED_DISTANCE_CHECK: float = 0.2
 @export var punch_ease_curve: float = 2.0
 @export var hit_probe_margin: float = 0.1  # extra radius beyond joint_radius for the hit sphere
 
+@export_category("Trail")
+@export var trail_lifetime: float = 0.2
+@export var trail_color: Color = Color(0.6, 1.0, 1.0, 1.0)
+
 var target: Vector3 = Vector3.ZERO
 var target_world: Vector3 = Vector3.ZERO
 var pole: Node3D
@@ -39,6 +43,8 @@ var cast_mask: int = ~0
 var solver: FabrikSolver
 var limb_meshes: Array[MeshInstance3D] = []
 var joint_meshes: Array[MeshInstance3D] = []
+var end_effector_trail: Trail
+var trail_curve: Curve
 
 var _profile: MotionProfile
 var _move_start: Vector3
@@ -82,6 +88,13 @@ func _ready() -> void:
 	_probe_shape.radius = joint_radius + hit_probe_margin
 
 	_build_visualizer()
+
+	trail_curve = Curve.new()
+	trail_curve.add_point(Vector2(0, 0.5))
+	trail_curve.add_point(Vector2(0.2, 1.0))
+	trail_curve.add_point(Vector2(1, 0.0))
+
+	_create_end_effector_trail(joint_meshes[num_limbs])
 
 
 ## public methods
@@ -184,8 +197,17 @@ func start_punch(to: Vector3, p_cast_mask: int = -1, p_speed_multiplier: float =
 	begin_move(to, profile)
 
 
-## Owns the solver call convention (root at the arm origin, pole in arm-local space)
-## so external callers can't diverge from what _process passes to solve().
+func set_end_effector_trail(enabled: bool) -> void:
+	if end_effector_trail != null:
+		end_effector_trail.emitting = enabled
+
+
+func set_trail_style(width: float, alpha: float) -> void:
+	if end_effector_trail != null:
+		end_effector_trail.trail_width = width
+		end_effector_trail.color.a = alpha
+
+
 func set_pole_constraints(enabled: bool) -> void:
 	solver.set_pole_constraints(enabled, target, Vector3.ZERO, pole.position)
 
@@ -222,6 +244,8 @@ func _process(_delta: float) -> void:
 
 
 func _on_move_finished(pos: Vector3) -> void:
+	if _profile.detect_hits:
+		set_end_effector_trail(false)
 	if _emit_step_landed:
 		_emit_step_landed = false
 		step_landed.emit(pos, _profile.arc_axis)
@@ -286,6 +310,17 @@ func _update_visualizer(joints: PackedVector3Array) -> void:
 	for i in range(joint_meshes.size()):
 		var joint := joint_meshes[i]
 		joint.position = joints[i]
+
+
+func _create_end_effector_trail(end_effector_joint: MeshInstance3D) -> void:
+	end_effector_trail = Trail.create()
+	end_effector_trail.target = end_effector_joint
+	end_effector_trail.emitting = false
+	end_effector_trail.trail_lifetime = trail_lifetime
+	end_effector_trail.color = trail_color
+
+	end_effector_trail.width_curve = trail_curve
+	add_child(end_effector_trail)
 
 
 ## Returns a right-handed basis whose local Y axis points along `dir`.

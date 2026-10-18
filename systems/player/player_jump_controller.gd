@@ -16,11 +16,16 @@ var config: JumpConfig
 ## charge state; GroundedState reads is_holding_jump for the crouch offset
 var is_holding_jump := false
 var hold_time := 0.0
+var _dash_vfx: ImpactVFX
 
 
 func _init(p: PlayerController, jump_config: JumpConfig) -> void:
 	player = p
 	config = jump_config
+
+	if jump_config.dash_vfx:
+		_dash_vfx = jump_config.dash_vfx.instantiate()
+		player.add_child(_dash_vfx)
 
 
 ## advance the charge timer; GroundedState calls this each physics tick
@@ -45,6 +50,9 @@ func create_launch(direction: Vector3) -> LaunchData:
 
 	if hold_time < config.dash_jump_ceiling:
 		data.charge = 0.0
+		if _dash_vfx:
+			var spawn_pos := player.global_position + direction * 5.0
+			_dash_vfx.play(spawn_pos, -direction)
 	else:
 		data.charge = clampf(hold_time / config.max_jump_hold_time, 0.0, 1.0)
 

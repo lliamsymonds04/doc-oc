@@ -53,6 +53,8 @@ func try_attack() -> void:
 		var attack_target = _get_target(side_dir)
 
 		mount.arm.start_punch(attack_target)
+		mount.arm.set_end_effector_trail(true)
+		mount.arm.set_trail_style(config.trail_width, config.trail_transparency)
 		AudioUtil.play_with_pitch(_attack_audio_player)
 
 		attack_tilt_y = side_dir * deg_to_rad(config.attack_tilt_degrees)

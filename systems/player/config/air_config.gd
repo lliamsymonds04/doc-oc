@@ -28,3 +28,7 @@ extends Resource
 @export var hard_landing_trauma_multiplier: float = 1.5
 @export var landing_vfx_raycast_distance: float = 5.0
 @export var air_debounce: float = 0.2
+
+@export_group("Visuals")
+@export var trail_width := 0.1
+@export var trail_transparency: float = 0.15

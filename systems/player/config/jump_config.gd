@@ -21,3 +21,6 @@ extends Resource
 @export var wall_jump_upward_velocity: float = 15.0
 @export var wall_jump_backward_velocity: float = 15.0
 @export var wall_jump_sideways_velocity: float = 15.0
+
+@export_group("Vfx")
+@export var dash_vfx: PackedScene = preload("res://assets/vfx/dash_particles.tscn")
