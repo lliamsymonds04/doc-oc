@@ -32,7 +32,6 @@ const GROUNDED_DISTANCE_CHECK: float = 0.2
 var target: Vector3 = Vector3.ZERO
 var target_world: Vector3 = Vector3.ZERO
 var pole: Node3D
-var is_leg: bool = false
 
 ## state
 var is_moving := false
@@ -187,6 +186,9 @@ func start_step(to: Vector3, params: StepParams = null) -> void:
 
 
 func start_punch(to: Vector3, p_cast_mask: int = -1, p_speed_multiplier: float = 1.0) -> void:
+	# a punch never lands a step: a step cancelled by a state change can leave
+	# this flag true from the last start_step()
+	_emit_step_landed = false
 	var profile := MotionProfile.new()
 	profile.duration = punch_duration
 	profile.speed_multiplier = p_speed_multiplier

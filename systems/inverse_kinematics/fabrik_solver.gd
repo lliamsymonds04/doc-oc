@@ -178,16 +178,6 @@ func _clamp_incoming(i: int, global_hinge: Vector3, max_dev: float) -> void:
 	joints[i - 1] = joints[i] - new_prev * lengths[i - 1]
 
 
-## Post-pass convenience for external callers / debugging.
-func apply_hinge_constraints(pole: Vector3) -> void:
-	if joints.size() < 3 or hinge_axes.is_empty():
-		return
-	var max_dev := deg_to_rad(180.0 - min_joint_angle)
-	var global_hinge := _global_hinge(joints[0], joints[joints.size() - 1], pole)
-	for i in range(1, joints.size() - 1):
-		_clamp_outgoing(i, global_hinge, max_dev)
-
-
 func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 	if root.distance_to(target) > total_length:
 		for i in range(joints.size() - 1):

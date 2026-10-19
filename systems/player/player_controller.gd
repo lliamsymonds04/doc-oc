@@ -51,7 +51,6 @@ var _mode: Mode = Mode.ATTACK
 var _jump_audio_player: AudioStreamPlayer3D
 var _hit_vfx: ImpactVFX
 
-@onready var arms: Array[BasicArm] = []
 @onready var tilt_pivot: Node3D = $TiltPivot
 @onready var bean: Node3D = $TiltPivot/Bean
 @onready var camera_controller: CameraController = $CameraController
@@ -89,8 +88,7 @@ func _ready() -> void:
 		mount.player = self
 		mount.is_leg = leg_mounts.has(mount)
 		mount.raycast_config = raycast_config
-		var arm = mount.init(self)
-		arms.append(arm)
+		mount.init(self)
 
 	mount_prober = MountProber.new(self)
 	attack_controller = PlayerAttackController.new(self, attack_config)

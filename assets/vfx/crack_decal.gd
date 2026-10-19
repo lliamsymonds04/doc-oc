@@ -17,6 +17,11 @@ static var _live: Array[CrackDecal] = []
 static func spawn(
 	parent: Node, pos: Vector3, normal: Vector3, size_factor: float = 1.0
 ) -> CrackDecal:
+	# entries can outlive a scene change: their tween is killed and the erase
+	# callback never runs, so drop freed decals before capping the list
+	for i in range(_live.size() - 1, -1, -1):
+		if not is_instance_valid(_live[i]):
+			_live.remove_at(i)
 	if _live.size() >= MAX_LIVE:
 		var oldest: CrackDecal = _live.pop_front()
 		oldest.queue_free()

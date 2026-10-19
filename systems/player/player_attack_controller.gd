@@ -40,7 +40,7 @@ func _init(p: PlayerController, attack_config: PlayerAttackConfig) -> void:
 
 
 func try_attack() -> void:
-	var now = _get_now()
+	var now = PlayerPunchUtil.get_now()
 	var p := player
 	if not PlayerPunchUtil.punch_allowed(p, last_attack_time, config.attack_debounce, now):
 		return
@@ -50,7 +50,9 @@ func try_attack() -> void:
 			continue
 
 		var side_dir: int = sign(mount.position.x)
-		var attack_target = _get_target(side_dir)
+		var attack_target = PlayerPunchUtil.get_punch_target(
+			player, side_dir, config.attack_cast_range
+		)
 
 		mount.arm.start_punch(attack_target)
 		mount.arm.set_end_effector_trail(true)
@@ -117,7 +119,7 @@ func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 
 
 func process(_dt: float):
-	var now = _get_now()
+	var now = PlayerPunchUtil.get_now()
 	if attack_tilt_y != 0.0 and now - last_attack_time >= config.tilt_reset_time:
 		attack_tilt_y = 0.0
 	_update_aim_enemy_state()
@@ -133,14 +135,6 @@ func _update_aim_enemy_state() -> void:
 	_aiming_at_enemy_in_range = in_range
 	if changed:
 		player.aim_at_enemy_changed.emit(in_range)
-
-
-func _get_now() -> float:
-	return PlayerPunchUtil.get_now()
-
-
-func _get_target(side_dir: int = 0) -> Vector3:
-	return PlayerPunchUtil.get_punch_target(player, side_dir, config.attack_cast_range)
 
 
 func _impulse_rigid_body(body: RigidBody3D, hit_point: Vector3) -> void:

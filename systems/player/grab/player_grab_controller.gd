@@ -36,7 +36,7 @@ func _init(p: PlayerController, grab_config: PlayerGrabConfig) -> void:
 
 
 func try_grab(side_dir: int) -> void:
-	var now = _get_now()
+	var now = PlayerPunchUtil.get_now()
 	if not PlayerPunchUtil.punch_allowed(player, last_attack_time, config.grab_debounce, now):
 		return
 
@@ -44,7 +44,8 @@ func try_grab(side_dir: int) -> void:
 	if mount == null or is_mount_grabbing(mount):
 		return
 
-	var target = _get_target(side_dir)  # same aim-point math as attack
+	# same aim-point math as attack
+	var target = PlayerPunchUtil.get_punch_target(player, side_dir, config.grab_cast_range)
 
 	var join_hit := _aimed_held_body(config.grab_cast_range)
 	if not join_hit.is_empty():
@@ -197,10 +198,6 @@ func _apply_mouse_drag(mouse_delta: Vector2, wheel_delta: float) -> void:
 		hold.drag_hold(world_delta, config)
 
 
-func _get_target(side_dir: int = 0) -> Vector3:
-	return PlayerPunchUtil.get_punch_target(player, side_dir, config.grab_cast_range)
-
-
 ## Objects a released throw must not home onto: the thrown body itself and
 ## anything still gripped by the other arms.
 func _homing_exclude(thrown: RigidBody3D) -> Array[Object]:
@@ -304,7 +301,3 @@ func _grip_count(body: Object) -> int:
 
 func is_grabbing() -> bool:
 	return not grabs.is_empty()
-
-
-func _get_now() -> float:
-	return PlayerPunchUtil.get_now()

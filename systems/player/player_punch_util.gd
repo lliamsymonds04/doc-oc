@@ -16,7 +16,7 @@ static func get_punch_target(p: PlayerController, side_dir: int, max_dist: float
 		var cam_pos = p.camera_controller.cam.global_position
 		var cam_dir = p.camera_controller.get_camera_direction()
 		return cam_pos + cam_dir * max_dist
-	return cam_hit["position"] + attack_offset
+	return cam_hit["position"]
 
 
 static func punch_allowed(

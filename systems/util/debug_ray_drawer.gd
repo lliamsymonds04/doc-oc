@@ -113,12 +113,6 @@ func draw_sphere(
 			draw_ray(p0, p1, color, duration, t)
 
 
-func clear() -> void:
-	_rays.clear()
-	if _mesh:
-		_mesh.clear_surfaces()
-
-
 func _add_tube(a: Vector3, b: Vector3, color: Color, radius: float) -> void:
 	var dir := b - a
 	var len := dir.length()

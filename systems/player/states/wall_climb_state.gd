@@ -1,6 +1,9 @@
 class_name WallClimbState
 extends PlayerState
 
+## How long both hands may lose the wall before the state releases to AIR.
+const LOST_WALL_GRACE := 0.15
+
 var min_wall_facing_dot: float
 var max_wall_normal_deviation_dot: float
 var ledge_min_up_dot: float
@@ -10,6 +13,7 @@ var tilt_smoothing_speed: float
 
 var average_normal: Vector3 = Vector3.ZERO
 var arms: WallClimbArms
+var no_wall_time := 0.0
 
 
 func exit() -> void:
@@ -19,10 +23,12 @@ func exit() -> void:
 	for mount in p.all_mounts():
 		mount.wall_surface_normal = Vector3.ZERO
 
+	no_wall_time = 0.0
 	arms.reset()
 
 
 func enter() -> void:
+	no_wall_time = 0.0
 	for mount in player.all_mounts():
 		mount.set_apply_floor(true)
 
@@ -47,13 +53,18 @@ func physics_update(dt: float) -> void:
 	arms.tick(dt)
 
 	if _update_average_normal():
+		no_wall_time = 0.0
 		if arms.is_cornering:
 			arms.update_cornering(dt)
 		else:
 			_apply_movement(dt)
 	else:
+		no_wall_time += dt
 		p.velocity = Vector3.ZERO
 		arms.wall_normal = p.basis.z
+		if no_wall_time >= LOST_WALL_GRACE:
+			p.set_state(p.StateID.AIR)
+			return
 
 	arms.update_arms(dt, input_dir, average_normal)
 

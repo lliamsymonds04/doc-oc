@@ -17,6 +17,11 @@ func _ready() -> void:
 	tree.node_added.connect(on_node_added)
 
 
+func _exit_tree() -> void:
+	if _impact_registry != null:
+		_impact_registry.detach()
+
+
 func on_node_added(node: Node) -> void:
 	if node.is_in_group(VelocityTrail.GROUP_TRAIL):
 		VelocityTrail.attach(node)

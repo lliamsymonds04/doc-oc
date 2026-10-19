@@ -56,7 +56,6 @@ func init(p: PlayerController) -> BasicArm:
 
 	arm = BasicArm.new()
 	arm.name = "arm_%s" % name
-	arm.is_leg = is_leg
 	arm.cast_mask = p.cast_mask()
 	arm.position = Vector3.ZERO
 	arm.pole = pole

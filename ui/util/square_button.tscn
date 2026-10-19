@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cmir1iw4xilyp"]
 
-[ext_resource type="Script" uid="uid://cp8md4vuzuudct" path="res://ui/util/square_button.gd" id="1_flash"]
+[ext_resource type="Script" uid="uid://dllk4ptuu4vhm" path="res://ui/util/square_button.gd" id="1_flash"]
 [ext_resource type="Texture2D" uid="uid://bysmsy8wucwkm" path="res://assets/ui/icons/attack_icon.svg" id="1_bw2wb"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m2c1y"]

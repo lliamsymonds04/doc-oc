@@ -154,7 +154,6 @@ func _process(delta: float) -> void:
 	# not count as a trail point: a padding slot holds the live hand position, so
 	# counting it would stretch a ribbon from the last real point to the hand.
 	var real_count := position_history.size()
-	visible = real_count >= 2
 	while position_history.size() < 2:
 		position_history.push_back(tracked)
 		_expiry_times.push_back(-1.0)
@@ -164,9 +163,12 @@ func _process(delta: float) -> void:
 		_last_recorded = tracked
 		position_history.push_front(tracked)
 		_expiry_times.push_front(_elapsed + trail_lifetime)
+		real_count = mini(real_count + 1, max_points)
 		if position_history.size() > max_points:
 			position_history.pop_back()
 			_expiry_times.pop_back()
+
+	visible = real_count >= 2
 
 	if material_override:
 		var packed := PackedVector3Array(position_history)

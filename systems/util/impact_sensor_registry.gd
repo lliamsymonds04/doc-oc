@@ -25,6 +25,12 @@ func scan() -> void:
 				_attach(body, group)
 
 
+## Drops the SceneTree connection so this registry can be freed with its level.
+func detach() -> void:
+	if _tree.node_added.is_connected(_on_node_added):
+		_tree.node_added.disconnect(_on_node_added)
+
+
 func _damage_enemy_on_impact(body: RigidBody3D, min_dv: float) -> void:
 	EnemyUtil.attach_impact_damage(body, min_dv)
 

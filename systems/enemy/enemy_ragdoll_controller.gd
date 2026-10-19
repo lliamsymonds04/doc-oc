@@ -44,10 +44,6 @@ func get_ragdoll_mesh() -> MeshInstance3D:
 	return _ragdoll_mesh
 
 
-func get_enemy() -> EnemyController:
-	return _enemy
-
-
 func is_ragdoll() -> bool:
 	return _is_ragdoll
 
