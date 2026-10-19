@@ -1,7 +1,5 @@
 class_name ImpactVFX
-extends Node3D
-
-var _particles: Array[GPUParticles3D] = []
+extends OneShotVFX
 
 
 func play(global_pos: Vector3, normal := Vector3.UP) -> void:
@@ -23,14 +21,4 @@ func play(global_pos: Vector3, normal := Vector3.UP) -> void:
 	else:
 		global_basis = Basis.IDENTITY
 
-	reset_physics_interpolation()
-
-	for p in _particles:
-		p.restart()
-
-
-func _ready() -> void:
-	for child in find_children("*", "GPUParticles3D", true, false):
-		var p := child as GPUParticles3D
-		p.emitting = false
-		_particles.append(p)
+	restart_emitters()

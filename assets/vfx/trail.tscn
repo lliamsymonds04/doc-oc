@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://k1o6eyujcqam" path="res://systems/util/trail.gd" id="2_trail"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_trail"]
+resource_local_to_scene = true
 render_priority = 0
 shader = ExtResource("1_trail")
 shader_parameter/MAX_POINTS = 30

@@ -16,7 +16,7 @@ var config: JumpConfig
 ## charge state; GroundedState reads is_holding_jump for the crouch offset
 var is_holding_jump := false
 var hold_time := 0.0
-var _dash_vfx: ImpactVFX
+var _dash_vfx: DashTrailVFX
 
 
 func _init(p: PlayerController, jump_config: JumpConfig) -> void:
@@ -24,7 +24,7 @@ func _init(p: PlayerController, jump_config: JumpConfig) -> void:
 	config = jump_config
 
 	if jump_config.dash_vfx:
-		_dash_vfx = jump_config.dash_vfx.instantiate()
+		_dash_vfx = jump_config.dash_vfx.instantiate() as DashTrailVFX
 		player.add_child(_dash_vfx)
 
 
@@ -48,11 +48,15 @@ func cancel_hold() -> void:
 func create_launch(direction: Vector3) -> LaunchData:
 	var data := LaunchData.new()
 
+	# with no stick input, commit forward so a tap is always a dash, never a pop
+	var dir := direction
+	if dir.length_squared() < 0.01:
+		dir = player.camera_controller.get_input_direction(Vector2(0, -1))
+
 	if hold_time < config.dash_jump_ceiling:
 		data.charge = 0.0
 		if _dash_vfx:
-			var spawn_pos := player.global_position + direction * 5.0
-			_dash_vfx.play(spawn_pos, -direction)
+			_dash_vfx.play(-dir)
 	else:
 		data.charge = clampf(hold_time / config.max_jump_hold_time, 0.0, 1.0)
 
@@ -60,11 +64,6 @@ func create_launch(direction: Vector3) -> LaunchData:
 	var horizontal := lerpf(
 		config.dash_horizontal_velocity, config.hop_horizontal_velocity, data.charge
 	)
-
-	# with no stick input, commit forward so a tap is always a dash, never a pop
-	var dir := direction
-	if dir.length_squared() < 0.01:
-		dir = player.camera_controller.get_input_direction(Vector2(0, -1))
 
 	var velocity := Vector3(0.0, vertical, 0.0)
 

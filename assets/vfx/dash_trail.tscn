@@ -1,0 +1,139 @@
+[gd_scene format=3 uid="uid://20k0tsilfa42"]
+
+[ext_resource type="Texture2D" uid="uid://bma5gmd0nqcsc" path="res://assets/textures/trace_07_a.png" id="1_trace"]
+[ext_resource type="Texture2D" uid="uid://c2l3e7japhrgi" path="res://assets/textures/circle_05_a.png" id="3_fg5j0"]
+[ext_resource type="Script" uid="uid://biu8nxtfrxlje" path="res://assets/vfx/dash_trail_vfx.gd" id="4_dashvfx"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_trail"]
+transparency = 1
+blend_mode = 1
+cull_mode = 2
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("1_trace")
+billboard_keep_scale = true
+
+[sub_resource type="Curve" id="Curve_fg5j0"]
+_data = [Vector2(0, 0.76527834), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_kcg4j"]
+curve = SubResource("Curve_fg5j0")
+
+[sub_resource type="Gradient" id="Gradient_trail"]
+offsets = PackedFloat32Array(0, 0.35, 1)
+colors = PackedColorArray(1.8247963, 1.8247963, 1.8247963, 1, 0.8862745, 1, 1, 1, 0.9098039, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_trail"]
+gradient = SubResource("Gradient_trail")
+use_hdr = true
+
+[sub_resource type="Curve" id="Curve_kcg4j"]
+_limits = [0.0, 2.0, 0.0, 1.0]
+_data = [Vector2(0, 2), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_fg5j0"]
+curve = SubResource("Curve_kcg4j")
+
+[sub_resource type="Curve" id="Curve_trail"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.5, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_trail"]
+curve = SubResource("Curve_trail")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_trail"]
+resource_local_to_scene = true
+particle_flag_align_y = true
+emission_shape = 1
+emission_sphere_radius = 1.0
+direction = Vector3(0, 1, 0)
+spread = 0.0
+initial_velocity_min = 10.0
+initial_velocity_max = 12.0
+gravity = Vector3(0, 0, 0)
+damping_min = 5.0
+damping_max = 5.0
+scale_min = 0.9
+scale_curve = SubResource("CurveTexture_trail")
+color_ramp = SubResource("GradientTexture1D_trail")
+alpha_curve = SubResource("CurveTexture_kcg4j")
+emission_curve = SubResource("CurveTexture_fg5j0")
+
+[sub_resource type="QuadMesh" id="QuadMesh_trail"]
+size = Vector2(0.35, 2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2stcf"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("3_fg5j0")
+billboard_mode = 1
+billboard_keep_scale = true
+
+[sub_resource type="Curve" id="Curve_2stcf"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_2stcf"]
+curve = SubResource("Curve_2stcf")
+
+[sub_resource type="Curve" id="Curve_acn34"]
+_limits = [0.0, 2.0, 0.0, 1.0]
+_data = [Vector2(0, 2), 0.0, 0.0, 0, 0, Vector2(1, 0.7096431), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_f8rb0"]
+curve = SubResource("Curve_acn34")
+
+[sub_resource type="Curve" id="Curve_f8rb0"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1e-05, 0.64702755), 0.0, 0.0, 0, 0, Vector2(0.3641784, 0.9769092), 0.0, 0.0, 0, 0, Vector2(0.99999, 0), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 5
+
+[sub_resource type="CurveTexture" id="CurveTexture_vaqsx"]
+curve = SubResource("Curve_f8rb0")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_fg5j0"]
+particle_flag_align_y = true
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 5.0
+initial_velocity_max = 6.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.39999998
+scale_max = 0.5
+scale_curve = SubResource("CurveTexture_vaqsx")
+alpha_curve = SubResource("CurveTexture_2stcf")
+emission_curve = SubResource("CurveTexture_f8rb0")
+
+[sub_resource type="QuadMesh" id="QuadMesh_2stcf"]
+
+[node name="DashTrail" type="Node3D" unique_id=1226604566]
+script = ExtResource("4_dashvfx")
+
+[node name="Lines" type="GPUParticles3D" parent="." unique_id=155278300]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0543873, 0)
+material_override = SubResource("StandardMaterial3D_trail")
+emitting = false
+amount = 4
+lifetime = 0.6
+one_shot = true
+explosiveness = 0.63
+randomness = 0.15
+fixed_fps = 0
+local_coords = true
+process_material = SubResource("ParticleProcessMaterial_trail")
+draw_pass_1 = SubResource("QuadMesh_trail")
+
+[node name="Dots" type="GPUParticles3D" parent="." unique_id=1694042636]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0159974, 0)
+material_override = SubResource("StandardMaterial3D_2stcf")
+emitting = false
+lifetime = 0.3
+one_shot = true
+explosiveness = 1.0
+fixed_fps = 0
+process_material = SubResource("ParticleProcessMaterial_fg5j0")
+draw_pass_1 = SubResource("QuadMesh_2stcf")
