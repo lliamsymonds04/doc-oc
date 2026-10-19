@@ -76,7 +76,7 @@ func physics_update(dt: float) -> void:
 			dismounted = true
 			_dismount_to_ledge(ledge_result)
 	elif input_dir.y > 0:
-		_check_floor_from_wall()
+		dismounted = _check_floor_from_wall()
 
 	if dismounted:
 		return
@@ -209,11 +209,15 @@ func _check_floor_from_wall() -> bool:
 	var p := player
 
 	var leg_probe_hits := p.mount_prober.get_leg_probe_hits()
-	if leg_probe_hits.size() == 2:
-		p.set_state(p.StateID.GROUNDED)
-		return true
+	if leg_probe_hits.size() < p.leg_mounts.size():
+		return false
 
-	return false
+	p.set_state(p.StateID.GROUNDED)
+	# both feet leave the wall together onto the ground both probes found
+	for mount in p.leg_mounts:
+		mount.arm.start_step(leg_probe_hits[mount]["position"])
+
+	return true
 
 
 func _update_tilt(dt: float) -> void:
