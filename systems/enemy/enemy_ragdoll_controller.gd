@@ -127,6 +127,7 @@ func _create_body(ragdoll_mass: float) -> void:
 	_body.freeze = true
 	_body.mass = ragdoll_mass
 	_body.continuous_cd = true
+	_body.add_to_group(VelocityTrail.GROUP_TRAIL)
 
 	# lets attack/grab controllers identify the proxy as an enemy without a subclass
 	_body.set_meta(ENEMY_META, _enemy)

@@ -30,6 +30,7 @@ enabled=PackedStringArray("res://addons/brackeys_particle_controls/plugin.cfg")
 [global_group]
 
 impact_group=""
+trail_group=""
 
 [input]
 

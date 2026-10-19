@@ -6,5 +6,17 @@ var _impact_registry: ImpactSensorRegistry
 
 
 func _ready() -> void:
-	_impact_registry = ImpactSensorRegistry.new(get_tree())
+	var tree = get_tree()
+
+	_impact_registry = ImpactSensorRegistry.new(tree)
 	_impact_registry.scan()
+
+	for body in tree.get_nodes_in_group(VelocityTrail.GROUP_TRAIL):
+		VelocityTrail.attach(body)
+
+	tree.node_added.connect(on_node_added)
+
+
+func on_node_added(node: Node) -> void:
+	if node.is_in_group(VelocityTrail.GROUP_TRAIL):
+		VelocityTrail.attach(node)
