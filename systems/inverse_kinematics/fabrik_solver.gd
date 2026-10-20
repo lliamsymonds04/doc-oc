@@ -1,13 +1,21 @@
 class_name FabrikSolver
 extends RefCounted
 
+# how far off anti-parallel bend/pole has to be before the side is re-chosen
+const ANTIPARALLEL_BAND: float = 0.35
+# fraction of a joint's lateral offset it must be past the axis to get mirrored
+const C_CURVE_DEAD_BAND: float = 0.02
+# fraction of a joint-limit overshoot removed per iteration; hard clamping every
+# iteration makes the chain orbit its limits instead of settling
+const CLAMP_SOFTNESS: float = 0.85
+
 var joints: PackedVector3Array
 var lengths: PackedFloat32Array
 var total_length: float
 var bend_hint := Vector3.ZERO
 var tolerance: float = 0.01
 var max_iterations: int = 10
-var min_joint_angle: float = 0.0
+var min_joint_angle: float = 0.0  # soft lower bound: see CLAMP_SOFTNESS
 
 ## Floor plane normal in the solver's local joint space.
 var floor_normal: Vector3 = Vector3.UP
@@ -55,10 +63,25 @@ func apply_pole(target: Vector3, root: Vector3, pole: Vector3) -> void:
 	else:
 		bend_vec = bend_vec.normalized()
 
-	var rot := Basis(axis, atan2(axis.dot(bend_vec.cross(pole_vec)), bend_vec.dot(pole_vec)))
+	# Shortest-arc alignment, except near anti-parallel where the cross product is
+	# numerical noise and the chain would snap to whichever side it lands on:
+	# take the full turn instead. Basis(axis, PI) is the same rotation as
+	# Basis(axis, -PI), so the side it ends up on is not a choice being made here.
+	var angle := atan2(axis.dot(bend_vec.cross(pole_vec)), bend_vec.dot(pole_vec))
+	if absf(angle) > PI - ANTIPARALLEL_BAND:
+		angle = PI
+
+	var rot := Basis(axis, angle)
 	for i in range(1, joints.size()):
 		joints[i] = root + rot * (joints[i] - root)
-	bend_hint = pole_vec
+	bend_hint = rot * bend_vec
+
+
+func _max_segment_error() -> float:
+	var worst := 0.0
+	for i in range(joints.size() - 1):
+		worst = maxf(worst, absf(joints[i + 1].distance_to(joints[i]) - lengths[i]))
+	return worst
 
 
 ## Nudges interior joints off the root-target line toward the pole.
@@ -110,11 +133,15 @@ func _enforce_c_curve(root: Vector3, target: Vector3, pole: Vector3) -> void:
 		var offset: Vector3 = joints[i] - root
 		var along := axis * offset.dot(axis)
 		var lat := offset - along
-		if lat.dot(pole_lat) < 0.0:
+		# Dead band: a joint sitting on the axis has no side, and mirroring it
+		# every iteration chatters against the floor and hinge clamps.
+		if lat.dot(pole_lat) < -C_CURVE_DEAD_BAND * lat.length():
 			joints[i] = root + along - lat
 
 
-## Clamp outgoing bone at interior joint `i` to signed curl in [-max_dev, 0].
+## Clamp outgoing bone at interior joint `i` toward a signed curl in
+## [-max_dev, 0]. Soft: each call removes CLAMP_SOFTNESS of the overshoot, so a
+## joint can sit up to (1 - CLAMP_SOFTNESS) of it past the limit.
 func _clamp_outgoing(i: int, global_hinge: Vector3, max_dev: float) -> void:
 	if global_hinge.length_squared() < 0.0001:
 		return
@@ -141,7 +168,7 @@ func _clamp_outgoing(i: int, global_hinge: Vector3, max_dev: float) -> void:
 		child = child.normalized()
 
 	var signed := atan2(hinge_axis.dot(out_dir.cross(child)), out_dir.dot(child))
-	signed = clampf(signed, -max_dev, 0.0)
+	signed = lerpf(signed, clampf(signed, -max_dev, 0.0), CLAMP_SOFTNESS)
 	joints[i + 1] = joints[i] + (Basis(hinge_axis, signed) * out_dir).normalized() * lengths[i]
 
 
@@ -180,6 +207,7 @@ func _clamp_incoming(i: int, global_hinge: Vector3, max_dev: float) -> void:
 
 func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 	if root.distance_to(target) > total_length:
+		joints[0] = root
 		for i in range(joints.size() - 1):
 			joints[i + 1] = _stretch(joints[i], target, lengths[i])
 		return joints
@@ -190,8 +218,28 @@ func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 	if use_pole_constraints:
 		apply_pole(target, root, pole)
 
+	if use_pole_constraints:
+		apply_pole(target, root, pole)
+
 	for _iter in range(max_iterations):
 		var global_hinge := _global_hinge(root, target, pole) if has_hinges else Vector3.ZERO
+
+		# Realign every iteration, not just once: without it the chain twists away
+		# from the pole across a long reach and swings to the wrong side.
+		if use_pole_constraints:
+			apply_pole(target, root, pole)
+
+		if has_hinges:
+			# Guarantee C-curve before the projections, never after: mirroring or
+			# clamping on the way out leaves the tip off-target, so the next frame
+			# starts from a pose that is not a solution and the chain swings.
+			_enforce_c_curve(root, target, pole)
+			joints[0] = root
+			for i in range(joints.size() - 1):
+				joints[i + 1] = _stretch(joints[i], joints[i + 1], lengths[i])
+			global_hinge = _global_hinge(root, target, pole)
+			for i in range(1, joints.size() - 1):
+				_clamp_outgoing(i, global_hinge, max_dev)
 
 		# Backward: tip → root
 		joints[joints.size() - 1] = target
@@ -210,21 +258,20 @@ func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 		if should_apply_floor:
 			_apply_floor(target)
 
-		if use_pole_constraints:
-			apply_pole(target, root, pole)
+		if joints[joints.size() - 1].distance_to(target) < tolerance:
+			break
 
-		if has_hinges:
-			# Guarantee C-curve after pole align (catches any residual S-bend).
-			_enforce_c_curve(root, target, pole)
+	# A floor correction on the final iteration detaches the chain. Re-run pure
+	# FABRIK (root and tip pinned) so the returned pose is a valid limb again;
+	# re-projecting from one end alone would drag the root off the mount.
+	if _max_segment_error() > 0.05:
+		for _restore in range(4):
+			joints[joints.size() - 1] = target
+			for i in range(joints.size() - 2, -1, -1):
+				joints[i] = _stretch(joints[i + 1], joints[i], lengths[i])
 			joints[0] = root
 			for i in range(joints.size() - 1):
 				joints[i + 1] = _stretch(joints[i], joints[i + 1], lengths[i])
-			global_hinge = _global_hinge(root, target, pole)
-			for i in range(1, joints.size() - 1):
-				_clamp_outgoing(i, global_hinge, max_dev)
-
-		if joints[joints.size() - 1].distance_to(target) < tolerance:
-			break
 
 	return joints
 

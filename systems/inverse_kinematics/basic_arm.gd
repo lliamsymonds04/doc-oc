@@ -63,6 +63,7 @@ class MotionProfile:
 	var arc_axis: Vector3 = Vector3.UP
 	var ease_curve: float = 1.0  # Godot's ease(): 1.0 = linear
 	var floor_normal: Variant = null  # null = don't touch solver.floor_normal
+	var apply_floor: bool = true  # false for moves that target a point in mid-air
 	var detect_hits: bool = false
 	var cast_mask: int = -1  # -1 = use the arm's default cast_mask
 
@@ -195,6 +196,9 @@ func start_punch(to: Vector3, p_cast_mask: int = -1, p_speed_multiplier: float =
 	profile.ease_curve = punch_ease_curve
 	profile.detect_hits = true
 	profile.cast_mask = p_cast_mask
+	# the solver's floor plane passes through the target, which for a punch is a
+	# contact point in mid-air, not the ground: it would push the joints apart
+	profile.apply_floor = false
 
 	begin_move(to, profile)
 
@@ -241,7 +245,11 @@ func query_end_effector(to: Vector3) -> Variant:
 func _process(_delta: float) -> void:
 	if solver == null or pole == null:
 		return
+	var state_floor := solver.should_apply_floor
+	if is_moving and _profile != null and not _profile.apply_floor:
+		solver.should_apply_floor = false
 	var solved := solver.solve(target, Vector3.ZERO, pole.position)
+	solver.should_apply_floor = state_floor
 	_update_visualizer(solved)
 
 

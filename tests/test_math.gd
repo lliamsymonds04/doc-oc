@@ -15,6 +15,7 @@ func _ready() -> void:
 	_test_wall_basis()
 	_test_fabrik_reach()
 	_test_fabrik_stretch()
+	_test_fabrik_stability()
 	_test_ballistic_direction()
 	_test_ballistic_degenerate()
 	_test_aim_point_from_hit()
@@ -59,6 +60,75 @@ func _test_fabrik_stretch() -> void:
 		"FABRIK caps an out-of-reach target at extension"
 	)
 	_check_lengths(solved, "FABRIK preserves segment lengths (stretch)")
+
+
+## A folded chain (target well inside its reach) with joint limits, a pole and a
+## floor is over-constrained: the solver used to leave the pose mid-constraint,
+## so the next frame started somewhere else and the arm swung around.
+func _test_fabrik_stability() -> void:
+	var solver := FabrikSolver.new(
+		PackedVector3Array([Vector3.ZERO, Vector3(0, -2, 0), Vector3(0, -4, 0), Vector3(0, -6, 0)])
+	)
+	solver.min_joint_angle = 20.0
+	solver.floor_margin = 0.6
+	solver.hinge_axes.append(Vector3.RIGHT)
+	solver.hinge_axes.append(Vector3.RIGHT)
+
+	var pole := Vector3(0.9, -0.8995, 0.2) * 3.0
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 12345
+	var target := Vector3(0, -2.4, 0.3)
+	var worst_jump := 0.0
+	var worst_error := 0.0
+	# floor_margin and min_joint_angle are soft here: the floor is a push that the
+	# tip projections partly undo, and the curl clamp removes 85% of an overshoot
+	# per iteration. These bounds are the measured slop, not the intended value.
+	var worst_floor_sag := 0.0
+	var worst_overbend := 0.0
+	var previous := PackedVector3Array()
+
+	for _frame in range(200):
+		# a planted anchor is world-static, so in arm space it barely drifts
+		target += (
+			Vector3(rng.randf_range(-1, 1), rng.randf_range(-1, 1), rng.randf_range(-1, 1)) * 0.02
+		)
+		target = target.limit_length(2.6)
+		var solved := solver.solve(target, Vector3.ZERO, pole)
+		worst_error = maxf(worst_error, solved[solved.size() - 1].distance_to(target))
+		for i in range(1, solved.size() - 1):
+			worst_floor_sag = maxf(
+				worst_floor_sag,
+				(
+					solver.floor_margin
+					- (solved[i].dot(solver.floor_normal) - target.dot(solver.floor_normal))
+				)
+			)
+			var incoming := (solved[i - 1] - solved[i]).normalized()
+			var outgoing := (solved[i + 1] - solved[i]).normalized()
+			worst_overbend = maxf(
+				worst_overbend, solver.min_joint_angle - rad_to_deg(incoming.angle_to(outgoing))
+			)
+		if previous.size() == solved.size():
+			for i in range(solved.size()):
+				worst_jump = maxf(worst_jump, previous[i].distance_to(solved[i]))
+		previous = solved.duplicate()
+
+	_check(worst_error < 0.05, "folded chain keeps its tip on target (%.3f)" % worst_error)
+	_check(worst_jump < 0.15, "folded chain does not flip between frames (%.3f)" % worst_jump)
+	_check(worst_floor_sag < 0.5, "folded chain stays off the floor (%.3f)" % worst_floor_sag)
+	_check(
+		worst_overbend < 5.0, "folded chain respects the joint limit (%.1f deg)" % worst_overbend
+	)
+
+	# Out of reach: the chain stretches straight, and the root stays pinned.
+	var root := Vector3(1.0, 2.0, 3.0)
+	var stretched := solver.solve(root + Vector3(0, -20, 0), root, pole)
+	_check_vec(stretched[0], root, "stretched chain stays pinned at its root")
+	_check_close(
+		stretched[stretched.size() - 1].distance_to(root),
+		solver.total_length,
+		"stretched chain reaches its full length"
+	)
 
 
 func _test_ballistic_direction() -> void:
