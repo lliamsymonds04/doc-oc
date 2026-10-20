@@ -215,12 +215,6 @@ func solve(target: Vector3, root: Vector3, pole: Vector3) -> PackedVector3Array:
 	var max_dev := deg_to_rad(180.0 - min_joint_angle)
 	var has_hinges := not hinge_axes.is_empty() and joints.size() >= 3 and use_pole_constraints
 
-	if use_pole_constraints:
-		apply_pole(target, root, pole)
-
-	if use_pole_constraints:
-		apply_pole(target, root, pole)
-
 	for _iter in range(max_iterations):
 		var global_hinge := _global_hinge(root, target, pole) if has_hinges else Vector3.ZERO
 
