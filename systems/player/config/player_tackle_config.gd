@@ -56,3 +56,4 @@ extends Resource
 @export_group("Feedback")
 @export var launch_trauma: float = 0.8
 @export_range(0, -10, -0.5) var launch_fov_kick: float = -3.0
+@export var impact_sound: AudioStreamOggVorbis = preload("res://assets/audio/hit_impact.ogg")

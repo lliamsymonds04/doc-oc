@@ -16,12 +16,18 @@ var _original_linear_damp: float
 var _phase: Phase = Phase.IDLE
 var _timer: float = 0.0
 
+var _impact_player: AudioStreamPlayer3D
+
 
 func _init(p: PlayerController, tackle_config: PlayerTackleConfig) -> void:
 	player = p
 	config = tackle_config
 	_sphere = SphereShape3D.new()
 	_sphere.radius = config.detect_radius
+
+	_impact_player = AudioStreamPlayer3D.new()
+	_impact_player.stream = config.impact_sound
+	p.add_child(_impact_player)
 
 
 func is_tackling() -> bool:
@@ -220,3 +226,4 @@ func _apply_release_push() -> void:
 func _juice() -> void:
 	player.camera_controller.add_trauma(config.launch_trauma)
 	player.camera_controller.kick_fov(config.launch_fov_kick)
+	AudioUtil.play_with_pitch(_impact_player)
