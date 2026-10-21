@@ -107,7 +107,6 @@ func _release_mount(mount: ArmMount) -> void:
 				enemy.initiate_get_up()
 
 	mount.set_apply_pole(true)
-	mount.set_apply_floor(not player.is_airborne())
 
 	if grabs.is_empty():
 		player.grabbing_changed.emit(false)
@@ -135,7 +134,6 @@ func physics_update(mouse_delta: Vector2, wheel_delta := 0.0) -> void:
 		var anchor: Vector3 = hold.hold_world()
 
 		hold.mount.set_target(grip_world)
-		hold.mount.set_apply_floor(false)
 
 		var error := anchor - grip_world
 		err_sum[hold.body] = err_sum.get(hold.body, Vector3.ZERO) + error

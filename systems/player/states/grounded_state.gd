@@ -46,6 +46,10 @@ func enter() -> void:
 	for mount in p.leg_mounts:
 		mount.set_apply_floor(true)
 
+	# arms only use the floor while sprinting turns them into legs
+	for mount in p.arm_mounts:
+		mount.set_apply_floor(mount.is_leg)
+
 	# sprinting limbs are legs, so they plant on landing instead of returning to idle
 	if is_sprinting:
 		_plant_sprint_limbs()
@@ -108,7 +112,7 @@ func physics_update(dt: float) -> void:
 		grounded_debounce -= dt
 		if grounded_debounce < 0.0:
 			for mount in p.arm_mounts:
-				mount.set_apply_floor(true)
+				mount.set_apply_floor(mount.is_leg)
 
 	_update_floor_normal(dt)
 
@@ -385,6 +389,7 @@ func _update_body_y_offset(dt: float) -> void:
 func _set_arms_as_legs(active: bool) -> void:
 	for mount in player.arm_mounts:
 		mount.is_leg = active
+		mount.set_apply_floor(active)
 		if not active:
 			var params := StepParams.new()
 			params.emit_landed = false

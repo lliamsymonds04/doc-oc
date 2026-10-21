@@ -19,6 +19,9 @@ const GROUNDED_DISTANCE_CHECK: float = 0.2
 @export var lift_height: float = 0.8
 @export var floor_margin: float = 0.6
 @export var min_joint_angle: float = 20.0
+## arms only: the first joint keeps at least this much bend, so an idle arm keeps
+## its shape. Ignored when the limb is too extended to bend that far.
+@export var min_bend_angle: float = 35.0
 
 @export_category("Attack")
 @export var punch_duration: float = 0.15
@@ -39,7 +42,7 @@ var is_moving := false
 ## Physics mask for the hit probe; ignores the owner's layers.
 ## Set by ArmMount from PlayerController.cast_mask().
 var cast_mask: int = ~0
-var solver: FabrikSolver
+var solver: LimbSolver
 var limb_meshes: Array[MeshInstance3D] = []
 var joint_meshes: Array[MeshInstance3D] = []
 var end_effector_trail: Trail
@@ -76,13 +79,11 @@ func _ready() -> void:
 	for i in range(num_limbs):
 		positions.append(positions[i] + target_dir * limb_length)
 
-	solver = FabrikSolver.new(positions)
+	solver = LimbSolver.new(positions)
 	solver.floor_margin = floor_margin
 	solver.min_joint_angle = min_joint_angle
+	solver.inward_bend_min = min_bend_angle
 	move_finished.connect(_on_move_finished)
-
-	for i in range(num_limbs - 1):
-		solver.hinge_axes.append(Vector3.RIGHT)
 
 	_probe_shape = SphereShape3D.new()
 	_probe_shape.radius = joint_radius + hit_probe_margin
@@ -215,7 +216,7 @@ func set_trail_style(width: float, alpha: float) -> void:
 
 
 func set_pole_constraints(enabled: bool) -> void:
-	solver.set_pole_constraints(enabled, target, Vector3.ZERO, pole.position)
+	solver.set_pole_constraints(enabled)
 
 
 func query_end_effector(to: Vector3) -> Variant:

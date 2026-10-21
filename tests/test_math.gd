@@ -13,9 +13,11 @@ var _failures := 0
 
 func _ready() -> void:
 	_test_wall_basis()
-	_test_fabrik_reach()
-	_test_fabrik_stretch()
-	_test_fabrik_stability()
+	_test_limb_reach()
+	_test_limb_stretch()
+	_test_limb_stability()
+	_test_limb_grab_stability()
+	_test_limb_punch_shape()
 	_test_ballistic_direction()
 	_test_ballistic_degenerate()
 	_test_aim_point_from_hit()
@@ -38,41 +40,35 @@ func _test_wall_basis() -> void:
 	_check_close(slanted.determinant(), 1.0, "slanted wall_basis is right-handed")
 
 
-func _test_fabrik_reach() -> void:
-	var solver := _two_bone_solver()
-	var solved := solver.solve(Vector3(1, 0, 0), Vector3.ZERO, Vector3.UP)
-	# solve() stops inside solver.tolerance, so that is the accuracy contract
+func _test_limb_reach() -> void:
+	var solver := _three_bone_solver()
+	var solved := solver.solve(Vector3(2, 0, 0), Vector3.ZERO, Vector3.UP)
 	_check_vec(
-		solved[solved.size() - 1],
-		Vector3(1, 0, 0),
-		"FABRIK reaches an in-range target",
-		solver.tolerance
+		solved[solved.size() - 1], Vector3(2, 0, 0), "limb solver reaches an in-range target"
 	)
-	_check_lengths(solved, "FABRIK preserves segment lengths (reach)")
+	_check_lengths(solved, "limb solver preserves segment lengths (reach)")
 
 
-func _test_fabrik_stretch() -> void:
-	var solver := _two_bone_solver()
+func _test_limb_stretch() -> void:
+	var solver := _three_bone_solver()
 	var solved := solver.solve(Vector3(5, 0, 0), Vector3.ZERO, Vector3.UP)
 	_check_vec(
 		solved[solved.size() - 1],
-		Vector3(2, 0, 0),
-		"FABRIK caps an out-of-reach target at extension"
+		Vector3(3, 0, 0),
+		"limb solver caps an out-of-reach target at extension"
 	)
-	_check_lengths(solved, "FABRIK preserves segment lengths (stretch)")
+	_check_lengths(solved, "limb solver preserves segment lengths (stretch)")
 
 
 ## A folded chain (target well inside its reach) with joint limits, a pole and a
 ## floor is over-constrained: the solver used to leave the pose mid-constraint,
 ## so the next frame started somewhere else and the arm swung around.
-func _test_fabrik_stability() -> void:
-	var solver := FabrikSolver.new(
+func _test_limb_stability() -> void:
+	var solver := LimbSolver.new(
 		PackedVector3Array([Vector3.ZERO, Vector3(0, -2, 0), Vector3(0, -4, 0), Vector3(0, -6, 0)])
 	)
 	solver.min_joint_angle = 20.0
 	solver.floor_margin = 0.6
-	solver.hinge_axes.append(Vector3.RIGHT)
-	solver.hinge_axes.append(Vector3.RIGHT)
 
 	var pole := Vector3(0.9, -0.8995, 0.2) * 3.0
 	var rng := RandomNumberGenerator.new()
@@ -128,6 +124,115 @@ func _test_fabrik_stability() -> void:
 		stretched[stretched.size() - 1].distance_to(root),
 		solver.total_length,
 		"stretched chain reaches its full length"
+	)
+
+
+## A carried body pulled onto the first bone's line used to flip the bend plane
+## (and with it the pose) every frame: the plane was read back out of the
+## mirrored pose. With the pole off the plane must be carried instead.
+func _test_limb_grab_stability() -> void:
+	var solver := LimbSolver.new(
+		PackedVector3Array([Vector3.ZERO, Vector3(0, -2, 0), Vector3(0, -4, 0), Vector3(0, -6, 0)])
+	)
+	solver.min_joint_angle = 20.0
+	solver.floor_margin = 0.6
+	solver.should_apply_floor = false
+	solver.set_pole_constraints(false)
+	for _i in range(10):
+		solver.solve(Vector3(0.4, -1.0, 0.5), Vector3.ZERO, Vector3.ZERO)
+
+	var bone := (solver.joints[1] - Vector3.ZERO).normalized()
+	var q1 := bone.cross(Vector3.UP)
+	if q1.length_squared() < 0.5:
+		q1 = bone.cross(Vector3.RIGHT)
+	q1 = q1.normalized()
+	var q2 := bone.cross(q1).normalized()
+	var start := Vector3(0.4, -1.0, 0.5)
+	var worst_jump := 0.0
+	var previous := solver.joints.duplicate()
+	for frame in range(120):
+		var t := float(frame) / 120.0
+		var ramp := minf(t * 10.0, 1.0)
+		var along := lerpf(start.dot(bone), 0.8, t)
+		var lat1 := lerpf(start.dot(q1), 0.05 * sin(t * TAU * 2.0), ramp)
+		var lat2 := lerpf(start.dot(q2), 0.0, t)
+		var target := bone * along + q1 * lat1 + q2 * lat2
+		var solved := solver.solve(target, Vector3.ZERO, Vector3.ZERO)
+		for i in range(solved.size()):
+			worst_jump = maxf(worst_jump, previous[i].distance_to(solved[i]))
+		previous = solved.duplicate()
+
+	_check(
+		worst_jump < 0.2,
+		"pole-off chain keeps its side while the target crosses its first bone (%.3f)" % worst_jump
+	)
+
+
+## A punch target close to the mount used to fold the knee across the pole axis:
+## the joint angles stayed legal but the limb read as an S / hyperextension.
+func _test_limb_punch_shape() -> void:
+	var solver := LimbSolver.new(
+		PackedVector3Array([Vector3.ZERO, Vector3(0, -2, 0), Vector3(0, -4, 0), Vector3(0, -6, 0)])
+	)
+	solver.min_joint_angle = 20.0
+	solver.floor_margin = 0.6
+	solver.should_apply_floor = false  # punch profile
+	var pole := Vector3(-1.253, 0.2, 0.577)
+	var worst_fold := 0.0
+	var worst_lateral := INF
+	for i in range(8):
+		var angle := TAU * float(i) / 8.0
+		var dir := Vector3(cos(angle), -0.6, sin(angle)).normalized()
+		var n := (pole - dir * pole.dot(dir)).normalized()
+		for frame in range(8):
+			var target := dir * lerpf(2.9, 0.9, minf(float(frame) / 5.0, 1.0))
+			var solved := solver.solve(target, Vector3.ZERO, pole)
+			var hip := (solved[0] - solved[1]).normalized().angle_to(
+				(solved[2] - solved[1]).normalized()
+			)
+			var knee := (solved[1] - solved[2]).normalized().angle_to(
+				(solved[3] - solved[2]).normalized()
+			)
+			worst_fold = maxf(worst_fold, solver.min_joint_angle - rad_to_deg(minf(hip, knee)))
+			for j in range(1, solved.size() - 1):
+				worst_lateral = minf(worst_lateral, (solved[j] - Vector3.ZERO).dot(n))
+
+	_check(
+		worst_fold < 0.5, "punch keeps the joints inside their limits (%.1f deg over)" % worst_fold
+	)
+	_check(worst_lateral > -0.05, "punch keeps the elbow on the pole side (%.2f)" % worst_lateral)
+
+	# With the flag on, the chain must never reverse its bend into an S.
+	var c_solver := LimbSolver.new(
+		PackedVector3Array([Vector3.ZERO, Vector3(0, -2, 0), Vector3(0, -4, 0), Vector3(0, -6, 0)])
+	)
+	c_solver.min_joint_angle = 20.0
+	c_solver.should_apply_floor = false
+	c_solver.enforce_inward_bend = true
+	c_solver.inward_bend_min = 30.0
+	var worst_reverse := 0.0
+	var min_bend := INF
+	for i in range(8):
+		var angle := TAU * float(i) / 8.0
+		var dir := Vector3(cos(angle), -0.6, sin(angle)).normalized()
+		for frame in range(8):
+			var target := dir * lerpf(2.9, 0.9, minf(float(frame) / 5.0, 1.0))
+			var solved := c_solver.solve(target, Vector3.ZERO, pole)
+			var axis := dir.cross((pole - dir * pole.dot(dir)).normalized())
+			var d1 := (solved[1] - solved[0]).normalized()
+			var d2 := (solved[2] - solved[1]).normalized()
+			var d3 := (solved[3] - solved[2]).normalized()
+			var t1 := atan2(d1.cross(d2).dot(axis), d1.dot(d2))
+			var t2 := atan2(d2.cross(d3).dot(axis), d2.dot(d3))
+			if t1 * t2 < 0.0:
+				worst_reverse = maxf(worst_reverse, minf(absf(t1), absf(t2)))
+			min_bend = minf(min_bend, rad_to_deg(d1.angle_to(d2)))
+	_check(
+		worst_reverse < 0.02, "arm-shaped chain keeps a C curve (%.3f rad reverse)" % worst_reverse
+	)
+	_check(
+		min_bend > 29.0,
+		"arm-shaped chain keeps its minimum bend while in reach (%.1f deg)" % min_bend
 	)
 
 
@@ -200,9 +305,11 @@ func _test_aim_point_from_hit() -> void:
 	)
 
 
-func _two_bone_solver() -> FabrikSolver:
-	var joints := PackedVector3Array([Vector3.ZERO, Vector3(1, 0, 0), Vector3(2, 0, 0)])
-	return FabrikSolver.new(joints)
+func _three_bone_solver() -> LimbSolver:
+	var joints := PackedVector3Array(
+		[Vector3.ZERO, Vector3(1, 0, 0), Vector3(2, 0, 0), Vector3(3, 0, 0)]
+	)
+	return LimbSolver.new(joints)
 
 
 func _check_lengths(joints: PackedVector3Array, label: String) -> void:

@@ -7,7 +7,11 @@ const MAX_GROUND_NORMAL_ANGLE: float = deg_to_rad(60.0)
 # fraction of the limb's total length a step target is allowed to ask for
 const REACH_FRACTION: float = 0.85
 
-@export var is_leg: bool = true
+@export var is_leg: bool = true:
+	set(value):
+		is_leg = value
+		if arm != null and arm.solver != null:
+			arm.solver.enforce_inward_bend = not value
 # the mount above this
 @export var vertical_mount: ArmMount
 # the mount to the side of this
@@ -60,6 +64,7 @@ func init(p: PlayerController) -> BasicArm:
 	arm.position = Vector3.ZERO
 	arm.pole = pole
 	add_child(arm)
+	arm.solver.enforce_inward_bend = not is_leg
 	set_target(ground_probe.global_position)
 
 	_cast_sphere = SphereShape3D.new()
