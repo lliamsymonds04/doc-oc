@@ -143,8 +143,10 @@ func _handle_input() -> void:
 	if Input.is_action_just_pressed("left-click"):
 		if player.is_in_grab_mode():
 			p.grab_controller.try_grab(-1)
-		else:
-			p.attack_controller.try_attack()
+
+	# Held button keeps punching at attack_debounce rate; grab stays on just_pressed.
+	if Input.is_action_pressed("left-click") and not player.is_in_grab_mode():
+		p.attack_controller.try_attack()
 
 	if Input.is_action_just_pressed("right-click"):
 		if player.is_in_grab_mode():
