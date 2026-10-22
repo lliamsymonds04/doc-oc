@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" uid="uid://dqbd8ih3ynaal" path="res://systems/enemy/basic_enemy.tscn" id="10_4c57u"]
 [ext_resource type="Script" uid="uid://bdtssx7vpj7jn" path="res://systems/enemy/dummy.gd" id="11_efxa6"]
 [ext_resource type="Script" uid="uid://ctgilxfxha04r" path="res://main.gd" id="12_main"]
+[ext_resource type="Shader" path="res://shaders/pixelate.gdshader" id="13_pixel"]
 
 [sub_resource type="StandardMaterial3D" id="FloorMat"]
 albedo_texture = ExtResource("1_h2yge")
@@ -99,6 +100,18 @@ uv1_world_triplanar = true
 [sub_resource type="StandardMaterial3D" id="BoxMat_coral"]
 albedo_color = Color(1, 0.45, 0.4, 1)
 roughness = 0.45
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pixel"]
+shader = ExtResource("13_pixel")
+shader_parameter/pixel_size = 1.0
+shader_parameter/levels = 32.0
+shader_parameter/dithering = 0.5
+shader_parameter/saturation = 1.0
+shader_parameter/contrast = 1.0
+shader_parameter/shadow_tint = Color(0.05, 0.12, 0.18, 1)
+shader_parameter/highlight_tint = Color(0.22, 0.12, 0.03, 1)
+shader_parameter/split_strength = 0.05
+shader_parameter/split_balance = 0.5
 
 [node name="Main" type="Node3D" unique_id=1606965912]
 script = ExtResource("12_main")
@@ -211,6 +224,18 @@ material = SubResource("StandardMaterial3D_m2c1y")
 
 [node name="DebugRayDrawer" type="Node3D" parent="." unique_id=821449203]
 script = ExtResource("9_dbg")
+
+[node name="ScreenEffect" type="CanvasLayer" parent="." unique_id=942319711]
+layer = 0
+
+[node name="Pixelate" type="ColorRect" parent="ScreenEffect" unique_id=942319712]
+material = SubResource("ShaderMaterial_pixel")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="Hud" parent="." unique_id=1447860461 instance=ExtResource("8_5vw27")]
 
