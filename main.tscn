@@ -12,7 +12,39 @@
 [ext_resource type="PackedScene" uid="uid://dqbd8ih3ynaal" path="res://systems/enemy/basic_enemy.tscn" id="10_4c57u"]
 [ext_resource type="Script" uid="uid://bdtssx7vpj7jn" path="res://systems/enemy/dummy.gd" id="11_efxa6"]
 [ext_resource type="Script" uid="uid://ctgilxfxha04r" path="res://main.gd" id="12_main"]
-[ext_resource type="Shader" path="res://shaders/pixelate.gdshader" id="13_pixel"]
+[ext_resource type="Shader" uid="uid://cagkf5o8es3pp" path="res://shaders/pixelate.gdshader" id="13_pixel"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
+sky_top_color = Color(0.26, 0.28, 0.34, 1)
+sky_horizon_color = Color(0.48, 0.42, 0.35, 1)
+ground_bottom_color = Color(0.1, 0.09, 0.1, 1)
+ground_horizon_color = Color(0.47843137, 0.41960785, 0.34901962, 1)
+sun_angle_max = 10.0
+sun_curve = 0.08
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("ProceduralSkyMaterial_1")
+radiance_size = 4
+
+[sub_resource type="Environment" id="Environment_m2c1y"]
+background_mode = 2
+sky = SubResource("Sky_1")
+ambient_light_source = 3
+ambient_light_energy = 0.25
+reflected_light_source = 2
+tonemap_mode = 2
+ssao_enabled = true
+glow_enabled = true
+glow_intensity = 0.65
+glow_bloom = 0.1
+glow_hdr_threshold = 0.9
+fog_enabled = true
+fog_light_color = Color(0.48, 0.42, 0.35, 1)
+fog_density = 0.012
+fog_sky_affect = 0.0
+adjustment_enabled = true
+adjustment_brightness = 1.02
+adjustment_contrast = 1.06
 
 [sub_resource type="StandardMaterial3D" id="FloorMat"]
 albedo_texture = ExtResource("1_h2yge")
@@ -56,50 +88,12 @@ roughness = 0.45
 script = ExtResource("3_kek77")
 metadata/_custom_type_script = "uid://0id6ded7pmn5"
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
-sky_top_color = Color(0.16, 0.38, 0.92, 1)
-sky_horizon_color = Color(0.85, 0.9, 1, 1)
-ground_bottom_color = Color(0.15, 0.2, 0.38, 1)
-ground_horizon_color = Color(0.85, 0.9, 1, 1)
-sun_angle_max = 10.0
-sun_curve = 0.08
-energy_multiplier = 1.1
-
-[sub_resource type="Sky" id="Sky_1"]
-sky_material = SubResource("ProceduralSkyMaterial_1")
-radiance_size = 4
-
-[sub_resource type="Environment" id="Environment_m2c1y"]
-background_mode = 2
-sky = SubResource("Sky_1")
-ambient_light_source = 3
-ambient_light_energy = 1.15
-reflected_light_source = 2
-tonemap_mode = 2
-ssao_enabled = true
-glow_enabled = true
-glow_intensity = 0.65
-glow_bloom = 0.1
-glow_hdr_threshold = 0.9
-fog_enabled = true
-fog_light_color = Color(0.72, 0.82, 1, 1)
-fog_density = 0.002
-fog_sky_affect = 0.4
-adjustment_enabled = true
-adjustment_brightness = 1.02
-adjustment_contrast = 1.06
-adjustment_saturation = 1.16
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_m2c1y"]
 vertex_color_use_as_albedo = true
 albedo_texture = ExtResource("3_h2yge")
 uv1_scale = Vector3(0.5, 0.5, 0.5)
 uv1_triplanar = true
 uv1_world_triplanar = true
-
-[sub_resource type="StandardMaterial3D" id="BoxMat_coral"]
-albedo_color = Color(1, 0.45, 0.4, 1)
-roughness = 0.45
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_pixel"]
 shader = ExtResource("13_pixel")
@@ -108,19 +102,27 @@ shader_parameter/levels = 32.0
 shader_parameter/dithering = 0.5
 shader_parameter/saturation = 1.0
 shader_parameter/contrast = 1.0
-shader_parameter/shadow_tint = Color(0.05, 0.12, 0.18, 1)
-shader_parameter/highlight_tint = Color(0.22, 0.12, 0.03, 1)
+shader_parameter/shadow_tint = Color(0.03, 0.035, 0.055, 1)
+shader_parameter/highlight_tint = Color(0.22, 0.15, 0.09, 1)
 shader_parameter/split_strength = 0.05
 shader_parameter/split_balance = 0.5
+
+[sub_resource type="StandardMaterial3D" id="BoxMat_coral"]
+albedo_color = Color(1, 0.45, 0.4, 1)
+roughness = 0.45
 
 [node name="Main" type="Node3D" unique_id=1606965912]
 script = ExtResource("12_main")
 
 [node name="Sun" type="DirectionalLight3D" parent="." unique_id=145132705]
 transform = Transform3D(0.819152, 0, 0.5735764, 0.4055798, 0.7071068, -0.579228, -0.4055798, 0.7071068, 0.579228, 0, 12, 0)
-light_color = Color(1, 0.83137256, 0.38431373, 1)
+light_color = Color(1, 0.78, 0.55, 1)
+light_energy = 1.5
 shadow_enabled = true
 directional_shadow_max_distance = 80.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=415060811]
+environment = SubResource("Environment_m2c1y")
 
 [node name="Floor" type="CSGBox3D" parent="." unique_id=94500922]
 use_collision = true
@@ -188,9 +190,6 @@ hover = SubResource("Resource_b5y0m")
 step_vfx = ExtResource("3_lquwl")
 step_sound = ExtResource("4_7mycd")
 servo_sound = ExtResource("5_3rvo")
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=415060811]
-environment = SubResource("Environment_m2c1y")
 
 [node name="CSGCombiner3D" type="CSGCombiner3D" parent="." unique_id=428718861]
 use_collision = true

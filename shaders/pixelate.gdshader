@@ -8,8 +8,8 @@ uniform float dithering : hint_range(0.0, 1.0, 0.1) = 0.5; // dithering strength
 uniform float saturation : hint_range(0.0, 2.0, 0.1) = 1.0;
 uniform float contrast : hint_range(0.0, 2.0, 0.1) = 1.0;
 
-uniform vec3 shadow_tint : source_color = vec3(0.05, 0.12, 0.18);     // teal-ish shadows
-uniform vec3 highlight_tint : source_color = vec3(0.22, 0.12, 0.03);  // warm orange highlights
+uniform vec3 shadow_tint : source_color = vec3(0.03, 0.035, 0.055);  // cold grey shadows
+uniform vec3 highlight_tint : source_color = vec3(0.22, 0.15, 0.09);  // muted amber highlights
 uniform float split_strength : hint_range(0.0, 1.0, 0.05) = 0.05;
 uniform float split_balance : hint_range(0.0, 1.0, 0.05) = 0.5;       // where dark meets bright
 
