@@ -169,8 +169,10 @@ func set_state(id: StateID) -> void:
 	if _current:
 		_current.exit()
 
-	for mount in all_mounts():
-		mount.arm.is_moving = false
+	# the tackle drives the arms itself while winding up; don't cancel its punch
+	if not tackle_controller.is_tackling():
+		for mount in all_mounts():
+			mount.arm.is_moving = false
 
 	_current = _states[id]
 	_current.enter()

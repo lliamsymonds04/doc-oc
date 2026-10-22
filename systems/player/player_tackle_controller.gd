@@ -108,6 +108,10 @@ func _strike() -> void:
 		mount.arm.start_punch(
 			_punch_aim(mount), ~player.collision_layer, config.punch_speed_multiplier
 		)
+		mount.arm.set_end_effector_trail(true)
+		mount.arm.set_trail_style(
+			player.attack_config.trail_width, player.attack_config.trail_transparency
+		)
 
 
 func _windup_time() -> float:

@@ -51,6 +51,8 @@ func enter() -> void:
 		mount.set_apply_floor(mount.is_leg)
 
 	# sprinting limbs are legs, so they plant on landing instead of returning to idle
+	if p.tackle_controller.is_tackling():
+		return  # the tackle owns the arms; leave its punch in flight
 	if is_sprinting:
 		_plant_sprint_limbs()
 	else:
@@ -309,6 +311,8 @@ func _update_legs(dt: float) -> void:
 func _update_arms(dt: float) -> void:
 	if is_sprinting:
 		return
+	if player.tackle_controller.is_tackling():
+		return  # the tackle advances these punches itself
 
 	var p := player
 	for mount in p.arm_mounts:

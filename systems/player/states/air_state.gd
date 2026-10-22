@@ -42,6 +42,9 @@ func enter() -> void:
 
 
 func exit() -> void:
+	# the tackle keeps punching across the landing; its trails must survive
+	if player.tackle_controller.is_tackling():
+		return
 	for mount in player.all_mounts():
 		mount.arm.set_end_effector_trail(false)
 
