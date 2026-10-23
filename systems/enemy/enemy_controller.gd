@@ -73,6 +73,10 @@ func initiate_get_up() -> void:
 		_ragdoll.initiate_get_up()
 
 
+func unragdoll() -> void:
+	_ragdoll.unragdoll()
+
+
 func cancel_get_up() -> void:
 	_ragdoll.cancel_get_up()
 

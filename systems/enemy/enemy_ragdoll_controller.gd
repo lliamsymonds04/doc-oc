@@ -88,6 +88,14 @@ func deactivate() -> void:
 	_reallign_body = true
 
 
+## Snaps back to the CharacterBody now, unlike initiate_get_up() which waits for the body to settle.
+func unragdoll() -> void:
+	# a pending get_up would deactivate again later and teleport the enemy back here
+	cancel_get_up()
+	if _is_ragdoll:
+		deactivate()
+
+
 func initiate_get_up() -> void:
 	_downed_seq += 1
 	var seq := _downed_seq

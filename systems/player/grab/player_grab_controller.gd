@@ -101,10 +101,14 @@ func _release_mount(mount: ArmMount) -> void:
 		body.collision_layer = original_layers[body]
 		original_layers.erase(body)
 
+		# a thrown enemy gets up after it settles; a plain release converts them back now
 		if body.has_meta(EnemyRagdollController.ENEMY_META):
 			var enemy: EnemyController = body.get_meta(EnemyRagdollController.ENEMY_META)
 			if not enemy.is_dead():
-				enemy.initiate_get_up()
+				if throw:
+					enemy.initiate_get_up()
+				else:
+					enemy.unragdoll()
 
 	mount.set_apply_pole(true)
 
