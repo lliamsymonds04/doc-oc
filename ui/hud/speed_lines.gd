@@ -7,16 +7,16 @@ extends ColorRect
 const PHASE_WRAP := 1024.0
 
 @export_category("Fade")
-@export var intensity_scalar: float = 0.6
+@export var intensity_scalar: float = 0.8
 @export var blend_rate: float = 6.0
 
 @export_category("Flow")
-@export var slow_flow_speed: float = 10.0
-@export var fast_flow_speed: float = 15.0
+@export var slow_flow_speed: float = 8.0
+@export var fast_flow_speed: float = 12.0
 
 @export_category("Radius")
 @export var slow_inner_radius: float = 0.4
-@export var fast_inner_radius: float = 0.35
+@export var fast_inner_radius: float = 0.32
 
 @export_category("Speed Threshold")
 @export var min_speed_thresh_mult: float = 0.95

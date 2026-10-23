@@ -6,12 +6,15 @@
 [ext_resource type="Shader" uid="uid://bu60as08yka86" path="res://shaders/blur.gdshader" id="3_546lt"]
 [ext_resource type="PackedScene" uid="uid://cnd56v71x1mrb" path="res://ui/hud/pause_menu_button.tscn" id="4_7ihmi"]
 [ext_resource type="AudioStream" uid="uid://c6b43l5u6h3j5" path="res://assets/audio/ui/bookFlip2.ogg" id="4_en2x2"]
+[ext_resource type="Texture2D" uid="uid://bma5gmd0nqcsc" path="res://assets/textures/trace_07_a.png" id="5_trace"]
 [ext_resource type="PackedScene" uid="uid://ckea25jbuw1i2" path="res://ui/hud/mode_buttons.tscn" id="6_1v5rv"]
 [ext_resource type="Script" uid="uid://clbc0kairsmkr" path="res://ui/hud/hud.gd" id="7_hudgd"]
 [ext_resource type="Script" uid="uid://lp0bjh350s73" path="res://ui/hud/speed_lines.gd" id="9_speedlinesgd"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_speedlines"]
 shader = ExtResource("2_aixkq")
+shader_parameter/dash_texture = ExtResource("5_trace")
+shader_parameter/trace_scale = 0.15000000433093
 shader_parameter/intensity = 0.0
 shader_parameter/flow_phase = 0.0
 shader_parameter/inner_radius = 0.2
