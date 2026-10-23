@@ -92,6 +92,14 @@ func set_sprinting(active: bool) -> void:
 	_sprinting = active
 
 
+func get_speed() -> float:
+	return _current_speed
+
+
+func get_player() -> PlayerController:
+	return _player
+
+
 func get_camera_direction() -> Vector3:
 	return -cam.global_transform.basis.z
 
