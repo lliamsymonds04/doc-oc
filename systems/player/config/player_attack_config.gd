@@ -27,6 +27,14 @@ extends Resource
 @export var impulse_strength: float = 7.0
 @export var impulse_min_y: float = 1.0
 
+@export_group("Knockback")
+## Horizontal shove on a living enemy hit, in m/s.
+@export var knockback_speed: float = 4.0
+## Upward pop, applied only when the enemy is on the ground.
+@export var knockback_lift: float = 1.5
+## Horizontal multiplier on the shove once the enemy dies, so corpses fly further.
+@export var death_knockback_multiplier: float = 2.5
+
 @export_group("Visuals")
 @export var trail_width: float = 0.4
 @export var trail_transparency: float = 0.4

@@ -46,6 +46,16 @@ func take_damage(dmg: float) -> void:
 		initiate_ragdoll(false)
 
 
+## Shoves `dir`-ward at `speed`; `dir` is flattened and `lift` only pops a grounded enemy.
+func apply_knockback(dir: Vector3, speed: float, lift: float) -> void:
+	dir.y = 0.0
+	dir = dir.normalized()
+	velocity.x = dir.x * speed
+	velocity.z = dir.z * speed
+	if is_on_floor():
+		velocity.y = maxf(velocity.y, lift)
+
+
 func is_dead() -> bool:
 	return health_controller.is_dead()
 

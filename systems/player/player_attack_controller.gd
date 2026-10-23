@@ -96,13 +96,20 @@ func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 
 	if collider is EnemyController:
 		var enemy: EnemyController = collider
+		var knock_dir := enemy.global_position - player.global_position
+
+		enemy.apply_knockback(knock_dir, config.knockback_speed, config.knockback_lift)
 
 		enemy.take_damage(player.attack_config.damage)
 
 		if enemy.is_dead():
 			var ragdoll := enemy.get_ragdoll()
 			if ragdoll:
-				_impulse_rigid_body(ragdoll, hit)
+				var corpse_vel := enemy.velocity
+				corpse_vel.x *= config.death_knockback_multiplier
+				corpse_vel.z *= config.death_knockback_multiplier
+				# deferred to land after activate()'s deferred unfreeze
+				ragdoll.set_deferred("linear_velocity", corpse_vel)
 
 	elif ragdoll_enemy:
 		ragdoll_enemy.take_damage(player.attack_config.damage)
