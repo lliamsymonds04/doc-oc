@@ -18,6 +18,8 @@ var is_camera_aligned := false
 var is_sprinting := false
 var leg_probe_hits: Dictionary = {}
 var floor_normal := Vector3.UP
+## Pivot x without the attack lean, which is written on top at its own rate.
+var _base_tilt_x := 0.0
 
 
 func _init(p: PlayerController) -> void:
@@ -42,6 +44,7 @@ func enter() -> void:
 	body_y_offset = (p.hover.min_y_offset + p.hover.max_y_offset) / 2.0
 	is_camera_aligned = absf(p.camera_controller.rotation.y) <= align_angle
 	floor_normal = Vector3.UP
+	_base_tilt_x = p.tilt_pivot.rotation.x - p.attack_controller.attack_tilt_x
 
 	for mount in p.leg_mounts:
 		mount.set_apply_floor(true)
@@ -226,7 +229,7 @@ func _update_tilt(dt: float) -> void:
 	if dir.length_squared() > 0.0:
 		dir = dir.normalized()
 
-	var current_tilt_x := p.tilt_pivot.rotation.x
+	var current_tilt_x := _base_tilt_x
 	var current_tilt_z := p.tilt_pivot.rotation.z
 	var current_tilt_y := p.tilt_pivot.rotation.y
 
@@ -253,9 +256,10 @@ func _update_tilt(dt: float) -> void:
 		current_tilt_y, target_tilt_y, dt * tilt_speed * p.grounded.yaw_tilt_speed_multiplier
 	)
 
-	p.tilt_pivot.rotation.x = tilted_x
+	p.tilt_pivot.rotation.x = tilted_x + p.attack_controller.attack_tilt_x
 	p.tilt_pivot.rotation.z = tilted_z
 	p.tilt_pivot.rotation.y = tilted_y
+	_base_tilt_x = tilted_x
 
 
 func _update_legs(dt: float) -> void:

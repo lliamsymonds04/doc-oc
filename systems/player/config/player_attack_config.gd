@@ -21,7 +21,9 @@ extends Resource
 @export var enemy_hit_sound: AudioStreamOggVorbis = preload("res://assets/audio/cyber_punch.ogg")
 @export var hit_vfx_scene: PackedScene = preload("res://assets/vfx/step.tscn")
 @export var hit_trauma: float = 0.7
-@export_range(0, -10, -0.5) var hit_fov_kick: float = -2.0
+@export_range(-10, 0, 0.5) var hit_fov_kick: float = -2.0
+## Wind-up kick on a heavy swing; + = widen. Hits narrow, so the two beats differ.
+@export var swing_fov_kick: float = 1.5
 
 @export_group("Impulse Physics")
 @export var impulse_strength: float = 7.0
@@ -34,6 +36,29 @@ extends Resource
 @export var knockback_lift: float = 1.5
 ## Horizontal multiplier on the shove once the enemy dies, so corpses fly further.
 @export var death_knockback_multiplier: float = 2.5
+
+@export_group("Heavy Attack")
+## Every Nth punch in a combo becomes a two-armed heavy attack.
+@export_range(1, 20, 1) var heavy_attack_every: int = 3
+## Idle gap (s) between punches that ends the combo and resets the counter.
+@export var combo_reset_time: float = 1.0
+## Recovery after a heavy (s), used instead of attack_debounce.
+@export var heavy_attack_debounce: float = 1.0
+## Forward lean into a heavy swing, in degrees (positive = lean forward).
+@export var heavy_tilt_degrees: float = 25.0
+## How long the heavy lean holds (s); outlasts tilt_reset_time so a whiff reads.
+@export var heavy_tilt_reset_time: float = 0.45
+## Blend rate (1/s) of the heavy lean, independent of the slower walk/camera tilt.
+@export var heavy_tilt_rate: float = 14.0
+## Blend rate (1/s) of the lean falling back to zero; slower reads as follow-through.
+@export var heavy_tilt_release_rate: float = 5.0
+## Multipliers on the base values above, applied only while a heavy is live.
+@export var heavy_damage_multiplier: float = 2.5
+@export var heavy_knockback_multiplier: float = 2.0
+@export var heavy_lift_multiplier: float = 1.5
+@export var heavy_trauma_multiplier: float = 1.4
+@export var heavy_fov_kick_multiplier: float = 2.5
+@export var heavy_impulse_multiplier: float = 2.0
 
 @export_group("Visuals")
 @export var trail_width: float = 0.4

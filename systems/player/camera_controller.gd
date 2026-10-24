@@ -13,7 +13,7 @@ extends SpringArm3D
 @export var speed_at_max_fov: float = 10.0
 @export var fov_change_rate: float = 2.0
 @export_range(0.1, 4.0, 0.05) var fov_curve_exponent: float = 0.5
-@export var fov_kick_recovery: float = 8.0
+@export var fov_kick_recovery: float = 5.0
 
 @export_category("Trail")
 @export var trail_strength: float = 0.06  # forward/back (local Z)
