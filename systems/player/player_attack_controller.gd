@@ -4,6 +4,8 @@ extends RefCounted
 ## Heavy multipliers and the two-arm hit guard are live only for the swing itself, not
 ## the whole debounce: a tackle punch inside that window is a separate hit.
 const SWING_WINDOW: float = 0.3
+## One impact effect per arm, so a heavy can show two hits at once.
+const HIT_VFX_POOL_SIZE: int = 2
 
 var player: PlayerController
 var prev_attack_mount: ArmMount
@@ -19,11 +21,14 @@ var config: PlayerAttackConfig
 var _tilt_x_target: float = 0.0
 var _debounce: float = 0.0
 var _heavy_active: bool = false
-var _damaged_this_attack: Array[Object] = []
+## Latched by the first landing hit of a swing; a heavy's second arm only shows VFX.
+var _damaged_this_swing: bool = false
+var _hit_sound_played: bool = false
 
 var _attack_audio_player: AudioStreamPlayer3D
 var _hit_audio_player: AudioStreamPlayer3D
-var _hit_vfx: ImpactVFX
+var _hit_vfx_pool: Array[ImpactVFX] = []
+var _hit_vfx_next: int = 0
 var _crack_decal_parent: Node3D
 var _aiming_at_enemy_in_range: bool = false
 
@@ -41,9 +46,11 @@ func _init(p: PlayerController, attack_config: PlayerAttackConfig) -> void:
 	p.add_child(_hit_audio_player)
 
 	if config.hit_vfx_scene != null:
-		_hit_vfx = config.hit_vfx_scene.instantiate() as ImpactVFX
-		_hit_vfx.top_level = true
-		p.add_child(_hit_vfx)
+		for i in HIT_VFX_POOL_SIZE:
+			var vfx := config.hit_vfx_scene.instantiate() as ImpactVFX
+			vfx.top_level = true
+			p.add_child(vfx)
+			_hit_vfx_pool.append(vfx)
 
 	# Decals live at scene root so they don't move around with the player.
 	_crack_decal_parent = p.get_tree().current_scene
@@ -65,7 +72,8 @@ func try_attack() -> void:
 	var is_heavy := combo_count % maxi(config.heavy_attack_every, 1) == 0
 	_debounce = config.heavy_attack_debounce if is_heavy else config.attack_debounce
 	_heavy_active = is_heavy
-	_damaged_this_attack.clear()
+	_damaged_this_swing = false
+	_hit_sound_played = false
 
 	var gs := p.grounded_state()
 	var look_turn := absf(angle_difference(p.rotation.y, p.camera_controller.global_rotation.y))
@@ -133,14 +141,20 @@ func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 	if enemy:
 		player.attack_hit.emit(hit, normal, collider)
 
-	var already_hit := _register_swing_hit(enemy)
+	# One swing lands once: both arms may connect, but only the first hit plays
+	# audio or deals damage. Each arm still gets its own effect from the pool.
+	var can_land := _swing_live() and not _damaged_this_swing
 
-	_hit_audio_player.stream = config.enemy_hit_sound if enemy else config.surface_hit_sound
-	AudioUtil.play_with_pitch(_hit_audio_player)
+	if not _hit_sound_played:
+		_hit_sound_played = true
+		_hit_audio_player.stream = (config.enemy_hit_sound if enemy else config.surface_hit_sound)
+		AudioUtil.play_with_pitch(_hit_audio_player)
+
 	if enemy == null and not collider is RigidBody3D:
 		CrackDecal.spawn(_crack_decal_parent, hit, normal)
 
-	if enemy and not already_hit:
+	if enemy and can_land:
+		_damaged_this_swing = true
 		_damage_enemy(collider, enemy, hit)
 	elif enemy == null and collider is RigidBody3D:
 		_impulse_rigid_body(collider, hit)
@@ -150,18 +164,14 @@ func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 		config.hit_fov_kick * _heavy(config.heavy_fov_kick_multiplier)
 	)
 
-	if _hit_vfx:
-		_hit_vfx.play(hit, normal)
+	_spawn_hit_vfx(hit, normal)
 
 
-## Returns true when this target was already damaged by the current swing.
-func _register_swing_hit(enemy: EnemyController) -> bool:
-	if not _swing_live() or enemy == null:
-		return false
-	if _damaged_this_attack.has(enemy):
-		return true
-	_damaged_this_attack.append(enemy)
-	return false
+func _spawn_hit_vfx(hit: Vector3, normal: Vector3) -> void:
+	if _hit_vfx_pool.is_empty():
+		return
+	_hit_vfx_pool[_hit_vfx_next].play(hit, normal)
+	_hit_vfx_next = (_hit_vfx_next + 1) % _hit_vfx_pool.size()
 
 
 func _damage_enemy(collider: Object, enemy: EnemyController, hit: Vector3) -> void:
