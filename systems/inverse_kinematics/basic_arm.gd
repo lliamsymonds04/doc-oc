@@ -30,7 +30,7 @@ const GROUNDED_DISTANCE_CHECK: float = 0.2
 
 @export_category("Trail")
 @export var trail_lifetime: float = 0.2
-@export var trail_color: Color = Color(0.6, 1.0, 1.0, 1.0)
+@export var trail_color: Color = Color(0.81176471, 0.82745098, 0.85098039, 1.0)
 
 var target: Vector3 = Vector3.ZERO
 var target_world: Vector3 = Vector3.ZERO
@@ -269,15 +269,19 @@ func _to_local_dir(world_dir: Vector3) -> Vector3:
 
 func _build_visualizer() -> void:
 	var limb_mat := StandardMaterial3D.new()
-	limb_mat.albedo_color = Color(0.3, 0.52, 1.0)
+	limb_mat.albedo_color = Color(0.47843137, 0.50588235, 0.54901961)
+	limb_mat.metallic = 0.5
 	limb_mat.roughness = 0.45
 
 	var joint_mat := StandardMaterial3D.new()
-	joint_mat.albedo_color = Color(1.0, 0.55, 0.12)
-	joint_mat.roughness = 0.45
+	joint_mat.albedo_color = Color(0.65882355, 1.0, 0.24313726)
+	joint_mat.metallic = 0.6
+	joint_mat.roughness = 0.3
 
 	var end_effector_mat := StandardMaterial3D.new()
-	end_effector_mat.albedo_color = Color(1.0, 1.0, 0.1)
+	end_effector_mat.albedo_color = Color(0.81176471, 0.82745098, 0.85098039)
+	end_effector_mat.metallic = 0.95
+	end_effector_mat.roughness = 0.28
 
 	var cylinder := CylinderMesh.new()
 	cylinder.top_radius = limb_radius
@@ -298,10 +302,7 @@ func _build_visualizer() -> void:
 	for i in range(num_limbs + 1):
 		var joint := MeshInstance3D.new()
 		joint.mesh = sphere
-		if i == num_limbs:
-			joint.material_override = end_effector_mat
-		else:
-			joint.material_override = joint_mat
+		joint.material_override = end_effector_mat if i == num_limbs else joint_mat
 		add_child(joint)
 		joint_meshes.append(joint)
 

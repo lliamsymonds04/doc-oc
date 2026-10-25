@@ -37,7 +37,9 @@ metadata/_custom_type_script = "uid://ci0k2wv8n3bhd"
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m2c1y"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ktl23"]
-albedo_color = Color(0.47058824, 1, 1, 1)
+albedo_color = Color(0.82352941, 0.83921569, 0.86666667, 1)
+metallic = 0.35
+roughness = 0.5
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_m2c1y"]
 
