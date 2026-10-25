@@ -26,11 +26,13 @@ var buttons: Array[Control] = []
 @onready var blur_rect = $BlurRect
 @onready var grid = $GridContainer
 @onready var audio_player = $AudioStreamPlayer2D
+@onready var menu_cursor: MenuCursor = $MenuCursor
 
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
+	get_window().focus_entered.connect(_apply_mouse_mode)
 
 	if button_scene:
 		_spawn_buttons()
@@ -88,14 +90,29 @@ func _blur_tween() -> void:
 		blur_rect, "material:shader_parameter/mix_amount", color_mix_target, blur_tween_duration
 	)
 
+	_apply_mouse_mode()
+
 	if is_paused:
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		visible = true
 		_animate_buttons_in()
 	else:
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		blur_tween.finished.connect(func(): visible = false)
 		_animate_buttons_out()
+
+
+func _apply_mouse_mode() -> void:
+	if is_paused:
+		# visible pointers keep moving; the native image is blanked so MenuCursor is
+		# the only cursor drawn. CONFINED_HIDDEN freezes the pointer on Wayland.
+		Input.mouse_mode = Input.MOUSE_MODE_CONFINED
+		menu_cursor.set_native_hidden(true)
+		return
+
+	menu_cursor.set_native_hidden(false)
+
+	# re-setting CAPTURED is a no-op, so bounce through VISIBLE to force a fresh grab
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
 func _spawn_buttons() -> void:
