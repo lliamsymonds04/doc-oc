@@ -49,8 +49,9 @@ func create_launch(direction: Vector3) -> LaunchData:
 	var data := LaunchData.new()
 
 	# with no stick input, commit forward so a tap is always a dash, never a pop
+	var has_input := direction.length_squared() >= 0.01
 	var dir := direction
-	if dir.length_squared() < 0.01:
+	if not has_input:
 		dir = player.camera_controller.get_input_direction(Vector2(0, -1))
 
 	if hold_time < config.dash_jump_ceiling:
@@ -71,7 +72,11 @@ func create_launch(direction: Vector3) -> LaunchData:
 	var hvel := Vector3(player.velocity.x, 0.0, player.velocity.z)
 	var along := hvel.dot(dir)
 	var perp := hvel - dir * along
-	var launch := dir * maxf(along, horizontal) + perp * 0.35
+	var forward_speed := horizontal
+	if not has_input and data.charge > 0.0:
+		forward_speed = 0.0
+
+	var launch := dir * maxf(along, forward_speed) + perp * 0.35
 	velocity.x = launch.x
 	velocity.z = launch.z
 
