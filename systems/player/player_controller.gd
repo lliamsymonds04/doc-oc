@@ -101,6 +101,9 @@ func _ready() -> void:
 	_current = _states[StateID.GROUNDED]
 
 	jump_controller = PlayerJumpController.new(self, jump)
+	# _current was assigned directly, so enter() has not run; do it now that every
+	# controller exists (enter() touches jump_controller)
+	_current.enter()
 
 	_jump_audio_player = AudioStreamPlayer3D.new()
 	_jump_audio_player.stream = preload("res://assets/audio/robot_jump.ogg")

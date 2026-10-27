@@ -66,9 +66,13 @@ func get_leg_probe_hits() -> Dictionary:
 	var probe_hits := {}
 
 	for mount in player.leg_mounts:
+		# the probe hangs off the tilting body, so a lean sinks it below the floor;
+		# cast from a fixed height above the body instead
 		var probe_pos := mount.ground_probe.global_position
+		var vertical_offset: float = player.raycast_config.probe_vertical_offset
+		probe_pos.y = player.global_position.y + vertical_offset
 		var hit = mount.get_surface_hit(
-			probe_pos, Vector3.DOWN, player.raycast_config.step_raycast_distance
+			probe_pos, Vector3.DOWN, player.raycast_config.step_raycast_distance + vertical_offset
 		)
 		if hit:
 			## check the surface normal
