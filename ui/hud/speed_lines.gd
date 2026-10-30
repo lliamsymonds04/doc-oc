@@ -36,7 +36,9 @@ func _ready() -> void:
 
 func _process(dt: float) -> void:
 	if _camera == null:
-		_camera = get_tree().get_first_node_in_group("camera_controller") as CameraController
+		_camera = (
+			get_tree().get_first_node_in_group(CameraController.CAMERA_GROUP) as CameraController
+		)
 		if _camera == null:
 			return
 

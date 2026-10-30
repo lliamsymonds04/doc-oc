@@ -1,6 +1,8 @@
 class_name CameraController
 extends SpringArm3D
 
+const CAMERA_GROUP := &"camera_controller"
+
 @export var sensitivity: float = 0.02
 
 @export_category("Trauma")
@@ -66,8 +68,7 @@ var _cast_sphere: SphereShape3D
 
 
 func _ready() -> void:
-	# lookup point for systems without a player reference (ImpactSensor shake)
-	add_to_group("camera_controller")
+	add_to_group(CAMERA_GROUP)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	cam.fov = base_fov
 	_speed_fov = base_fov

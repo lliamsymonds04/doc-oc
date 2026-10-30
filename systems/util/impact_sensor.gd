@@ -136,7 +136,7 @@ func _shake_camera(dv: float, normal: Vector3) -> void:
 		return
 
 	var cam_ctrl := (
-		_body.get_tree().get_first_node_in_group("camera_controller") as CameraController
+		_body.get_tree().get_first_node_in_group(CameraController.CAMERA_GROUP) as CameraController
 	)
 	if cam_ctrl == null:
 		return
