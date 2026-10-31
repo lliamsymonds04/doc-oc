@@ -6,10 +6,12 @@
 [ext_resource type="Script" uid="uid://ci0k2wv8n3bhd" path="res://systems/inverse_kinematics/arm_raycast_config.gd" id="2_q27vv"]
 [ext_resource type="Script" uid="uid://e7i48fc1qy5y" path="res://systems/player/config/movement_config.gd" id="4_mv"]
 [ext_resource type="Script" uid="uid://0id6ded7pmn5" path="res://systems/player/config/hover_config.gd" id="5_hv"]
+[ext_resource type="PackedScene" uid="uid://20k0tsilfa42" path="res://assets/vfx/dash_trail.tscn" id="6_cla4a"]
 [ext_resource type="Script" uid="uid://cpgw28xtxlxan" path="res://systems/player/config/grounded_config.gd" id="6_gr"]
 [ext_resource type="Script" uid="uid://m80ltc0jpisw" path="res://systems/player/config/air_config.gd" id="7_air"]
 [ext_resource type="Script" uid="uid://buqeh3cy7x7lh" path="res://systems/player/config/jump_config.gd" id="8_jmp"]
 [ext_resource type="Script" uid="uid://cyvpqtaweo6au" path="res://systems/player/config/wall_climb_config.gd" id="10_wc"]
+[ext_resource type="Script" uid="uid://pygi44sg0dn6" path="res://systems/common/health_controller.gd" id="12_xdcb8"]
 
 [sub_resource type="Resource" id="Resource_movement"]
 script = ExtResource("4_mv")
@@ -37,7 +39,7 @@ metadata/_custom_type_script = "uid://ci0k2wv8n3bhd"
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m2c1y"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ktl23"]
-albedo_color = Color(0.82352941, 0.83921569, 0.86666667, 1)
+albedo_color = Color(0.8235294, 0.8392157, 0.8666667, 1)
 metallic = 0.35
 roughness = 0.5
 
@@ -162,3 +164,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.253, 0.2, 0.577)
 
 [node name="WallProbe" type="Node3D" parent="TiltPivot/ArmRight" unique_id=1227139099]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.254, -0.5, 0)
+
+[node name="HealthController" type="Node" parent="." unique_id=1591393928]
+script = ExtResource("12_xdcb8")
+metadata/_custom_type_script = "uid://pygi44sg0dn6"

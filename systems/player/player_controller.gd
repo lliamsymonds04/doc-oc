@@ -55,6 +55,7 @@ var _hit_vfx: ImpactVFX
 @onready var tilt_pivot: Node3D = $TiltPivot
 @onready var bean: Node3D = $TiltPivot/Bean
 @onready var camera_controller: CameraController = $CameraController
+@onready var _health_controller: HealthController = $HealthController
 
 
 ## Mask for casts originating on the player: everything except the player's own layer
@@ -107,6 +108,9 @@ func _ready() -> void:
 	_jump_audio_player = AudioStreamPlayer3D.new()
 	_jump_audio_player.stream = preload("res://assets/audio/robot_jump.ogg")
 	add_child(_jump_audio_player)
+
+	_health_controller.damage_taken.connect(_on_damage_taken)
+	_health_controller.died.connect(_on_death)
 
 	if step_vfx != null:
 		_hit_vfx = step_vfx.instantiate() as ImpactVFX
@@ -163,6 +167,23 @@ func set_mode(new_mode: Mode) -> void:
 
 func is_wall_climbing() -> bool:
 	return _current is WallClimbState
+
+
+func take_damage(dmg: float) -> void:
+	_health_controller.apply_damage(dmg)
+	print("damage taken: " + str(dmg) + "")
+
+
+func is_dead() -> bool:
+	return _health_controller.is_dead()
+
+
+func _on_damage_taken(_dmg: float) -> void:
+	pass
+
+
+func _on_death() -> void:
+	print("dead")
 
 
 func set_state(id: StateID) -> void:

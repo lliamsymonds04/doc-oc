@@ -5,19 +5,26 @@ extends CharacterBody3D
 const ENEMY_GROUP := &"enemy"
 
 @export var damage_flash_duration: float = 0.2
+@export var health_bar: HealthBar
+@export_group("ragdoll")
 @export var dead_body_cleanup_time: float = 10.0
 @export var upright_speed: float = 5.0
 @export var ragdoll_mass: float = 3.0
 @export var impact_min_dv: float = 4.0  # min velocity jump (m/s) for an impact to hurt
 @export var impact_damage_per_dv: float = 2.0
+@export_group("movement")
+@export var move_speed: float = 5.0
 @export var accel: float = 5.0
-@export var health_bar: HealthBar
+@export var attack_detection_range = 2.0
+@export var attack_cooldown: float = 1.0
+@export var attack_damage: float = 10.0
 
 var _ragdoll: EnemyRagdollController
 var _damage_flash: DamageFlashUtil
 var _ragdoll_flash: DamageFlashUtil
 var _death_timer: float
 var _target: PlayerController
+var _attack_cooldown_counter: float = 0.0
 
 @onready var health_controller: HealthController = $HealthController
 @onready var mesh: MeshInstance3D = $MeshInstance3D
@@ -87,6 +94,9 @@ func _physics_process(dt: float) -> void:
 
 	velocity += get_gravity() * dt
 
+	if _attack_cooldown_counter > 0:
+		_attack_cooldown_counter -= dt
+
 	var velocity_target := Vector3(0.0, 0.0, 0.0)
 	if not _ragdoll.is_ragdoll():
 		var target := _get_target()
@@ -96,9 +106,15 @@ func _physics_process(dt: float) -> void:
 			if to.length_squared() > 0.01:
 				velocity_target = to.normalized() * 5.0
 
+			var dist = to.length()
+			if dist < attack_detection_range and _attack_cooldown_counter <= 0:
+				_attack_cooldown_counter = attack_cooldown
+				target.take_damage(attack_damage)
+
 	var k := 1.0 - exp(-accel * dt)
 	velocity.x = lerpf(velocity.x, velocity_target.x, k)
 	velocity.z = lerpf(velocity.z, velocity_target.z, k)
+
 	move_and_slide()
 
 
