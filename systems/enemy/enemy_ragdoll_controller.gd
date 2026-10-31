@@ -133,7 +133,8 @@ func _create_body(ragdoll_mass: float) -> void:
 	_body.continuous_cd = true
 	_body.add_to_group(VelocityTrail.GROUP_TRAIL)
 
-	# lets attack/grab controllers identify the proxy as an enemy without a subclass
+	_body.collision_layer = _enemy.collision_layer
+	_body.collision_mask = _enemy.collision_mask
 	_body.set_meta(ENEMY_META, _enemy)
 
 	_ragdoll_mesh = MeshInstance3D.new()
