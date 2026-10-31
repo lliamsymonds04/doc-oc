@@ -1,6 +1,9 @@
 class_name EnemyController
 extends CharacterBody3D
 
+## IDLE -> WINDUP -> SWING -> RECOVERY -> IDLE.
+enum Phase { IDLE, WINDUP, SWING, RECOVERY }
+
 ## Enemies register here; throw homing scans it for cone targets.
 const ENEMY_GROUP := &"enemy"
 
@@ -8,6 +11,10 @@ const ENEMY_GROUP := &"enemy"
 ## world (layer 1) and enemy-vs-enemy contacts.
 const ENEMY_LAYER := 8
 const ENEMY_MASK := 1 | ENEMY_LAYER
+
+## Anticipation and release shapes for the windup telegraph.
+const SQUASH := Vector3(1.25, 0.75, 1.25)
+const STRETCH := Vector3(0.85, 1.25, 0.85)
 
 @export var damage_flash_duration: float = 0.2
 @export var health_bar: HealthBar
@@ -18,9 +25,15 @@ const ENEMY_MASK := 1 | ENEMY_LAYER
 @export var impact_min_dv: float = 4.0  # min velocity jump (m/s) for an impact to hurt
 @export var impact_damage_per_dv: float = 2.0
 @export_group("movement")
-@export var move_speed: float = 5.0
+@export var move_speed: float = 3.0
 @export var accel: float = 5.0
+@export_group("attack")
 @export var attack_detection_range = 2.0
+## Telegraph: the enemy plants its feet and only winds up.
+@export var attack_windup: float = 0.35
+## Committed swing; damage lands on its first frame.
+@export var attack_swing: float = 0.12
+## Recovery doubles as the cooldown before another windup can start.
 @export var attack_cooldown: float = 1.0
 @export var attack_damage: float = 10.0
 
@@ -29,7 +42,10 @@ var _damage_flash: DamageFlashUtil
 var _ragdoll_flash: DamageFlashUtil
 var _death_timer: float
 var _target: PlayerController
-var _attack_cooldown_counter: float = 0.0
+var _phase: Phase = Phase.IDLE
+var _phase_timer: float = 0.0
+var _mesh_rest_position: Vector3
+var _squash_tween: Tween
 
 @onready var health_controller: HealthController = $HealthController
 @onready var mesh: MeshInstance3D = $MeshInstance3D
@@ -39,6 +55,7 @@ var _attack_cooldown_counter: float = 0.0
 func _ready() -> void:
 	collision_layer = ENEMY_LAYER
 	collision_mask = ENEMY_MASK
+	_mesh_rest_position = mesh.position
 
 	add_to_group(ENEMY_GROUP)
 	health_controller.damage_taken.connect(_on_damage_taken)
@@ -102,22 +119,23 @@ func _physics_process(dt: float) -> void:
 
 	velocity += get_gravity() * dt
 
-	if _attack_cooldown_counter > 0:
-		_attack_cooldown_counter -= dt
+	if _phase != Phase.IDLE:
+		_phase_timer -= dt
+		if _phase_timer <= 0.0:
+			_advance_phase()
 
 	var velocity_target := Vector3(0.0, 0.0, 0.0)
-	if not _ragdoll.is_ragdoll():
+	# windup and swing are committed: the enemy plants its feet for both
+	if not _ragdoll.is_ragdoll() and _phase != Phase.WINDUP and _phase != Phase.SWING:
 		var target := _get_target()
 		if target != null:
 			var to := target.global_position - global_position
 			to.y = 0.0
-			if to.length_squared() > 0.01:
+			if to.length_squared() > 0.01 and to.length() > 1.5:
 				velocity_target = to.normalized() * 5.0
 
-			var dist = to.length()
-			if dist < attack_detection_range and _attack_cooldown_counter <= 0:
-				_attack_cooldown_counter = attack_cooldown
-				target.take_damage(attack_damage)
+			if _phase == Phase.IDLE and _target_in_range(target):
+				_start_attack()
 
 	var k := 1.0 - exp(-accel * dt)
 	velocity.x = lerpf(velocity.x, velocity_target.x, k)
@@ -156,6 +174,7 @@ func _on_death() -> void:
 func initiate_ragdoll(should_get_up: bool = true) -> void:
 	if _ragdoll.is_ragdoll():
 		return
+	_cancel_attack()
 	_ragdoll.activate()
 
 	if should_get_up:
@@ -172,3 +191,69 @@ func _get_target() -> PlayerController:
 		return _target
 	_target = get_tree().get_first_node_in_group(PlayerController.PLAYER_GROUP) as PlayerController
 	return _target
+
+
+func _start_attack() -> void:
+	_phase = Phase.WINDUP
+	_phase_timer = attack_windup
+	_play_squash()
+
+
+func _advance_phase() -> void:
+	match _phase:
+		Phase.WINDUP:
+			_phase = Phase.SWING
+			_phase_timer = attack_swing
+			_strike()
+		Phase.SWING:
+			_phase = Phase.RECOVERY
+			_phase_timer = attack_cooldown
+		Phase.RECOVERY:
+			_phase = Phase.IDLE
+			_phase_timer = 0.0
+
+
+## Range is re-checked here so a target that left during the windup is not hit.
+func _strike() -> void:
+	var target := _get_target()
+	if target != null and _target_in_range(target):
+		target.take_damage(attack_damage)
+
+
+func _target_in_range(target: PlayerController) -> bool:
+	var to := target.global_position - global_position
+	to.y = 0.0
+	return to.length() < attack_detection_range
+
+
+func _cancel_attack() -> void:
+	_phase = Phase.IDLE
+	_phase_timer = 0.0
+	_stop_squash()
+
+
+## Anticipate through the windup, release into the swing, snap back on recovery.
+## Durations mirror the phase timers so the shape peaks on the frame damage lands.
+func _play_squash() -> void:
+	_stop_squash()
+	var tw := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+	_tween_scale(tw, SQUASH, attack_windup)
+	_tween_scale(tw, STRETCH, attack_swing)
+	_tween_scale(tw, Vector3.ONE, attack_swing)
+	_squash_tween = tw
+
+
+func _stop_squash() -> void:
+	if _squash_tween:
+		_squash_tween.kill()
+		_squash_tween = null
+	mesh.scale = Vector3.ONE
+	mesh.position = _mesh_rest_position
+
+
+## CapsuleMesh's origin is its centre, so a vertical scale has to lift the node
+## as well or the base floats off the ground.
+func _tween_scale(tw: Tween, target: Vector3, duration: float) -> void:
+	tw.tween_property(mesh, "scale", target, duration)
+	tw.parallel().tween_property(mesh, "position:y", _mesh_rest_position.y * target.y, duration)
