@@ -33,10 +33,17 @@ const PLAYER_GROUP := &"player"
 @export var step_vfx: PackedScene
 @export var step_trauma: float = 0.3
 @export var sprint_step_trauma: float = 0.15
+@export var damage_flash_duration: float = 0.1
+@export var damage_flash_intensity: float = 0.2
+## Fraction of max health at which the hurt reaction (flash, shake, FOV kick) is full.
+@export var damage_full_reaction_percent: float = 0.3
+@export var damage_trauma: float = 1.5
+@export var damage_fov_kick: float = -3.0
 
 @export_category("Audio")
 @export var step_sound: AudioStreamOggVorbis
 @export var servo_sound: AudioStreamOggVorbis
+@export var damage_sound: AudioStreamOggVorbis = preload("res://assets/audio/hit_impact.ogg")
 
 var wall_climb_debounce: float = 0.0
 
@@ -50,10 +57,12 @@ var _states: Dictionary = {}
 var _current: PlayerState
 var _mode: Mode = Mode.ATTACK
 var _jump_audio_player: AudioStreamPlayer3D
+var _damage_audio_player: AudioStreamPlayer3D
 var _hit_vfx: ImpactVFX
+var _damage_flash: DamageFlashUtil
 
 @onready var tilt_pivot: Node3D = $TiltPivot
-@onready var bean: Node3D = $TiltPivot/Bean
+@onready var bean: MeshInstance3D = $TiltPivot/Bean
 @onready var camera_controller: CameraController = $CameraController
 @onready var _health_controller: HealthController = $HealthController
 
@@ -109,8 +118,18 @@ func _ready() -> void:
 	_jump_audio_player.stream = preload("res://assets/audio/robot_jump.ogg")
 	add_child(_jump_audio_player)
 
+	_damage_audio_player = AudioStreamPlayer3D.new()
+	_damage_audio_player.stream = damage_sound
+	add_child(_damage_audio_player)
+
 	_health_controller.damage_taken.connect(_on_damage_taken)
 	_health_controller.died.connect(_on_death)
+
+	# arm meshes only exist after mount.init(), so collect them here, not in _init
+	_damage_flash = DamageFlashUtil.new(self, bean, damage_flash_duration)
+	for mount in all_mounts():
+		for limb_mesh: MeshInstance3D in mount.find_children("*", "MeshInstance3D", true, false):
+			_damage_flash.add_mesh(limb_mesh)
 
 	if step_vfx != null:
 		_hit_vfx = step_vfx.instantiate() as ImpactVFX
@@ -178,8 +197,14 @@ func is_dead() -> bool:
 	return _health_controller.is_dead()
 
 
-func _on_damage_taken(_dmg: float) -> void:
-	pass
+func _on_damage_taken(dmg: float) -> void:
+	# floor keeps a light hit audible and visible
+	var reference := _health_controller.max_health * damage_full_reaction_percent
+	var weight := clampf(dmg / reference, 0.3, 1.0)
+	_damage_flash.flash(damage_flash_intensity * weight)
+	camera_controller.add_trauma(damage_trauma * weight)
+	camera_controller.kick_fov(damage_fov_kick * weight)
+	AudioUtil.play_with_pitch(_damage_audio_player, 0.08)
 
 
 func _on_death() -> void:

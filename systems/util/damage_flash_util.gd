@@ -26,3 +26,8 @@ func flash(strength: float = 1.0) -> void:
 	_shader_mat.set_shader_parameter("flash_amount", clampf(strength, 0.0, 1.0))
 	_tween = _node.create_tween()
 	_tween.tween_property(_shader_mat, "shader_parameter/flash_amount", 0.0, flash_duration)
+
+
+## Adds another mesh to the same flash; one material and one tween drive them all.
+func add_mesh(mesh: MeshInstance3D) -> void:
+	mesh.material_overlay = _shader_mat
