@@ -14,6 +14,7 @@ enum Mode { ATTACK, GRAB }
 
 ## Layer bodies are moved to while held; excluded from player casts via cast_mask.
 const HELD_LAYER := 4
+const PLAYER_GROUP := &"player"
 
 @export var movement: MovementConfig
 @export var hover: HoverConfig
@@ -84,6 +85,7 @@ func _init() -> void:
 
 
 func _ready() -> void:
+	add_to_group(PLAYER_GROUP)
 	for mount in arm_mounts + leg_mounts:
 		mount.player = self
 		mount.is_leg = leg_mounts.has(mount)
@@ -98,11 +100,8 @@ func _ready() -> void:
 	_states[StateID.GROUNDED] = GroundedState.new(self)
 	_states[StateID.WALL_CLIMB] = WallClimbState.new(self)
 	_states[StateID.AIR] = AirState.new(self)
-	_current = _states[StateID.GROUNDED]
-
 	jump_controller = PlayerJumpController.new(self, jump)
-	# _current was assigned directly, so enter() has not run; do it now that every
-	# controller exists (enter() touches jump_controller)
+	_current = _states[StateID.GROUNDED]
 	_current.enter()
 
 	_jump_audio_player = AudioStreamPlayer3D.new()

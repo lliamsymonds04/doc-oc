@@ -17,6 +17,7 @@ var _ragdoll: EnemyRagdollController
 var _damage_flash: DamageFlashUtil
 var _ragdoll_flash: DamageFlashUtil
 var _death_timer: float
+var _target: PlayerController
 
 @onready var health_controller: HealthController = $HealthController
 @onready var mesh: MeshInstance3D = $MeshInstance3D
@@ -86,9 +87,18 @@ func _physics_process(dt: float) -> void:
 
 	velocity += get_gravity() * dt
 
+	var velocity_target := Vector3(0.0, 0.0, 0.0)
+	if not _ragdoll.is_ragdoll():
+		var target := _get_target()
+		if target != null:
+			var to := target.global_position - global_position
+			to.y = 0.0
+			if to.length_squared() > 0.01:
+				velocity_target = to.normalized() * 5.0
+
 	var k := 1.0 - exp(-accel * dt)
-	velocity.x = lerpf(velocity.x, 0.0, k)
-	velocity.z = lerpf(velocity.z, 0.0, k)
+	velocity.x = lerpf(velocity.x, velocity_target.x, k)
+	velocity.z = lerpf(velocity.z, velocity_target.z, k)
 	move_and_slide()
 
 
@@ -131,3 +141,10 @@ func initiate_ragdoll(should_get_up: bool = true) -> void:
 func flash(strength: float = 1.0) -> void:
 	_ragdoll_flash.flash(strength)
 	_damage_flash.flash(strength)
+
+
+func _get_target() -> PlayerController:
+	if is_instance_valid(_target):
+		return _target
+	_target = get_tree().get_first_node_in_group(PlayerController.PLAYER_GROUP) as PlayerController
+	return _target
