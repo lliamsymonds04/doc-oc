@@ -52,16 +52,14 @@ func _ready() -> void:
 	EnemyUtil.attach_impact_damage(ragdoll_body, config.impact_min_dv)
 
 
-## Maps the injected attack config to its strategy. Runs in _ready(), where the
-## scene's `config` has been applied and `mesh` is available to the strategy.
-## An empty attack slot means "use the default melee".
-## shortcut: one attack type per enemy, extend this match when a second exists.
+## Maps the injected attack config to its strategy.
 func _create_attack() -> EnemyAttack:
-	# a local copy: `config` may be a shared .tres, and its empty attack slot is
-	# not this enemy's to write
 	var attack_config := config.attack
 	if attack_config == null:
 		attack_config = MeleeAttackConfig.new()
+
+	if attack_config is SlamAttackConfig:
+		return EnemySlamAttack.new(self, attack_config as SlamAttackConfig)
 
 	if attack_config is MeleeAttackConfig:
 		return EnemyMeleeAttack.new(self, attack_config as MeleeAttackConfig)
@@ -120,18 +118,20 @@ func _physics_process(dt: float) -> void:
 	_attack.physics_update(dt)
 
 	var velocity_target := Vector3.ZERO
-	# a committed attack plants the enemy's feet
-	if not _ragdoll.is_ragdoll() and not _attack.is_committed():
-		var target := get_target()
-		if target != null:
-			var to := target.global_position - global_position
-			to.y = 0.0
-			var dist := to.length()
-			if dist > config.stop_distance:
-				velocity_target = to.normalized() * config.move_speed
+	if not _ragdoll.is_ragdoll():
+		if _attack.is_committed():
+			velocity_target = _attack.committed_velocity()
+		else:
+			var target := get_target()
+			if target != null:
+				var to := target.global_position - global_position
+				to.y = 0.0
+				var dist := to.length()
+				if dist > config.stop_distance:
+					velocity_target = to.normalized() * config.move_speed
 
-			if _attack.can_start(dist):
-				_attack.start()
+				if _attack.can_start(dist):
+					_attack.start()
 
 	var k := 1.0 - exp(-config.accel * dt)
 	velocity.x = lerpf(velocity.x, velocity_target.x, k)

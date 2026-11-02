@@ -24,7 +24,7 @@ func _init() -> void:
 	visible = false
 
 
-func show_at(pos: Vector3, radius: float) -> void:
+func show_at(pos: Vector3, radius: float, grow_time: float = GROW_TIME) -> void:
 	global_position = pos + Vector3.UP * HALO_HEIGHT * 0.5
 	visible = true
 	_set_brightness(1.0)
@@ -32,7 +32,7 @@ func show_at(pos: Vector3, radius: float) -> void:
 	scale = Vector3(0.001, 1.0, 0.001)
 	reset_physics_interpolation()
 	_restart_tween()
-	var grow := _tween.tween_property(self, "scale", Vector3(radius, 1.0, radius), GROW_TIME)
+	var grow := _tween.tween_property(self, "scale", Vector3(radius, 1.0, radius), grow_time)
 	grow.set_trans(Tween.TRANS_CUBIC)
 	grow.set_ease(Tween.EASE_OUT)
 

@@ -34,3 +34,8 @@ func cancel() -> void:
 ## True while the enemy must plant its feet: telegraphing or releasing.
 func is_committed() -> bool:
 	return false
+
+
+## Horizontal chase allowed while committed; ZERO keeps the feet planted.
+func committed_velocity() -> Vector3:
+	return Vector3.ZERO

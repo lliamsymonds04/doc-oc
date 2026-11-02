@@ -12,7 +12,9 @@ var _failures := 0
 func _ready() -> void:
 	_test_missing_attack_falls_back()
 	_test_melee_config_maps_to_melee()
-	_test_no_config_uses_defaults()
+	_test_slam_config_maps_to_slam()
+	_test_scene_default_uses_slam()
+	_test_slam_lead_shrinks_on_short_dive()
 	_test_can_start_respects_range()
 
 	if _failures == 0:
@@ -38,10 +40,34 @@ func _test_melee_config_maps_to_melee() -> void:
 	enemy.queue_free()
 
 
-func _test_no_config_uses_defaults() -> void:
+func _test_slam_config_maps_to_slam() -> void:
+	var config := EnemyConfig.new()
+	config.attack = SlamAttackConfig.new()
+	var enemy := _spawn(config)
+	_check(enemy._attack is EnemySlamAttack, "slam config maps to EnemySlamAttack")
+	enemy.queue_free()
+
+
+func _test_scene_default_uses_slam() -> void:
 	var enemy := ENEMY_SCENE.instantiate() as EnemyController
 	add_child(enemy)
-	_check(enemy._attack is EnemyMeleeAttack, "no config at all still attacks")
+	_check(enemy._attack is EnemySlamAttack, "basic_enemy.tscn defaults to the slam")
+	enemy.queue_free()
+
+
+func _test_slam_lead_shrinks_on_short_dive() -> void:
+	var config := EnemyConfig.new()
+	var slam_config := SlamAttackConfig.new()
+	slam_config.slam_lead = 4.0
+	config.attack = slam_config
+	var enemy := _spawn(config)
+	var slam := enemy._attack as EnemySlamAttack
+
+	slam._dive_height = 4.0
+	_check(is_equal_approx(slam._slam_lead(), 4.0), "a full dive keeps the configured lead")
+
+	slam._dive_height = 0.5
+	_check(slam._slam_lead() < 1.0, "a short dive pulls the lead in")
 	enemy.queue_free()
 
 
