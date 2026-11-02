@@ -20,7 +20,7 @@ var _death_timer: float
 var _target: PlayerController
 
 @onready var health_controller: HealthController = $HealthController
-@onready var mesh: MeshInstance3D = $MeshInstance3D
+@onready var mesh: MeshInstance3D = $Mesh
 @onready var hitbox: CollisionShape3D = $Hitbox
 
 
@@ -44,7 +44,12 @@ func _ready() -> void:
 	var ragdoll_body: RigidBody3D = _ragdoll.get_body()
 	var ragdoll_mesh: MeshInstance3D = _ragdoll.get_ragdoll_mesh()
 	_ragdoll_flash = DamageFlashUtil.new(ragdoll_body, ragdoll_mesh, config.damage_flash_duration)
+	for child: MeshInstance3D in ragdoll_mesh.find_children("*", "MeshInstance3D", true, false):
+		_ragdoll_flash.add_mesh(child)
+
 	_damage_flash = DamageFlashUtil.new(self, mesh, config.damage_flash_duration)
+	for child: MeshInstance3D in mesh.find_children("*", "MeshInstance3D", true, false):
+		_damage_flash.add_mesh(child)
 
 	EnemyUtil.attach_self_damage(
 		self, ragdoll_body, config.impact_min_dv, config.impact_damage_per_dv

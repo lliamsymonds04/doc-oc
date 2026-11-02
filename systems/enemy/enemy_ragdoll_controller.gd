@@ -137,9 +137,7 @@ func _create_body(ragdoll_mass: float) -> void:
 	_body.collision_mask = _enemy.collision_mask
 	_body.set_meta(ENEMY_META, _enemy)
 
-	_ragdoll_mesh = MeshInstance3D.new()
-	_ragdoll_mesh.mesh = _mesh.mesh
-	_ragdoll_mesh.position = _mesh.position
+	_ragdoll_mesh = _mesh.duplicate() as MeshInstance3D
 	_body.add_child(_ragdoll_mesh)
 
 	var corpse_shape := CollisionShape3D.new()
