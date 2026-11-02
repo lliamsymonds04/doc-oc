@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://bi54xhrj6dhef"]
+
+[ext_resource type="Shader" uid="uid://dwk4ohwtlu1l2" path="res://shaders/ring_shader.gdshader" id="1_icjdb"]
+
+[sub_resource type="Curve" id="Curve_gkid1"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.13370031), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_oi67n"]
+curve = SubResource("Curve_gkid1")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_r7nec"]
+render_priority = 0
+shader = ExtResource("1_icjdb")
+shader_parameter/CURVE = SubResource("CurveTexture_oi67n")
+shader_parameter/MESH_HEIGHT = 0.3
+shader_parameter/RING_COLOR = Color(1, 0.6, 0.2, 1)
+shader_parameter/INTENSITY = 1.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_m2c1y"]
+lightmap_size_hint = Vector2i(17, 19)
+material = SubResource("ShaderMaterial_r7nec")
+top_radius = 1.5
+bottom_radius = 1.5
+height = 0.3
+cap_top = false
+cap_bottom = false
+
+[node name="MeshInstance3D" type="MeshInstance3D" unique_id=82223033]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CylinderMesh_m2c1y")
