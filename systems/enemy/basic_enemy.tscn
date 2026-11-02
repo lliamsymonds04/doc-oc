@@ -42,7 +42,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 mesh = SubResource("CapsuleMesh_m2c1y")
 
 [node name="Visor" type="MeshInstance3D" parent="Mesh" unique_id=1511249954]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5175495, 0.36745787)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5175495, -0.36745787)
 material_override = SubResource("StandardMaterial3D_e3s00")
 mesh = SubResource("BoxMesh_m2c1y")
 

@@ -9,6 +9,9 @@ const ENEMY_GROUP := &"enemy"
 const ENEMY_LAYER := 8
 const ENEMY_MASK := 1 | ENEMY_LAYER
 
+## Must match the visor's -Z on the mesh.
+const FORWARD := Vector3.FORWARD
+
 @export var config: EnemyConfig
 @export var health_bar: HealthBar
 
@@ -124,25 +127,39 @@ func _physics_process(dt: float) -> void:
 
 	var velocity_target := Vector3.ZERO
 	if not _ragdoll.is_ragdoll():
-		if _attack.is_committed():
-			velocity_target = _attack.committed_velocity()
-		else:
-			var target := get_target()
-			if target != null:
-				var to := target.global_position - global_position
-				to.y = 0.0
-				var dist := to.length()
-				if dist > config.stop_distance:
-					velocity_target = to.normalized() * config.move_speed
+		var target := get_target()
+		var to := Vector3.ZERO
+		var dist := 0.0
+		if target != null:
+			to = target.global_position - global_position
+			to.y = 0.0
+			dist = to.length()
 
-				if _attack.can_start(dist):
-					_attack.start()
+		if _attack.is_committed():
+			_turn_toward(_attack.committed_facing(to), dt, _attack.committed_turn_speed())
+			velocity_target = _attack.committed_velocity()
+		elif target != null:
+			_turn_toward(to, dt, config.turn_speed)
+			if dist > config.stop_distance:
+				velocity_target = FORWARD.rotated(Vector3.UP, rotation.y) * config.move_speed
+
+			if _attack.can_start(dist):
+				_attack.start()
 
 	var k := 1.0 - exp(-config.accel * dt)
 	velocity.x = lerpf(velocity.x, velocity_target.x, k)
 	velocity.z = lerpf(velocity.z, velocity_target.z, k)
 
 	move_and_slide()
+
+
+func _turn_toward(to: Vector3, dt: float, turn_speed: float) -> void:
+	if to.length_squared() < 0.000001 or turn_speed <= 0.0:
+		return
+
+	var goal_yaw := atan2(-to.x, -to.z)
+	var step := turn_speed * dt
+	rotation.y += clampf(angle_difference(rotation.y, goal_yaw), -step, step)
 
 
 func _process(dt: float) -> void:

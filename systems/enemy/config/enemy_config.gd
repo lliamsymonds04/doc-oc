@@ -6,6 +6,8 @@ extends Resource
 @export var move_speed: float = 3.0
 ## Exponential rate horizontal velocity chases its target. Higher = snappier.
 @export var accel: float = 5.0
+## Yaw rate (rad/s) toward the target.
+@export var turn_speed: float = 4.0
 ## Distance the enemy stops closing in at, instead of walking into the target.
 @export var stop_distance: float = 1.5
 

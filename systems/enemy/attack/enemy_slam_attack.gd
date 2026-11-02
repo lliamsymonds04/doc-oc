@@ -118,6 +118,21 @@ func committed_velocity() -> Vector3:
 	return to.normalized() * _config.air_speed
 
 
+## The dive keeps the aim it left hover with.
+func committed_turn_speed() -> float:
+	return 0.0 if _phase == Phase.SLAM else _config.turn_speed
+
+
+## Hover onward faces the dive point, not the player.
+func committed_facing(to_target: Vector3) -> Vector3:
+	if _phase != Phase.HOVER:
+		return to_target
+
+	var to := _slam_point - enemy.global_position
+	to.y = 0.0
+	return to
+
+
 func _begin_leap() -> void:
 	_phase = Phase.LEAP
 	_ground_y = enemy.global_position.y

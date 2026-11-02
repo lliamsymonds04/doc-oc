@@ -4,6 +4,10 @@ extends EnemyAttackConfig
 ## Reaching this close starts the slam. Wider than melee: the leap covers the gap.
 @export var detection_range: float = 6.0
 
+@export_group("Aim")
+## Yaw rate (rad/s) while committed; faster than the walk turn.
+@export var turn_speed: float = 12.0
+
 @export_group("Leap")
 ## Wait on the ground before the jump.
 @export var windup: float = 0.4

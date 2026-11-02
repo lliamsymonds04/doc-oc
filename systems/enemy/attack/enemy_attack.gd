@@ -39,3 +39,13 @@ func is_committed() -> bool:
 ## Horizontal chase allowed while committed; ZERO keeps the feet planted.
 func committed_velocity() -> Vector3:
 	return Vector3.ZERO
+
+
+## Yaw rate (rad/s) while committed; ZERO holds the facing.
+func committed_turn_speed() -> float:
+	return 0.0
+
+
+## What to face while committed; `to_target` is the offset to the player.
+func committed_facing(to_target: Vector3) -> Vector3:
+	return to_target
