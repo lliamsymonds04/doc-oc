@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://buqeh3cy7x7lh" path="res://systems/player/config/jump_config.gd" id="8_jmp"]
 [ext_resource type="Script" uid="uid://cyvpqtaweo6au" path="res://systems/player/config/wall_climb_config.gd" id="10_wc"]
 [ext_resource type="Script" uid="uid://pygi44sg0dn6" path="res://systems/common/health_controller.gd" id="12_xdcb8"]
+[ext_resource type="Shader" uid="uid://dmxgm435i8t7g" path="res://shaders/outline.gdshader" id="13_outline"]
 
 [sub_resource type="Resource" id="Resource_movement"]
 script = ExtResource("4_mv")
@@ -37,6 +38,17 @@ wall_raycast_distance = 3.5
 metadata/_custom_type_script = "uid://ci0k2wv8n3bhd"
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m2c1y"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_outline"]
+render_priority = 0
+shader = ExtResource("13_outline")
+shader_parameter/outline_color = Color(0, 0, 0, 1)
+shader_parameter/thickness = 0.60000000521542
+shader_parameter/depth_threshold = 0.03
+shader_parameter/strength = 0.5999999865888
+
+[sub_resource type="QuadMesh" id="QuadMesh_outline"]
+size = Vector2(2, 2)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ktl23"]
 albedo_color = Color(0.8235294, 0.8392157, 0.8666667, 1)
@@ -76,6 +88,12 @@ physics_interpolation_mode = 1
 
 [node name="Camera3D" type="Camera3D" parent="CameraController/CameraOffset/CameraShakePivot" unique_id=1441241849]
 physics_interpolation_mode = 2
+
+[node name="ScreenOutline" type="MeshInstance3D" parent="CameraController/CameraOffset/CameraShakePivot/Camera3D" unique_id=1475879603]
+material_override = SubResource("ShaderMaterial_outline")
+cast_shadow = 0
+extra_cull_margin = 16384.0
+mesh = SubResource("QuadMesh_outline")
 
 [node name="TiltPivot" type="Node3D" parent="." unique_id=566898379]
 
