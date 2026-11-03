@@ -1,0 +1,66 @@
+[gd_scene format=3 uid="uid://swgep8axw6ma"]
+
+[ext_resource type="Script" uid="uid://btvl5ij8glyao" path="res://assets/vfx/fire_tell.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://c2l3e7japhrgi" path="res://assets/textures/circle_05_a.png" id="2_glow"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_glow"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(1, 0.55, 0.15, 1)
+albedo_texture = ExtResource("2_glow")
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="Quad_glow"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_charge"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("2_glow")
+billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="Curve" id="Curve_alpha"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.35, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_alpha"]
+curve = SubResource("Curve_alpha")
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_charge"]
+emission_shape = 2
+emission_sphere_radius = 0.6
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_max = 0.2
+gravity = Vector3(0, 0, 0)
+radial_accel_min = -10.0
+radial_accel_max = -6.0
+scale_min = 0.15
+scale_max = 0.3
+color = Color(1, 0.6, 0.2, 1)
+alpha_curve = SubResource("CurveTexture_alpha")
+
+[sub_resource type="QuadMesh" id="Quad_charge"]
+size = Vector2(0.3, 0.3)
+
+[node name="FireTell" type="Node3D" unique_id=1796861400]
+script = ExtResource("1_script")
+
+[node name="Glow" type="MeshInstance3D" parent="." unique_id=296885465]
+material_override = SubResource("Mat_glow")
+cast_shadow = 0
+mesh = SubResource("Quad_glow")
+
+[node name="Charge" type="GPUParticles3D" parent="." unique_id=546209412]
+material_override = SubResource("Mat_charge")
+cast_shadow = 0
+emitting = false
+amount = 16
+lifetime = 0.4
+process_material = SubResource("PPM_charge")
+draw_pass_1 = SubResource("Quad_charge")

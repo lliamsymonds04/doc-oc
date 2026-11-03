@@ -66,6 +66,9 @@ func _create_attack() -> EnemyAttack:
 	if attack_config == null:
 		attack_config = MeleeAttackConfig.new()
 
+	if attack_config is FireballAttackConfig:
+		return EnemyFireballAttack.new(self, attack_config as FireballAttackConfig)
+
 	if attack_config is SlamAttackConfig:
 		return EnemySlamAttack.new(self, attack_config as SlamAttackConfig)
 

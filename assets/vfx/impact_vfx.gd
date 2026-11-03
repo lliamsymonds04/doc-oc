@@ -16,7 +16,9 @@ func play(global_pos: Vector3, normal := Vector3.UP) -> void:
 			)
 			right = fallback.cross(normal)
 		right = right.normalized()
-		fwd = normal.cross(right).normalized()
+		# right x normal, not normal x right: the other order mirrors the basis
+		# (det -1) and back-face culling hides every particle.
+		fwd = right.cross(normal).normalized()
 		global_basis = Basis(right, normal, fwd)
 	else:
 		global_basis = Basis.IDENTITY

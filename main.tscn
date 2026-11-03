@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://fqe70d8uduc6" path="res://ui/hud/hud.tscn" id="8_5vw27"]
 [ext_resource type="Script" uid="uid://c34dnohk30mk" path="res://systems/util/debug_ray_drawer.gd" id="9_dbg"]
 [ext_resource type="PackedScene" uid="uid://dqbd8ih3ynaal" path="res://systems/enemy/basic_enemy.tscn" id="10_4c57u"]
+[ext_resource type="PackedScene" path="res://systems/enemy/fireball_enemy.tscn" id="10_fireball"]
 [ext_resource type="Script" uid="uid://bdtssx7vpj7jn" path="res://systems/enemy/dummy.gd" id="11_efxa6"]
 [ext_resource type="Script" uid="uid://ctgilxfxha04r" path="res://main.gd" id="12_main"]
 [ext_resource type="Shader" uid="uid://cagkf5o8es3pp" path="res://shaders/pixelate.gdshader" id="13_pixel"]
@@ -64,16 +65,6 @@ roughness = 0.45
 [sub_resource type="BoxShape3D" id="BoxShape3D_orange"]
 size = Vector3(2, 2, 2)
 
-[sub_resource type="StandardMaterial3D" id="BoxMat_yellow"]
-albedo_color = Color(1, 0.82, 0.2, 1)
-roughness = 0.4
-emission_enabled = true
-emission = Color(1, 0.75, 0.25, 1)
-emission_energy_multiplier = 1.2
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_m2c1y"]
-size = Vector3(1.5, 1.5, 1.5)
-
 [sub_resource type="StandardMaterial3D" id="BoxMat_pink"]
 albedo_color = Color(1, 0.32, 0.62, 1)
 roughness = 0.45
@@ -83,6 +74,9 @@ roughness = 0.45
 [sub_resource type="StandardMaterial3D" id="BoxMat_purple"]
 albedo_color = Color(0.62, 0.33, 1, 1)
 roughness = 0.45
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_m2c1y"]
+size = Vector3(1.5, 1.5, 1.5)
 
 [sub_resource type="Resource" id="Resource_b5y0m"]
 script = ExtResource("3_kek77")
@@ -151,17 +145,6 @@ material = SubResource("BoxMat_orange")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BoxOrange" unique_id=145132775]
 shape = SubResource("BoxShape3D_orange")
-
-[node name="BoxYellow" type="RigidBody3D" parent="." unique_id=145132776 groups=["impact_group", "trail_group"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 0.75, 1)
-mass = 3.0
-
-[node name="BoxYellow" type="CSGBox3D" parent="BoxYellow" unique_id=145132709]
-size = Vector3(1.5, 1.5, 1.5)
-material = SubResource("BoxMat_yellow")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="BoxYellow" unique_id=145132777]
-shape = SubResource("BoxShape3D_m2c1y")
 
 [node name="BoxPink" type="RigidBody3D" parent="." unique_id=145132778 groups=["impact_group", "trail_group"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 1.5, 7)
@@ -239,7 +222,7 @@ mouse_filter = 2
 [node name="Hud" parent="." unique_id=1447860461 instance=ExtResource("8_5vw27")]
 
 [node name="BoxCoral" type="RigidBody3D" parent="." unique_id=589689143 groups=["impact_group", "trail_group"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.865284, 1.7930105, 13.972524)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.865284, 0.7930105, 13.972524)
 mass = 4.0
 
 [node name="BoxCoral" type="CSGBox3D" parent="BoxCoral" unique_id=145132706]
@@ -254,6 +237,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 23)
 script = ExtResource("11_efxa6")
 enemy_scene = ExtResource("10_4c57u")
 metadata/_custom_type_script = "uid://bdtssx7vpj7jn"
+
+[node name="FireballEnemy" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.682001, 0, 15)
+script = ExtResource("11_efxa6")
+enemy_scene = ExtResource("10_fireball")
 
 [connection signal="aim_at_enemy_changed" from="Player" to="Hud" method="_on_aim_at_enemy_changed"]
 [connection signal="attack_hit" from="Player" to="Hud" method="_on_attack_hit"]

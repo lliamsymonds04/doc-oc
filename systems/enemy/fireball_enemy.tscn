@@ -1,0 +1,62 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://systems/enemy/enemy_controller.gd" id="1_controller"]
+[ext_resource type="Script" path="res://systems/enemy/config/fireball_attack_config.gd" id="2_attack"]
+[ext_resource type="Script" path="res://systems/common/health_controller.gd" id="3_health"]
+[ext_resource type="Script" path="res://systems/enemy/config/enemy_config.gd" id="4_enemy_config"]
+[ext_resource type="PackedScene" path="res://systems/enemy/healthbar/health_bar.tscn" id="5_health_bar"]
+
+[sub_resource type="Resource" id="Resource_attack"]
+script = ExtResource("2_attack")
+detection_range = 14.0
+turn_speed = 8.0
+muzzle_height = 1.5
+muzzle_forward = 0.5
+aim_height = 1.0
+windup = 0.6
+fireball_speed = 18.0
+fireball_damage = 15.0
+recovery = 1.5
+
+[sub_resource type="Resource" id="Resource_config"]
+script = ExtResource("4_enemy_config")
+stop_distance = 10.0
+attack = SubResource("Resource_attack")
+
+[sub_resource type="StandardMaterial3D" id="Mat_body"]
+albedo_color = Color(0.95, 0.45, 0.1, 1)
+
+[sub_resource type="CapsuleMesh" id="Mesh_body"]
+material = SubResource("Mat_body")
+
+[sub_resource type="CapsuleShape3D" id="Shape_body"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_visor"]
+albedo_color = Color(1, 0.9, 0.4, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_visor"]
+size = Vector3(0.8, 0.342, 0.3)
+
+[node name="FireballEnemy" type="CharacterBody3D" node_paths=PackedStringArray("health_bar")]
+script = ExtResource("1_controller")
+config = SubResource("Resource_config")
+health_bar = NodePath("HealthBar")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("Mesh_body")
+
+[node name="Visor" type="MeshInstance3D" parent="Mesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5175495, -0.36745787)
+material_override = SubResource("Mat_visor")
+mesh = SubResource("Mesh_visor")
+
+[node name="Hitbox" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("Shape_body")
+
+[node name="HealthController" type="Node" parent="."]
+script = ExtResource("3_health")
+
+[node name="HealthBar" parent="." instance=ExtResource("5_health_bar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
