@@ -78,9 +78,36 @@ func _fire() -> void:
 		return
 
 	var from := _muzzle()
-	var to := target.global_position + Vector3.UP * _config.aim_height
 	# root, not the enemy: the shot has to outlive its shooter
-	Fireball.spawn(_config, enemy.get_tree().current_scene, from, to)
+	Fireball.spawn(_config, enemy.get_tree().current_scene, from, _lead_point(from, target))
+
+
+## Aim point for a straight shot: |P + V*t - M| = s*t, for a player holding
+## this velocity. Flattened so a falling player isn't led below the floor.
+func _lead_point(from: Vector3, target: PlayerController) -> Vector3:
+	var aim := target.global_position + Vector3.UP * _config.aim_height
+	var d := aim - from
+	var v := Vector3(target.velocity.x, 0.0, target.velocity.z)
+
+	var a := v.dot(v) - _config.fireball_speed * _config.fireball_speed
+	var b := 2.0 * d.dot(v)
+	var c := d.dot(d)
+	var t := -1.0
+
+	if absf(a) < 0.001:
+		# |v| == speed: no t^2 term, the quadratic collapses to linear
+		if absf(b) > 0.001:
+			t = -c / b
+	else:
+		var disc := b * b - 4.0 * a * c
+		if disc >= 0.0:
+			t = (-b - sqrt(disc)) / (2.0 * a)
+
+	# player outruns the ball: fire at where they are instead
+	if t <= 0.0:
+		return aim
+
+	return aim + v * t
 
 
 ## The tell is parented to the enemy, so its transform is already the muzzle.
