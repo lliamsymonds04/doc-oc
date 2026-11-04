@@ -1,14 +1,14 @@
 [gd_scene format=3 uid="uid://dqbd8ih3ynaal"]
 
 [ext_resource type="Script" uid="uid://ckrp1daarob1u" path="res://systems/enemy/enemy_controller.gd" id="1_ojmdn"]
-[ext_resource type="Script" uid="uid://b0igob5crujj" path="res://systems/enemy/config/slam_attack_config.gd" id="2_f7b4w"]
+[ext_resource type="Script" uid="uid://wf701xg2o6eb" path="res://systems/enemy/config/melee_attack_config.gd" id="2_f7b4w"]
 [ext_resource type="Script" uid="uid://pygi44sg0dn6" path="res://systems/common/health_controller.gd" id="2_rchf0"]
 [ext_resource type="Script" uid="uid://crbbkvq6t6ms8" path="res://systems/enemy/config/enemy_config.gd" id="3_7x8pa"]
 [ext_resource type="PackedScene" uid="uid://b77qe4lyrbdo8" path="res://systems/enemy/healthbar/health_bar.tscn" id="3_fujp6"]
 
 [sub_resource type="Resource" id="Resource_olub3"]
 script = ExtResource("2_f7b4w")
-metadata/_custom_type_script = "uid://b0igob5crujj"
+metadata/_custom_type_script = "uid://wf701xg2o6eb"
 
 [sub_resource type="Resource" id="Resource_4ache"]
 script = ExtResource("3_7x8pa")

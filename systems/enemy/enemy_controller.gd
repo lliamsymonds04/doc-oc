@@ -9,8 +9,10 @@ const ENEMY_GROUP := &"enemy"
 const ENEMY_LAYER := 8
 const ENEMY_MASK := 1 | ENEMY_LAYER
 
-## Must match the visor's -Z on the mesh.
-const FORWARD := Vector3.FORWARD
+## Probe length from the feet, short enough that it can't see a wall from mid-air.
+const CLIMB_PROBE_REACH := 0.8
+## Upward pop after the wall ends, long enough to clear the lip.
+const CLIMB_MOUNT_TIME := 0.15
 
 @export var config: EnemyConfig
 @export var health_bar: HealthBar
@@ -21,6 +23,9 @@ var _damage_flash: DamageFlashUtil
 var _ragdoll_flash: DamageFlashUtil
 var _death_timer: float
 var _target: PlayerController
+var _climbing := false
+var _climbing_prev := false
+var _mount_timer := 0.0
 
 @onready var health_controller: HealthController = $HealthController
 @onready var mesh: MeshInstance3D = $Mesh
@@ -129,6 +134,7 @@ func _physics_process(dt: float) -> void:
 	_attack.physics_update(dt)
 
 	var velocity_target := Vector3.ZERO
+	_climbing = false
 	if not _ragdoll.is_ragdoll():
 		var target := get_target()
 		var to := Vector3.ZERO
@@ -143,8 +149,17 @@ func _physics_process(dt: float) -> void:
 			velocity_target = _attack.committed_velocity()
 		elif target != null:
 			_turn_toward(to, dt, config.turn_speed)
-			if dist > config.stop_distance:
-				velocity_target = FORWARD.rotated(Vector3.UP, rotation.y) * config.move_speed
+			var forward := -global_transform.basis.z
+			forward.y = 0.0
+			forward = forward.normalized()
+			if dist > config.stop_distance or _climbing or _mount_timer > 0.0:
+				velocity_target = forward * config.move_speed
+
+			_climbing = (
+				is_on_wall()
+				and absf(get_wall_normal().y) < config.climb_max_normal_y
+				and _wall_ahead_of_feet(forward)
+			)
 
 			if _attack.can_start(dist):
 				_attack.start()
@@ -153,7 +168,21 @@ func _physics_process(dt: float) -> void:
 	velocity.x = lerpf(velocity.x, velocity_target.x, k)
 	velocity.z = lerpf(velocity.z, velocity_target.z, k)
 
+	if _climbing_prev and not _climbing:
+		_mount_timer = CLIMB_MOUNT_TIME
+	_climbing_prev = _climbing
+
+	if _climbing or _mount_timer > 0.0:
+		velocity.y = config.climb_speed
+	_mount_timer = maxf(_mount_timer - dt, 0.0)
+
 	move_and_slide()
+
+
+func _wall_ahead_of_feet(forward: Vector3) -> bool:
+	var from := global_position + Vector3.UP * 0.1
+	var query := PhysicsRayQueryParameters3D.create(from, from + forward * CLIMB_PROBE_REACH, 1)
+	return not get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
 
 func _turn_toward(to: Vector3, dt: float, turn_speed: float) -> void:

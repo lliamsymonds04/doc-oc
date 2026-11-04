@@ -13,7 +13,7 @@ func _ready() -> void:
 	_test_missing_attack_falls_back()
 	_test_melee_config_maps_to_melee()
 	_test_slam_config_maps_to_slam()
-	_test_scene_default_uses_slam()
+	_test_scene_default_uses_melee()
 	_test_slam_lead_shrinks_on_short_dive()
 	_test_can_start_respects_range()
 
@@ -48,10 +48,10 @@ func _test_slam_config_maps_to_slam() -> void:
 	enemy.queue_free()
 
 
-func _test_scene_default_uses_slam() -> void:
+func _test_scene_default_uses_melee() -> void:
 	var enemy := ENEMY_SCENE.instantiate() as EnemyController
 	add_child(enemy)
-	_check(enemy._attack is EnemySlamAttack, "basic_enemy.tscn defaults to the slam")
+	_check(enemy._attack is EnemyMeleeAttack, "basic_enemy.tscn defaults to melee")
 	enemy.queue_free()
 
 

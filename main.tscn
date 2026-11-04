@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://c34dnohk30mk" path="res://systems/util/debug_ray_drawer.gd" id="9_dbg"]
 [ext_resource type="PackedScene" uid="uid://dqbd8ih3ynaal" path="res://systems/enemy/basic_enemy.tscn" id="10_4c57u"]
 [ext_resource type="PackedScene" path="res://systems/enemy/fireball_enemy.tscn" id="10_fireball"]
+[ext_resource type="PackedScene" path="res://systems/enemy/slam_enemy.tscn" id="10_slam"]
 [ext_resource type="Script" uid="uid://bdtssx7vpj7jn" path="res://systems/enemy/dummy.gd" id="11_efxa6"]
 [ext_resource type="Script" uid="uid://ctgilxfxha04r" path="res://main.gd" id="12_main"]
 [ext_resource type="Shader" uid="uid://cagkf5o8es3pp" path="res://shaders/pixelate.gdshader" id="13_pixel"]
@@ -242,6 +243,11 @@ metadata/_custom_type_script = "uid://bdtssx7vpj7jn"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.682001, 0, 15)
 script = ExtResource("11_efxa6")
 enemy_scene = ExtResource("10_fireball")
+
+[node name="SlamEnemy" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 15)
+script = ExtResource("11_efxa6")
+enemy_scene = ExtResource("10_slam")
 
 [connection signal="aim_at_enemy_changed" from="Player" to="Hud" method="_on_aim_at_enemy_changed"]
 [connection signal="attack_hit" from="Player" to="Hud" method="_on_attack_hit"]

@@ -10,6 +10,10 @@ extends Resource
 @export var turn_speed: float = 4.0
 ## Distance the enemy stops closing in at, instead of walking into the target.
 @export var stop_distance: float = 1.5
+## Upward speed while the climb holds, and the speed of the mount pop.
+@export var climb_speed: float = 3.0
+## Largest |normal.y| still counted as a wall; above it a floor or ceiling.
+@export var climb_max_normal_y: float = 0.3
 
 @export_group("Attack")
 @export var attack: EnemyAttackConfig
