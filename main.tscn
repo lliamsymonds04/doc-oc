@@ -2,7 +2,6 @@
 
 [ext_resource type="Texture2D" uid="uid://b3un13prji6wu" path="res://assets/textures/dark_grid.png" id="1_h2yge"]
 [ext_resource type="PackedScene" uid="uid://cidasq88868wo" path="res://systems/player/player.tscn" id="1_ig7tw"]
-[ext_resource type="Texture2D" uid="uid://80w2bs0a2buc" path="res://assets/textures/purple_grid.png" id="3_h2yge"]
 [ext_resource type="Script" uid="uid://0id6ded7pmn5" path="res://systems/player/config/hover_config.gd" id="3_kek77"]
 [ext_resource type="PackedScene" uid="uid://brn1hvq3t07v6" path="res://assets/vfx/step.tscn" id="3_lquwl"]
 [ext_resource type="AudioStream" uid="uid://1sxmmmntjnfy" path="res://assets/audio/footstep.ogg" id="4_7mycd"]
@@ -15,6 +14,7 @@
 [ext_resource type="Script" uid="uid://bdtssx7vpj7jn" path="res://systems/enemy/dummy.gd" id="11_efxa6"]
 [ext_resource type="Script" uid="uid://ctgilxfxha04r" path="res://main.gd" id="12_main"]
 [ext_resource type="Shader" uid="uid://cagkf5o8es3pp" path="res://shaders/pixelate.gdshader" id="13_pixel"]
+[ext_resource type="Script" uid="uid://d57yvfu3wvbb" path="res://systems/pillar_spawner.gd" id="16_2cqfq"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.26, 0.28, 0.34, 1)
@@ -55,10 +55,6 @@ uv1_scale = Vector3(0.5, 0.5, 0.5)
 uv1_triplanar = true
 uv1_world_triplanar = true
 
-[sub_resource type="StandardMaterial3D" id="BoxMat_red"]
-albedo_color = Color(0.92, 0.22, 0.25, 1)
-roughness = 0.45
-
 [sub_resource type="StandardMaterial3D" id="BoxMat_orange"]
 albedo_color = Color(1, 0.55, 0.12, 1)
 roughness = 0.45
@@ -83,13 +79,6 @@ size = Vector3(1.5, 1.5, 1.5)
 script = ExtResource("3_kek77")
 metadata/_custom_type_script = "uid://0id6ded7pmn5"
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_m2c1y"]
-vertex_color_use_as_albedo = true
-albedo_texture = ExtResource("3_h2yge")
-uv1_scale = Vector3(0.5, 0.5, 0.5)
-uv1_triplanar = true
-uv1_world_triplanar = true
-
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_pixel"]
 shader = ExtResource("13_pixel")
 shader_parameter/pixel_size = 1.0
@@ -105,6 +94,9 @@ shader_parameter/split_balance = 0.5
 [sub_resource type="StandardMaterial3D" id="BoxMat_coral"]
 albedo_color = Color(1, 0.45, 0.4, 1)
 roughness = 0.45
+
+[sub_resource type="Gradient" id="Gradient_2cqfq"]
+colors = PackedColorArray(0.23107609, 0.23107636, 0.2310763, 1, 0.6177408, 0.61774087, 0.61774087, 1)
 
 [node name="Main" type="Node3D" unique_id=1606965912]
 script = ExtResource("12_main")
@@ -123,18 +115,6 @@ environment = SubResource("Environment_m2c1y")
 use_collision = true
 size = Vector3(200, 0.178, 200)
 material = SubResource("FloorMat")
-
-[node name="BoxRed" type="CSGBox3D" parent="." unique_id=145132707]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.870697, 0.47955322, 11.508942)
-use_collision = true
-size = Vector3(16.420837, 0.95910645, 4.5178833)
-material = SubResource("BoxMat_red")
-
-[node name="BoxRed2" type="CSGBox3D" parent="." unique_id=298895347]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.870697, 0.81204224, 6.446308)
-use_collision = true
-size = Vector3(16.420837, 1.6240845, 5.967285)
-material = SubResource("BoxMat_red")
 
 [node name="BoxOrange" type="RigidBody3D" parent="." unique_id=145132774 groups=["impact_group", "trail_group"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 1, 6)
@@ -178,33 +158,6 @@ servo_sound = ExtResource("5_3rvo")
 [node name="CSGCombiner3D" type="CSGCombiner3D" parent="." unique_id=428718861]
 use_collision = true
 
-[node name="CSGBox3D" type="CSGBox3D" parent="CSGCombiner3D" unique_id=109554206]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.685452, 4.2101984, 53.41301)
-size = Vector3(13.8984375, 6.654175, 33.50659)
-
-[node name="CSGBox3D2" type="CSGBox3D" parent="CSGCombiner3D" unique_id=1291569865]
-transform = Transform3D(1, 0, 0, 0, 0.9493963, 0.3140807, 0, -0.3140807, 0.9493963, -4.790811, 8.420397, 49.674313)
-operation = 2
-size = Vector3(16.32312, 6.654175, 33.50659)
-
-[node name="WallB" type="CSGBox3D" parent="." unique_id=1669438976]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 10, 11.69043)
-use_collision = true
-size = Vector3(10, 20, 16.61914)
-material = SubResource("StandardMaterial3D_m2c1y")
-
-[node name="WallA" type="CSGBox3D" parent="." unique_id=1301503845]
-transform = Transform3D(0.9659258, 0, 0.25881904, 0, 1, 0, -0.25881904, 0, 0.9659258, 16.147423, 10, 23.521957)
-use_collision = true
-size = Vector3(10, 20, 10)
-material = SubResource("StandardMaterial3D_m2c1y")
-
-[node name="ClimbingWall3" type="CSGBox3D" parent="." unique_id=451616533]
-transform = Transform3D(1.0000001, 0, 0, 0, 1, 0, 0, 0, 1.0000001, 5.8325634, 8.213617, -1.0127487)
-use_collision = true
-size = Vector3(10, 20, 10)
-material = SubResource("StandardMaterial3D_m2c1y")
-
 [node name="DebugRayDrawer" type="Node3D" parent="." unique_id=821449203]
 script = ExtResource("9_dbg")
 
@@ -239,15 +192,21 @@ script = ExtResource("11_efxa6")
 enemy_scene = ExtResource("10_4c57u")
 metadata/_custom_type_script = "uid://bdtssx7vpj7jn"
 
-[node name="FireballEnemy" type="Node3D" parent="."]
+[node name="FireballEnemy" type="Node3D" parent="." unique_id=773500811]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.682001, 0, 15)
 script = ExtResource("11_efxa6")
 enemy_scene = ExtResource("10_fireball")
 
-[node name="SlamEnemy" type="Node3D" parent="."]
+[node name="SlamEnemy" type="Node3D" parent="." unique_id=1769352173]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 15)
 script = ExtResource("11_efxa6")
 enemy_scene = ExtResource("10_slam")
+
+[node name="PillarHandler" type="Node3D" parent="." unique_id=532953420]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 21)
+script = ExtResource("16_2cqfq")
+pillar_gradient_colour = SubResource("Gradient_2cqfq")
+metadata/_custom_type_script = "uid://d57yvfu3wvbb"
 
 [connection signal="aim_at_enemy_changed" from="Player" to="Hud" method="_on_aim_at_enemy_changed"]
 [connection signal="attack_hit" from="Player" to="Hud" method="_on_attack_hit"]
