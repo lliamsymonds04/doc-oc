@@ -1,8 +1,12 @@
 extends Node3D
 
-## Scene root of the playable level. Owns level-scoped services.
+## Scene root of the playable level. Owns level-scoped services and builds the
+## procedural level content in one place, in dependency order.
 
 var _impact_registry: ImpactSensorRegistry
+
+@onready var _pillars: PillarHandler = $PillarHandler
+@onready var _boxes: BoxHandler = $BoxHandler
 
 
 func _ready() -> void:
@@ -16,6 +20,8 @@ func _ready() -> void:
 
 	tree.node_added.connect(on_node_added)
 
+	_build_level()
+
 
 func _exit_tree() -> void:
 	if _impact_registry != null:
@@ -25,3 +31,14 @@ func _exit_tree() -> void:
 func on_node_added(node: Node) -> void:
 	if node.is_in_group(VelocityTrail.GROUP_TRAIL):
 		VelocityTrail.attach(node)
+
+
+func _build_level() -> void:
+	_pillars.spawn()
+
+	# new colliders only reach the physics space after a step, and the floor is a CSG
+	# shape built deferred: the box placement raycasts against both
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+
+	_boxes.spawn()

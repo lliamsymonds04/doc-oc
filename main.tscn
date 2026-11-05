@@ -14,6 +14,7 @@
 [ext_resource type="Script" uid="uid://ctgilxfxha04r" path="res://main.gd" id="12_main"]
 [ext_resource type="Shader" uid="uid://cagkf5o8es3pp" path="res://shaders/pixelate.gdshader" id="13_pixel"]
 [ext_resource type="Script" uid="uid://d57yvfu3wvbb" path="res://systems/pillar_spawner.gd" id="16_2cqfq"]
+[ext_resource type="Script" path="res://systems/box_spawner.gd" id="17_box"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.26, 0.28, 0.34, 1)
@@ -72,26 +73,6 @@ uv2_scale = Vector3(0.01, 0.01, 0.01)
 uv2_triplanar = true
 uv2_world_triplanar = true
 
-[sub_resource type="StandardMaterial3D" id="BoxMat_orange"]
-albedo_color = Color(1, 0.55, 0.12, 1)
-roughness = 0.45
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_orange"]
-size = Vector3(2, 2, 2)
-
-[sub_resource type="StandardMaterial3D" id="BoxMat_pink"]
-albedo_color = Color(1, 0.32, 0.62, 1)
-roughness = 0.45
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_pink"]
-
-[sub_resource type="StandardMaterial3D" id="BoxMat_purple"]
-albedo_color = Color(0.62, 0.33, 1, 1)
-roughness = 0.45
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_m2c1y"]
-size = Vector3(1.5, 1.5, 1.5)
-
 [sub_resource type="Resource" id="Resource_b5y0m"]
 script = ExtResource("3_kek77")
 metadata/_custom_type_script = "uid://0id6ded7pmn5"
@@ -107,10 +88,6 @@ shader_parameter/shadow_tint = Color(0.03, 0.035, 0.055, 1)
 shader_parameter/highlight_tint = Color(0.22, 0.15, 0.09, 1)
 shader_parameter/split_strength = 0.05
 shader_parameter/split_balance = 0.5
-
-[sub_resource type="StandardMaterial3D" id="BoxMat_coral"]
-albedo_color = Color(1, 0.45, 0.4, 1)
-roughness = 0.45
 
 [sub_resource type="Gradient" id="Gradient_2cqfq"]
 colors = PackedColorArray(0.23107609, 0.23107636, 0.2310763, 1, 0.6177408, 0.61774087, 0.61774087, 1)
@@ -132,38 +109,6 @@ environment = SubResource("Environment_m2c1y")
 use_collision = true
 size = Vector3(200, 0.178, 200)
 material = SubResource("FloorMat")
-
-[node name="BoxOrange" type="RigidBody3D" parent="." unique_id=145132774 groups=["impact_group", "trail_group"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 1, 6)
-mass = 8.0
-
-[node name="BoxOrange" type="CSGBox3D" parent="BoxOrange" unique_id=145132708]
-size = Vector3(2, 2, 2)
-material = SubResource("BoxMat_orange")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="BoxOrange" unique_id=145132775]
-shape = SubResource("BoxShape3D_orange")
-
-[node name="BoxPink" type="RigidBody3D" parent="." unique_id=145132778 groups=["impact_group", "trail_group"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 1.5, 7)
-mass = 1.5
-
-[node name="BoxPink" type="CSGBox3D" parent="BoxPink" unique_id=145132710]
-material = SubResource("BoxMat_pink")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="BoxPink" unique_id=145132779]
-shape = SubResource("BoxShape3D_pink")
-
-[node name="BoxPurple" type="RigidBody3D" parent="." unique_id=145132780 groups=["impact_group", "trail_group"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 0.75, 12)
-mass = 2.0
-
-[node name="BoxPurple" type="CSGBox3D" parent="BoxPurple" unique_id=145132711]
-size = Vector3(1.5, 1.5, 1.5)
-material = SubResource("BoxMat_purple")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="BoxPurple" unique_id=145132781]
-shape = SubResource("BoxShape3D_m2c1y")
 
 [node name="Player" parent="." unique_id=1831706131 instance=ExtResource("1_ig7tw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.682001, 0.08204651, 21.104301)
@@ -192,17 +137,6 @@ mouse_filter = 2
 
 [node name="Hud" parent="." unique_id=1447860461 instance=ExtResource("8_5vw27")]
 
-[node name="BoxCoral" type="RigidBody3D" parent="." unique_id=589689143 groups=["impact_group", "trail_group"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.865284, 0.7930105, 13.972524)
-mass = 4.0
-
-[node name="BoxCoral" type="CSGBox3D" parent="BoxCoral" unique_id=145132706]
-size = Vector3(1.5, 1.5, 1.5)
-material = SubResource("BoxMat_coral")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="BoxCoral" unique_id=1457229589]
-shape = SubResource("BoxShape3D_m2c1y")
-
 [node name="Dummy" type="Node3D" parent="." unique_id=171037128]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 23)
 script = ExtResource("11_efxa6")
@@ -224,6 +158,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 21)
 script = ExtResource("16_2cqfq")
 pillar_gradient_colour = SubResource("Gradient_2cqfq")
 metadata/_custom_type_script = "uid://d57yvfu3wvbb"
+
+[node name="BoxHandler" type="Node3D" parent="." unique_id=532953421]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 21)
+script = ExtResource("17_box")
+palette = PackedColorArray(0.72, 0.63, 0.5, 1, 0.55, 0.46, 0.36, 1, 0.62, 0.6, 0.57, 1, 0.45, 0.42, 0.38, 1)
 
 [connection signal="aim_at_enemy_changed" from="Player" to="Hud" method="_on_aim_at_enemy_changed"]
 [connection signal="attack_hit" from="Player" to="Hud" method="_on_attack_hit"]

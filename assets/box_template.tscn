@@ -1,0 +1,21 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_box"]
+resource_local_to_scene = true
+roughness = 0.45
+
+[sub_resource type="BoxMesh" id="BoxMesh_box"]
+resource_local_to_scene = true
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_box"]
+resource_local_to_scene = true
+
+[node name="Box" type="RigidBody3D" groups=["impact_group", "trail_group"]]
+mass = 1.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+material_override = SubResource("StandardMaterial3D_box")
+mesh = SubResource("BoxMesh_box")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_box")

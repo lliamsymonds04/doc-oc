@@ -11,8 +11,19 @@ extends Node3D
 @export var center_radius := 2.0
 @export var pillar_gradient_colour: Gradient
 
+@export_group("rise_animation")
+@export var rise_duration := 3.0
+@export var rise_downset := -10
+@export var rise_trauma := 2.8
+@export var rise_shake_decay := 2.5  # mirrors CameraController's trauma decay
 
-func _ready() -> void:
+var pillars: Array[Node3D] = []
+var pillars_risen = false
+# >0 while the rise shake is fed to the camera
+var _shake_time := 0.0
+
+
+func spawn() -> void:
 	var steps := maxi(int(extent / cell_size), 1)
 	var half := steps / 2.0
 
@@ -44,14 +55,49 @@ func _ready() -> void:
 		var spot := spots[i]
 		# 0 at the group edge, 1 at its core
 		var t := (spot.z - cutoff) / span
+		var height := lerpf(min_height, max_height, t)
+		var box := Vector3(cell_size, height, cell_size)
 		var pillar := pillar_template.instantiate()
-		pillar.position = Vector3(spot.x * cell_size, 0, spot.y * cell_size)
-		pillar.scale = Vector3(cell_size, lerpf(min_height, max_height, t), cell_size)
+		pillar.position = Vector3(spot.x * cell_size, rise_downset - max_height, spot.y * cell_size)
+
+		var mesh: MeshInstance3D = pillar.get_node("MeshInstance3D")
+		(mesh.mesh as BoxMesh).size = box
+		mesh.position.y = height * 0.5
+
+		var col: CollisionShape3D = pillar.get_node("CollisionShape3D")
+		(col.shape as BoxShape3D).size = box
+		col.position.y = height * 0.5
 
 		if pillar_gradient_colour:
-			var mesh: MeshInstance3D = pillar.get_child(0)
-			if mesh:
-				var mat := mesh.material_override as StandardMaterial3D
-				mat.albedo_color = pillar_gradient_colour.sample(t)
+			var mat := mesh.material_override as StandardMaterial3D
+			mat.albedo_color = pillar_gradient_colour.sample(t)
+
+		pillars.append(pillar)
 
 		add_child(pillar)
+
+
+func rise_pillars():
+	_shake_time = rise_duration
+	for pillar in pillars:
+		var tween = get_tree().create_tween()
+		tween.tween_property(
+			pillar, "position", Vector3(pillar.position.x, 0, pillar.position.z), rise_duration
+		)
+
+
+func _process(delta: float) -> void:
+	if _shake_time > 0.0:
+		_shake_time -= delta
+		var cam := (
+			get_tree().get_first_node_in_group(CameraController.CAMERA_GROUP) as CameraController
+		)
+		if cam:
+			# feeding at the decay rate holds the trauma level instead of fading
+			cam.add_trauma(rise_trauma * rise_shake_decay * delta)
+
+	if pillars_risen:
+		return
+	if Input.is_action_just_pressed("left-click"):
+		pillars_risen = true
+		rise_pillars()
