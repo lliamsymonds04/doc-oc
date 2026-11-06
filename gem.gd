@@ -24,6 +24,7 @@ var _elapsed := 0.0
 var _broken := false
 
 @onready var _hum: AudioStreamPlayer3D = $Hum
+@onready var _shatter_sound: AudioStreamPlayer3D = $Shatter
 @onready var _shape: CollisionShape3D = $Body/CollisionShape3D
 
 
@@ -64,6 +65,7 @@ func _shatter() -> void:
 	vfx.play(global_position)
 	# nothing pools this burst, so it has to clean up after itself
 	get_tree().create_timer(BREAK_VFX_TIME).timeout.connect(vfx.queue_free)
+	AudioUtil.play_with_pitch(_shatter_sound)
 
 	# stop the gem's own sparkle while it dissolves
 	for child in find_children("*", "GPUParticles3D", true, false):
