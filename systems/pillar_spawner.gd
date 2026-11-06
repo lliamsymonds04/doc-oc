@@ -16,6 +16,10 @@ extends Node3D
 @export var rise_downset := -10
 @export var rise_trauma := 2.8
 @export var rise_shake_decay := 2.5  # mirrors CameraController's trauma decay
+@export var rise_smoke: PackedScene = preload("res://assets/vfx/smoke_square.tscn")
+@export var smoke_cell_scale := 1.4  # smoke square side as a multiple of cell_size
+@export var smoke_delay := 0.5  # seconds after the rise begins before the smoke shows
+@export var smoke_max_distance := 40.0  # pillars further than this from the player get no dust
 
 var pillars: Array[Node3D] = []
 var pillars_risen = false
@@ -78,6 +82,10 @@ func spawn() -> void:
 
 
 func rise_pillars():
+	# the gem can be hit repeatedly; only the first hit raises the field
+	if pillars_risen:
+		return
+	pillars_risen = true
 	_shake_time = rise_duration
 	for pillar in pillars:
 		var tween = get_tree().create_tween()
@@ -85,19 +93,38 @@ func rise_pillars():
 			pillar, "position", Vector3(pillar.position.x, 0, pillar.position.z), rise_duration
 		)
 
+	# dust kicks up once the pillars are already moving
+	if smoke_delay > 0.0:
+		await get_tree().create_timer(smoke_delay).timeout
+	var player := _player()
+	for pillar in pillars:
+		# measure to the ground spot, not the parked position far below it
+		var spot := to_global(Vector3(pillar.position.x, 0.0, pillar.position.z))
+		if player and spot.distance_to(player.global_position) > smoke_max_distance:
+			continue
+		_spawn_smoke(pillar)
+
+
+func _camera() -> CameraController:
+	return get_tree().get_first_node_in_group(CameraController.CAMERA_GROUP) as CameraController
+
+
+func _player() -> Node3D:
+	var cam := _camera()
+	return cam.get_player() if cam else null
+
+
+func _spawn_smoke(pillar: Node3D) -> void:
+	var smoke := rise_smoke.instantiate() as SmokeSquare
+	smoke.position = Vector3(pillar.position.x, 0.0, pillar.position.z)
+	add_child(smoke)
+	smoke.play(cell_size * smoke_cell_scale * 0.5)
+
 
 func _process(delta: float) -> void:
 	if _shake_time > 0.0:
 		_shake_time -= delta
-		var cam := (
-			get_tree().get_first_node_in_group(CameraController.CAMERA_GROUP) as CameraController
-		)
+		var cam := _camera()
 		if cam:
 			# feeding at the decay rate holds the trauma level instead of fading
 			cam.add_trauma(rise_trauma * rise_shake_decay * delta)
-
-	if pillars_risen:
-		return
-	if Input.is_action_just_pressed("left-click"):
-		pillars_risen = true
-		rise_pillars()
