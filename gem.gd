@@ -10,6 +10,10 @@ signal hit_landed(position: Vector3, normal: Vector3)
 const SHATTER_TIME: float = 0.12
 ## Longest emitter lifetime in gem_break.tscn, plus a margin, before the burst frees itself.
 const BREAK_VFX_TIME: float = 1.0
+## Seconds the hum fades after the break; the gem stays in the tree until it ends.
+const HUM_FADE_TIME: float = 1.2
+## Effectively silent, so the fade ends inaudible rather than at the last dB.
+const SILENT_DB: float = -60.0
 
 @export var bob_height := 0.25
 @export var bob_duration := 2.5
@@ -18,6 +22,9 @@ const BREAK_VFX_TIME: float = 1.0
 var _base_height := 0.0
 var _elapsed := 0.0
 var _broken := false
+
+@onready var _hum: AudioStreamPlayer3D = $Hum
+@onready var _shape: CollisionShape3D = $Body/CollisionShape3D
 
 
 ## Returns the gem a physics body belongs to, or null when it is not part of one.
@@ -62,8 +69,13 @@ func _shatter() -> void:
 	for child in find_children("*", "GPUParticles3D", true, false):
 		(child as GPUParticles3D).emitting = false
 
+	# the body collapses with the scale, so take it out before that degenerates
+	_shape.set_deferred("disabled", true)
+
 	var tween := create_tween().set_parallel(true)
 	tween.tween_property(self, "scale", Vector3.ZERO, SHATTER_TIME)
+	# chained below waits for the longest tweener, so the hum is not cut short
+	tween.tween_property(_hum, "volume_db", SILENT_DB, HUM_FADE_TIME)
 
 	for child in find_children("*", "MeshInstance3D", true, false):
 		var mesh := child as MeshInstance3D
