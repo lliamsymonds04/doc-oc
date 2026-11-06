@@ -20,11 +20,19 @@ extends Node3D
 @export var smoke_cell_scale := 1.4  # smoke square side as a multiple of cell_size
 @export var smoke_delay := 0.5  # seconds after the rise begins before the smoke shows
 @export var smoke_max_distance := 40.0  # pillars further than this from the player get no dust
+@export var rise_rumble: AudioStream = preload("res://assets/audio/ground_rumble.ogg")
 
 var pillars: Array[Node3D] = []
 var pillars_risen = false
 # >0 while the rise shake is fed to the camera
 var _shake_time := 0.0
+var _rumble: AudioStreamPlayer3D
+
+
+func _ready() -> void:
+	_rumble = AudioStreamPlayer3D.new()
+	_rumble.stream = rise_rumble
+	add_child(_rumble)
 
 
 func spawn() -> void:
@@ -86,6 +94,7 @@ func rise_pillars():
 	if pillars_risen:
 		return
 	pillars_risen = true
+	AudioUtil.play_with_pitch(_rumble)
 	_shake_time = rise_duration
 	for pillar in pillars:
 		var tween = get_tree().create_tween()
