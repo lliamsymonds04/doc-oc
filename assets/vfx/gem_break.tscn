@@ -1,0 +1,148 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://assets/vfx/impact_vfx.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/textures/trace_02_a.png" id="2_streak"]
+[ext_resource type="Texture2D" path="res://assets/textures/circle_05_a.png" id="3_glow"]
+
+; no billboard: it would override transform_align on the Streaks node
+[sub_resource type="StandardMaterial3D" id="Mat_streak"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("2_streak")
+
+[sub_resource type="QuadMesh" id="Quad_streak"]
+size = Vector2(0.22, 1.3)
+
+[sub_resource type="Curve" id="Curve_streak_alpha"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.06, 1), 0.0, 0.0, 0, 0, Vector2(0.45, 0.7), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_streak_alpha"]
+curve = SubResource("Curve_streak_alpha")
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_streak"]
+emission_shape = 1
+emission_sphere_radius = 0.12
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 9.0
+initial_velocity_max = 20.0
+gravity = Vector3(0, 0, 0)
+damping_min = 5.0
+damping_max = 9.0
+scale_min = 0.9
+scale_max = 1.4
+color = Color(0.35, 1, 0.5, 1)
+alpha_curve = SubResource("CurveTexture_streak_alpha")
+
+[sub_resource type="StandardMaterial3D" id="Mat_core"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+billboard_mode = 3
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("3_glow")
+
+[sub_resource type="QuadMesh" id="Quad_core"]
+size = Vector2(1, 1)
+
+[sub_resource type="Curve" id="Curve_core_scale"]
+_data = [Vector2(0, 0.9), 0.0, 0.0, 0, 0, Vector2(1, 3.2), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_core_scale"]
+curve = SubResource("Curve_core_scale")
+
+[sub_resource type="Curve" id="Curve_core_alpha"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_core_alpha"]
+curve = SubResource("Curve_core_alpha")
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_core"]
+emission_shape = 1
+emission_sphere_radius = 0.05
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 0.0
+initial_velocity_max = 0.2
+gravity = Vector3(0, 0, 0)
+scale_min = 1.0
+scale_max = 1.0
+scale_curve = SubResource("CurveTexture_core_scale")
+color = Color(0.8, 1, 0.9, 1)
+alpha_curve = SubResource("CurveTexture_core_alpha")
+
+[sub_resource type="Curve" id="Curve_halo_scale"]
+_data = [Vector2(0, 0.6), 0.0, 0.0, 0, 0, Vector2(1, 5), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_halo_scale"]
+curve = SubResource("Curve_halo_scale")
+
+[sub_resource type="Curve" id="Curve_halo_alpha"]
+_data = [Vector2(0, 0.85), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_halo_alpha"]
+curve = SubResource("CurveTexture_halo_alpha")
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_halo"]
+emission_shape = 1
+emission_sphere_radius = 0.05
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 0.0
+initial_velocity_max = 0.2
+gravity = Vector3(0, 0, 0)
+scale_min = 1.0
+scale_max = 1.0
+scale_curve = SubResource("CurveTexture_halo_scale")
+color = Color(0.25, 1, 0.45, 1)
+alpha_curve = SubResource("CurveTexture_halo_alpha")
+
+[node name="GemBreak" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Streaks" type="GPUParticles3D" parent="."]
+cast_shadow = 0
+material_override = SubResource("Mat_streak")
+emitting = false
+amount = 40
+lifetime = 0.55
+one_shot = true
+explosiveness = 1.0
+fixed_fps = 0
+visibility_aabb = AABB(-14, -14, -14, 28, 28, 28)
+transform_align = 3
+process_material = SubResource("PPM_streak")
+draw_pass_1 = SubResource("Quad_streak")
+
+[node name="Core" type="GPUParticles3D" parent="."]
+cast_shadow = 0
+material_override = SubResource("Mat_core")
+emitting = false
+amount = 1
+lifetime = 0.3
+one_shot = true
+explosiveness = 1.0
+fixed_fps = 0
+visibility_aabb = AABB(-14, -14, -14, 28, 28, 28)
+process_material = SubResource("PPM_core")
+draw_pass_1 = SubResource("Quad_core")
+
+[node name="Halo" type="GPUParticles3D" parent="."]
+cast_shadow = 0
+material_override = SubResource("Mat_core")
+emitting = false
+amount = 1
+lifetime = 0.45
+one_shot = true
+explosiveness = 1.0
+fixed_fps = 0
+visibility_aabb = AABB(-14, -14, -14, 28, 28, 28)
+process_material = SubResource("PPM_halo")
+draw_pass_1 = SubResource("Quad_core")

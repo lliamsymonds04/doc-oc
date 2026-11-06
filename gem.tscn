@@ -1,0 +1,134 @@
+[gd_scene format=3 uid="uid://bsa48djeig0n1"]
+
+[ext_resource type="PackedScene" uid="uid://bse7g5a0i8u7k" path="res://assets/meshes/gem.glb" id="1_tpo6s"]
+[ext_resource type="Script" uid="uid://bqs32h4xmoyvf" path="res://gem.gd" id="2_float"]
+[ext_resource type="Texture2D" uid="uid://qg5ftlfbhwo1" path="res://assets/textures/star_01_a.png" id="2_git4s"]
+[ext_resource type="Texture2D" uid="uid://c2l3e7japhrgi" path="res://assets/textures/circle_05_a.png" id="3_wv432"]
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_gem"]
+points = PackedVector3Array(-0.51964, 0.40039, -0.01055, -0.45217, 0.35210, -0.39615, -0.49952, -0.19496, -0.01869, -0.45351, -0.15748, 0.38675, -0.45918, 0.34041, 0.40873, -0.23676, 0.97170, -0.00007, -0.15680, 0.97434, -0.15879, -0.00010, 0.97170, -0.23336, -0.00010, 0.33093, -0.52679, -0.38490, -0.17930, -0.39595, -0.30660, -0.95083, -0.00007, -0.21633, -0.94510, 0.22621, -0.00010, -0.95083, 0.30221, -0.04116, -0.19562, 0.47995, -0.00010, 0.33313, 0.51261, -0.00010, 0.97170, 0.23333, -0.17052, 0.97721, 0.13515, -0.07314, 1.06254, -0.00007, -0.05488, 1.06342, -0.05593, 0.15507, 0.96927, -0.16794, 0.45270, 0.32850, -0.46147, -0.00010, 1.06254, -0.07210, 0.05200, 1.06828, -0.05633, -0.01093, -0.22451, -0.48436, -0.00010, -0.95083, -0.30224, -0.22675, -0.94796, -0.22767, -0.19301, -1.06703, -0.00007, -0.10182, -1.06130, 0.11510, -0.00010, -1.06703, 0.19019, 0.23254, -0.94598, 0.19192, 0.37811, -0.22870, 0.41656, 0.42897, 0.33556, 0.38665, 0.16270, 0.97633, 0.12304, 0.05004, 1.06056, 0.04816, -0.00010, 1.06254, 0.07196, -0.05312, 1.05571, 0.05050, -0.00010, 1.09055, -0.00007, 0.23657, 0.97170, -0.00007, 0.53430, 0.33093, -0.00007, 0.44744, -0.21833, 0.01428, 0.30651, -0.95083, -0.00007, 0.36129, -0.15152, -0.43278, 0.07305, 1.06254, -0.00007, 0.22491, -0.95303, -0.23682, -0.00010, -1.06703, -0.19033, -0.11316, -1.06439, -0.11565, -0.00010, -1.16207, -0.00007, 0.10782, -1.06350, 0.09364, 0.19293, -1.06703, -0.00007, 0.11132, -1.06946, -0.12491)
+radius = 0.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x4qfp"]
+transparency = 1
+cull_mode = 2
+vertex_color_use_as_albedo = true
+albedo_color = Color(0, 0.41960785, 0, 0.79607844)
+metallic_specular = 1.0
+roughness = 0.34
+emission_enabled = true
+emission = Color(0, 0.14192474, 0, 1)
+emission_energy_multiplier = 1.18
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5xpsf"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("2_git4s")
+billboard_mode = 3
+billboard_keep_scale = true
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="Curve" id="Curve_4631j"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.25, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_star_alpha"]
+curve = SubResource("Curve_4631j")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_xmnvl"]
+emission_shape = 2
+emission_sphere_radius = 0.85
+angle_min = -180.0
+angle_max = 180.0
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 0.05
+initial_velocity_max = 0.3
+angular_velocity_min = -40.0
+angular_velocity_max = 40.0
+gravity = Vector3(0, 0.4, 0)
+scale_min = 0.049999997
+scale_max = 0.099999994
+color = Color(1, 0.87058824, 0.2509804, 1)
+alpha_curve = SubResource("CurveTexture_star_alpha")
+
+[sub_resource type="QuadMesh" id="QuadMesh_whi30"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xqbfa"]
+render_priority = -1
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(0.29411766, 1, 0.3529412, 0.3019608)
+albedo_texture = ExtResource("3_wv432")
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_r36um"]
+size = Vector2(3.2, 3.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mote"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("3_wv432")
+billboard_mode = 3
+billboard_keep_scale = true
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_mote"]
+emission_shape = 2
+emission_sphere_radius = 1.0
+angle_min = -180.0
+angle_max = 180.0
+direction = Vector3(0, 1, 0)
+spread = 20.0
+initial_velocity_min = 0.4
+initial_velocity_max = 0.8
+angular_velocity_min = -15.0
+angular_velocity_max = 15.0
+gravity = Vector3(0, 0.35, 0)
+scale_max = 1.8
+color = Color(0.29411766, 1, 0.3529412, 1)
+alpha_curve = SubResource("CurveTexture_star_alpha")
+
+[node name="gem" unique_id=2077143984 instance=ExtResource("1_tpo6s")]
+script = ExtResource("2_float")
+
+[node name="Body" type="StaticBody3D" parent="." index="0" unique_id=901991263]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body" index="0" unique_id=634001920]
+shape = SubResource("ConvexPolygonShape3D_gem")
+
+[node name="Cube" parent="." index="1" unique_id=230420024]
+transform = Transform3D(1.3, 0, 0, 0, 1.3, 0, 0, 0, 1.3, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_x4qfp")
+
+[node name="Stars" type="GPUParticles3D" parent="." index="2" unique_id=425799711]
+material_override = SubResource("StandardMaterial3D_5xpsf")
+cast_shadow = 0
+amount = 28
+lifetime = 2.2
+visibility_aabb = AABB(-3, -3, -3, 6, 8, 6)
+process_material = SubResource("ParticleProcessMaterial_xmnvl")
+draw_pass_1 = SubResource("QuadMesh_whi30")
+
+[node name="Glow" type="MeshInstance3D" parent="." index="3" unique_id=825308621]
+material_override = SubResource("StandardMaterial3D_xqbfa")
+cast_shadow = 0
+mesh = SubResource("QuadMesh_r36um")
+
+[node name="Motes" type="GPUParticles3D" parent="." index="4" unique_id=1370382206]
+material_override = SubResource("StandardMaterial3D_mote")
+cast_shadow = 0
+amount = 6
+lifetime = 5.0
+visibility_aabb = AABB(-5, -2, -5, 10, 14, 10)
+process_material = SubResource("ParticleProcessMaterial_mote")
+draw_pass_1 = SubResource("QuadMesh_whi30")
