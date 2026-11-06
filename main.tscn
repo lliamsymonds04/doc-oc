@@ -7,14 +7,10 @@
 [ext_resource type="AudioStream" uid="uid://i3cgbpcxm2xh" path="res://assets/audio/small_servo.ogg" id="5_3rvo"]
 [ext_resource type="PackedScene" uid="uid://fqe70d8uduc6" path="res://ui/hud/hud.tscn" id="8_5vw27"]
 [ext_resource type="Script" uid="uid://c34dnohk30mk" path="res://systems/util/debug_ray_drawer.gd" id="9_dbg"]
-[ext_resource type="PackedScene" uid="uid://dqbd8ih3ynaal" path="res://systems/enemy/basic_enemy.tscn" id="10_4c57u"]
-[ext_resource type="PackedScene" path="res://systems/enemy/fireball_enemy.tscn" id="10_fireball"]
-[ext_resource type="PackedScene" path="res://systems/enemy/slam_enemy.tscn" id="10_slam"]
-[ext_resource type="Script" uid="uid://bdtssx7vpj7jn" path="res://systems/enemy/dummy.gd" id="11_efxa6"]
 [ext_resource type="Script" uid="uid://ctgilxfxha04r" path="res://main.gd" id="12_main"]
 [ext_resource type="Shader" uid="uid://cagkf5o8es3pp" path="res://shaders/pixelate.gdshader" id="13_pixel"]
 [ext_resource type="Script" uid="uid://d57yvfu3wvbb" path="res://systems/pillar_spawner.gd" id="16_2cqfq"]
-[ext_resource type="Script" path="res://systems/box_spawner.gd" id="17_box"]
+[ext_resource type="Script" uid="uid://c3j1vj3ovktda" path="res://systems/box_spawner.gd" id="17_box"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.26, 0.28, 0.34, 1)
@@ -136,22 +132,6 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="Hud" parent="." unique_id=1447860461 instance=ExtResource("8_5vw27")]
-
-[node name="Dummy" type="Node3D" parent="." unique_id=171037128]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 23)
-script = ExtResource("11_efxa6")
-enemy_scene = ExtResource("10_4c57u")
-metadata/_custom_type_script = "uid://bdtssx7vpj7jn"
-
-[node name="FireballEnemy" type="Node3D" parent="." unique_id=773500811]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.682001, 0, 15)
-script = ExtResource("11_efxa6")
-enemy_scene = ExtResource("10_fireball")
-
-[node name="SlamEnemy" type="Node3D" parent="." unique_id=1769352173]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 15)
-script = ExtResource("11_efxa6")
-enemy_scene = ExtResource("10_slam")
 
 [node name="PillarHandler" type="Node3D" parent="." unique_id=532953420]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 21)
