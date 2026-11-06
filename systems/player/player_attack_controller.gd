@@ -138,6 +138,7 @@ func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 		return
 
 	var enemy := EnemyUtil.resolve_enemy(collider)
+	var gem := FloatingGem.resolve(collider)
 	if enemy:
 		player.attack_hit.emit(hit, normal, collider)
 
@@ -150,10 +151,13 @@ func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 		_hit_audio_player.stream = (config.enemy_hit_sound if enemy else config.surface_hit_sound)
 		AudioUtil.play_with_pitch(_hit_audio_player)
 
-	if enemy == null and not collider is RigidBody3D:
+	if enemy == null and not collider is RigidBody3D and gem == null:
 		CrackDecal.spawn(_crack_decal_parent, hit, normal)
 
-	if enemy and can_land:
+	if gem and can_land:
+		_damaged_this_swing = true
+		gem.hit(hit, normal)
+	elif enemy and can_land:
 		_damaged_this_swing = true
 		_damage_enemy(collider, enemy, hit)
 	elif enemy == null and collider is RigidBody3D:
@@ -163,6 +167,9 @@ func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 	player.camera_controller.kick_fov(
 		config.hit_fov_kick * _heavy(config.heavy_fov_kick_multiplier)
 	)
+	# after the line above, because kick_fov overwrites rather than adds
+	if gem and can_land:
+		player.camera_controller.kick_fov(config.gem_fov_kick)
 
 	_spawn_hit_vfx(hit, normal)
 

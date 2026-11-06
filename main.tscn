@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://ctgilxfxha04r" path="res://main.gd" id="12_main"]
 [ext_resource type="Shader" uid="uid://cagkf5o8es3pp" path="res://shaders/pixelate.gdshader" id="13_pixel"]
 [ext_resource type="Script" uid="uid://d57yvfu3wvbb" path="res://systems/pillar_spawner.gd" id="16_2cqfq"]
+[ext_resource type="PackedScene" uid="uid://bsa48djeig0n1" path="res://gem.tscn" id="16_yaehf"]
 [ext_resource type="Script" uid="uid://c3j1vj3ovktda" path="res://systems/box_spawner.gd" id="17_box"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
@@ -143,6 +144,9 @@ metadata/_custom_type_script = "uid://d57yvfu3wvbb"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 21)
 script = ExtResource("17_box")
 palette = PackedColorArray(0.72, 0.63, 0.5, 1, 0.55, 0.46, 0.36, 1, 0.62, 0.6, 0.57, 1, 0.45, 0.42, 0.38, 1)
+
+[node name="gem2" parent="." unique_id=2077143984 instance=ExtResource("16_yaehf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, 14)
 
 [connection signal="aim_at_enemy_changed" from="Player" to="Hud" method="_on_aim_at_enemy_changed"]
 [connection signal="attack_hit" from="Player" to="Hud" method="_on_attack_hit"]

@@ -24,6 +24,8 @@ extends Resource
 @export_range(-10, 0, 0.5) var hit_fov_kick: float = -2.0
 ## Wind-up kick on a heavy swing; + = widen. Hits narrow, so the two beats differ.
 @export var swing_fov_kick: float = 1.5
+## Gem hits widen instead of narrowing, so they get their own kick.
+@export var gem_fov_kick: float = 8.0
 
 @export_group("Impulse Physics")
 @export var impulse_strength: float = 7.0

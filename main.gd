@@ -7,6 +7,7 @@ var _impact_registry: ImpactSensorRegistry
 
 @onready var _pillars: PillarHandler = $PillarHandler
 @onready var _boxes: BoxHandler = $BoxHandler
+@onready var _gem: FloatingGem = $gem2
 
 
 func _ready() -> void:
@@ -19,6 +20,7 @@ func _ready() -> void:
 		VelocityTrail.attach(body)
 
 	tree.node_added.connect(on_node_added)
+	_gem.hit_landed.connect(on_gem_hit)
 
 	_build_level()
 
@@ -31,6 +33,10 @@ func _exit_tree() -> void:
 func on_node_added(node: Node) -> void:
 	if node.is_in_group(VelocityTrail.GROUP_TRAIL):
 		VelocityTrail.attach(node)
+
+
+func on_gem_hit(_position: Vector3, _normal: Vector3) -> void:
+	_pillars.rise_pillars()
 
 
 func _build_level() -> void:
