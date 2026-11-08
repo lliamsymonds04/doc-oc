@@ -14,6 +14,8 @@
 [ext_resource type="Script" uid="uid://br3ibyoysrvbe" path="res://ui/util/button_hover_effects.gd" id="10_hovergc"]
 [ext_resource type="Script" uid="uid://cc12a2fb1vno6" path="res://ui/hud/menu_cursor.gd" id="11_cursorgd"]
 [ext_resource type="Shader" uid="uid://bprhv5s8c2j55" path="res://shaders/vignette.gdshader" id="14_5mn0o"]
+[ext_resource type="FontFile" uid="uid://t40g2ovltieu" path="res://assets/Anton-Regular.ttf" id="15_font"]
+[ext_resource type="Script" path="res://ui/hud/run_timer.gd" id="16_runtimer"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_speedlines"]
 shader = ExtResource("2_aixkq")
@@ -111,6 +113,25 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="ModeButtons" parent="." unique_id=1989756047 instance=ExtResource("6_1v5rv")]
+
+[node name="RunTimer" type="Label" parent="." unique_id=1109320475]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -80.0
+offset_top = 20.0
+offset_right = 80.0
+offset_bottom = 76.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("15_font")
+theme_override_font_sizes/font_size = 40
+text = "00:00"
+horizontal_alignment = 1
+script = ExtResource("16_runtimer")
 
 [node name="ButtonHoverEffects" type="Node" parent="." unique_id=1443064609 node_paths=PackedStringArray("cursor")]
 script = ExtResource("10_hovergc")

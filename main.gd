@@ -5,6 +5,7 @@ var _impact_registry: ImpactSensorRegistry
 @onready var _pillars: PillarHandler = $PillarHandler
 @onready var _boxes: BoxHandler = $BoxHandler
 @onready var _gem: FloatingGem = $gem2
+@onready var _hud: Hud = $Hud
 @onready var _enemies: EnemySpawner = $EnemySpawner
 
 
@@ -36,6 +37,7 @@ func on_node_added(node: Node) -> void:
 func on_gem_hit(_position: Vector3, _normal: Vector3) -> void:
 	_pillars.rise_pillars()
 	_enemies.begin()
+	_hud.start_timer()
 
 
 func _build_level() -> void:

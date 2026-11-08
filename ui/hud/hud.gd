@@ -3,6 +3,15 @@ extends CanvasLayer
 
 @onready var mode_handler: ModeHandler = $ModeButtons
 @onready var crosshair_controller: CrosshairController = $Crosshair
+@onready var run_timer: RunTimer = $RunTimer
+
+
+func start_timer() -> void:
+	run_timer.start()
+
+
+func _on_player_died() -> void:
+	run_timer.stop()
 
 
 func _on_mode_changed(new_mode: PlayerController.Mode) -> void:

@@ -7,6 +7,8 @@ signal attack_hit(hit_point: Vector3, normal: Vector3, collider: Object)
 signal aim_at_enemy_changed(in_range: bool)
 ## emitted on the 0 <-> any grab transition, so it stays true while any arm holds
 signal grabbing_changed(active: bool)
+## emitted once when the player's health runs out
+signal died
 
 enum StateID { GROUNDED, WALL_CLIMB, AIR }
 
@@ -211,6 +213,7 @@ func _on_damage_taken(dmg: float) -> void:
 
 func _on_death() -> void:
 	print("dead")
+	died.emit()
 
 
 func set_state(id: StateID) -> void:
