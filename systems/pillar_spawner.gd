@@ -51,7 +51,9 @@ func spawn() -> void:
 		for iz in steps:
 			var dx := ix + 0.5 - half
 			var dz := iz + 0.5 - half
-			if dx * dx + dz * dz < center_radius * center_radius:
+			var d2 := dx * dx + dz * dz
+			# keep the square grid inside a circle, so no pillar lands past the border
+			if d2 < center_radius * center_radius or d2 > half * half:
 				continue
 			spots.append(Vector3(dx, dz, img.get_pixel(ix, iz).r))
 

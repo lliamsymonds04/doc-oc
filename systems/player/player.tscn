@@ -59,6 +59,7 @@ roughness = 0.5
 
 [node name="Player" type="CharacterBody3D" unique_id=1831706131 node_paths=PackedStringArray("arm_mounts", "leg_mounts")]
 collision_layer = 2
+collision_mask = 17
 script = ExtResource("1_ktl23")
 movement = SubResource("Resource_movement")
 hover = SubResource("Resource_hover")
@@ -76,6 +77,7 @@ shape = SubResource("CapsuleShape3D_m2c1y")
 
 [node name="CameraController" type="SpringArm3D" parent="." unique_id=889996896]
 physics_interpolation_mode = 1
+collision_mask = 17
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 spring_length = 7.0
 script = ExtResource("1_2anqx")

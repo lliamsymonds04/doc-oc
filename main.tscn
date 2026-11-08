@@ -12,8 +12,8 @@
 [ext_resource type="Script" uid="uid://d57yvfu3wvbb" path="res://systems/pillar_spawner.gd" id="16_2cqfq"]
 [ext_resource type="PackedScene" uid="uid://bsa48djeig0n1" path="res://systems/gem/gem.tscn" id="16_yaehf"]
 [ext_resource type="Script" uid="uid://c3j1vj3ovktda" path="res://systems/box_spawner.gd" id="17_box"]
-[ext_resource type="Script" path="res://systems/enemy_spawner.gd" id="18_spawner"]
-[ext_resource type="Script" path="res://systems/enemy_spawn_entry.gd" id="18_entry"]
+[ext_resource type="Script" uid="uid://qdgxt6yqgo3q" path="res://systems/enemy_spawn_entry.gd" id="18_entry"]
+[ext_resource type="Script" uid="uid://dk7f4pfsw2611" path="res://systems/enemy_spawner.gd" id="18_spawner"]
 [ext_resource type="PackedScene" uid="uid://dqbd8ih3ynaal" path="res://systems/enemy/basic_enemy.tscn" id="19_enemy"]
 [ext_resource type="PackedScene" path="res://systems/enemy/fireball_enemy.tscn" id="20_fireball"]
 [ext_resource type="PackedScene" path="res://systems/enemy/slam_enemy.tscn" id="21_slam"]
@@ -44,8 +44,8 @@ glow_bloom = 0.1
 glow_hdr_threshold = 0.9
 fog_enabled = true
 fog_light_color = Color(0.48, 0.42, 0.35, 1)
-fog_density = 0.012
-fog_sky_affect = 0.0
+fog_density = 0.022
+fog_sky_affect = 0.5
 adjustment_enabled = true
 adjustment_brightness = 1.02
 adjustment_contrast = 1.06
@@ -64,6 +64,22 @@ seamless = true
 
 [sub_resource type="StandardMaterial3D" id="FloorMat"]
 roughness = 0.85
+detail_enabled = true
+detail_blend_mode = 3
+detail_uv_layer = 1
+detail_albedo = SubResource("NoiseTex_floor")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+uv1_world_triplanar = true
+uv2_scale = Vector3(0.01, 0.01, 0.01)
+uv2_triplanar = true
+uv2_world_triplanar = true
+
+[sub_resource type="StandardMaterial3D" id="BorderMat"]
+albedo_color = Color(0.14, 0.18, 0.26, 1)
+roughness = 1.0
+emission_enabled = true
+emission = Color(0.06, 0.18, 0.45, 1)
 detail_enabled = true
 detail_blend_mode = 3
 detail_uv_layer = 1
@@ -97,7 +113,6 @@ colors = PackedColorArray(0.23107609, 0.23107636, 0.2310763, 1, 0.6177408, 0.617
 [sub_resource type="Resource" id="Resource_spawn_entry"]
 script = ExtResource("18_entry")
 scene = ExtResource("19_enemy")
-count_min = 1
 count_max = 2
 
 [sub_resource type="Resource" id="Resource_spawn_fireball"]
@@ -127,6 +142,26 @@ environment = SubResource("Environment_m2c1y")
 use_collision = true
 size = Vector3(200, 0.178, 200)
 material = SubResource("FloorMat")
+
+[node name="Border" type="CSGCombiner3D" parent="." unique_id=972609954]
+use_collision = true
+collision_layer = 16
+collision_mask = 0
+
+[node name="Ring" type="CSGCylinder3D" parent="Border" unique_id=742400585]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20, 0)
+radius = 104.0
+height = 60.0
+sides = 192
+material = SubResource("BorderMat")
+
+[node name="Hole" type="CSGCylinder3D" parent="Border" unique_id=2040636037]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20, 0)
+operation = 2
+radius = 100.0
+height = 64.0
+sides = 192
+material = SubResource("BorderMat")
 
 [node name="Player" parent="." unique_id=1831706131 instance=ExtResource("1_ig7tw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.682001, 0.08204651, 21.104301)
@@ -169,7 +204,7 @@ palette = PackedColorArray(0.72, 0.63, 0.5, 1, 0.55, 0.46, 0.36, 1, 0.62, 0.6, 0
 [node name="gem2" parent="." unique_id=2077143984 instance=ExtResource("16_yaehf")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, 14)
 
-[node name="EnemySpawner" type="Node3D" parent="."]
+[node name="EnemySpawner" type="Node3D" parent="." unique_id=1874129330]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 21)
 script = ExtResource("18_spawner")
 entries = Array[ExtResource("18_entry")]([SubResource("Resource_spawn_entry"), SubResource("Resource_spawn_fireball"), SubResource("Resource_spawn_slam")])

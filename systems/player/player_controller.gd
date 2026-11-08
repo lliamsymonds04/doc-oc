@@ -14,6 +14,8 @@ enum Mode { ATTACK, GRAB }
 
 ## Layer bodies are moved to while held; excluded from player casts via cast_mask.
 const HELD_LAYER := 4
+## Layer the arena border sits on; excluded from player casts so it cannot be climbed.
+const BORDER_LAYER := 16
 const PLAYER_GROUP := &"player"
 
 @export var movement: MovementConfig
@@ -67,10 +69,10 @@ var _damage_flash: DamageFlashUtil
 @onready var _health_controller: HealthController = $HealthController
 
 
-## Mask for casts originating on the player: everything except the player's own layer
-## and held bodies.
+## Mask for casts originating on the player: everything except the player's own layer,
+## held bodies, and the border.
 func cast_mask() -> int:
-	return ~(collision_layer | HELD_LAYER)
+	return ~(collision_layer | HELD_LAYER | BORDER_LAYER)
 
 
 func _init() -> void:
