@@ -67,14 +67,13 @@ func _advance_phase() -> void:
 ## Range is re-checked here so a target that left during the windup is not hit.
 func _strike() -> void:
 	var target := enemy.get_target()
-	if target != null and _target_in_range(target):
-		target.take_damage(_config.damage)
+	if target == null:
+		return
 
-
-func _target_in_range(target: PlayerController) -> bool:
 	var to := target.global_position - enemy.global_position
 	to.y = 0.0
-	return to.length() < _config.detection_range
+	if to.length() < _config.detection_range:
+		target.take_damage(_config.damage, to.normalized())
 
 
 ## Anticipate through the windup, release into the swing, snap back on recovery.

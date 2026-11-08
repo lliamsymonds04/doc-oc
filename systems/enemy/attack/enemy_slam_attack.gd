@@ -251,4 +251,6 @@ func _damage_in_radius() -> void:
 		if player == null or hit.has(player.get_instance_id()):
 			continue
 		hit[player.get_instance_id()] = true
-		player.take_damage(_config.damage)
+		var away := player.global_position - enemy.global_position
+		away.y = 0.0
+		player.take_damage(_config.damage, away.normalized())

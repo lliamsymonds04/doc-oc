@@ -34,6 +34,15 @@ func is_tackling() -> bool:
 	return _phase == Phase.WINDUP
 
 
+func cancel() -> void:
+	if _phase == Phase.IDLE:
+		return
+	if is_instance_valid(_body):
+		_end_float()
+	else:
+		_abort()
+
+
 func physics_update(dt: float) -> void:
 	if _phase != Phase.IDLE and not is_instance_valid(_body):
 		_abort()  # corpse cleanup freed the body mid-tackle

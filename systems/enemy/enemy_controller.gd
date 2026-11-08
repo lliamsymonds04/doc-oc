@@ -238,7 +238,11 @@ func flash(strength: float = 1.0) -> void:
 
 ## The attack strategies and anyone re-checking range share this lookup.
 func get_target() -> PlayerController:
-	if is_instance_valid(_target):
-		return _target
-	_target = get_tree().get_first_node_in_group(PlayerController.PLAYER_GROUP) as PlayerController
+	if not is_instance_valid(_target):
+		_target = (
+			get_tree().get_first_node_in_group(PlayerController.PLAYER_GROUP) as PlayerController
+		)
+	# otherwise enemies would keep swinging at the death spot forever
+	if is_instance_valid(_target) and _target.is_dead():
+		return null
 	return _target

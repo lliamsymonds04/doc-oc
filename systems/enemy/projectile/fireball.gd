@@ -63,7 +63,7 @@ func _physics_process(dt: float) -> void:
 func _explode(normal: Vector3, collider: Object) -> void:
 	var player := collider as PlayerController
 	if player != null:
-		player.take_damage(_damage)
+		player.take_damage(_damage, _velocity.normalized())
 
 	var impact := IMPACT_SCENE.instantiate() as ImpactVFX
 	# root, not the fireball: the burst has to outlive this node

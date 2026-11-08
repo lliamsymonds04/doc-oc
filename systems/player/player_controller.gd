@@ -43,6 +43,8 @@ const PLAYER_GROUP := &"player"
 @export var damage_full_reaction_percent: float = 0.3
 @export var damage_trauma: float = 1.5
 @export var damage_fov_kick: float = -3.0
+## Speed the corpse is thrown at when the killing hit came with a direction (m/s).
+@export var death_knockback: float = 6.0
 
 @export_category("Audio")
 @export var step_sound: AudioStreamOggVorbis
@@ -64,8 +66,11 @@ var _jump_audio_player: AudioStreamPlayer3D
 var _damage_audio_player: AudioStreamPlayer3D
 var _hit_vfx: ImpactVFX
 var _damage_flash: DamageFlashUtil
+var _ragdoll: PlayerRagdollController
+var _hit_dir := Vector3.ZERO
 
 @onready var tilt_pivot: Node3D = $TiltPivot
+@onready var hitbox: CollisionShape3D = $Hitbox
 @onready var bean: MeshInstance3D = $TiltPivot/Bean
 @onready var camera_controller: CameraController = $CameraController
 @onready var _health_controller: HealthController = $HealthController
@@ -110,6 +115,7 @@ func _ready() -> void:
 	attack_controller = PlayerAttackController.new(self, attack_config)
 	grab_controller = PlayerGrabController.new(self, grab)
 	tackle_controller = PlayerTackleController.new(self, tackle)
+	_ragdoll = PlayerRagdollController.new(self)
 
 	_states[StateID.GROUNDED] = GroundedState.new(self)
 	_states[StateID.WALL_CLIMB] = WallClimbState.new(self)
@@ -192,7 +198,8 @@ func is_wall_climbing() -> bool:
 	return _current is WallClimbState
 
 
-func take_damage(dmg: float) -> void:
+func take_damage(dmg: float, hit_dir: Vector3 = Vector3.ZERO) -> void:
+	_hit_dir = hit_dir
 	_health_controller.apply_damage(dmg)
 	print("damage taken: " + str(dmg) + "")
 
@@ -213,6 +220,9 @@ func _on_damage_taken(dmg: float) -> void:
 
 func _on_death() -> void:
 	print("dead")
+	grab_controller.release_all()
+	tackle_controller.cancel()
+	_ragdoll.activate(_hit_dir.normalized() * death_knockback)
 	died.emit()
 
 
