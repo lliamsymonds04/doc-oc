@@ -1,13 +1,11 @@
 extends Node3D
 
-## Scene root of the playable level. Owns level-scoped services and builds the
-## procedural level content in one place, in dependency order.
-
 var _impact_registry: ImpactSensorRegistry
 
 @onready var _pillars: PillarHandler = $PillarHandler
 @onready var _boxes: BoxHandler = $BoxHandler
 @onready var _gem: FloatingGem = $gem2
+@onready var _enemies: EnemySpawner = $EnemySpawner
 
 
 func _ready() -> void:
@@ -37,6 +35,7 @@ func on_node_added(node: Node) -> void:
 
 func on_gem_hit(_position: Vector3, _normal: Vector3) -> void:
 	_pillars.rise_pillars()
+	_enemies.begin()
 
 
 func _build_level() -> void:

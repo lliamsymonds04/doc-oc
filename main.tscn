@@ -12,6 +12,11 @@
 [ext_resource type="Script" uid="uid://d57yvfu3wvbb" path="res://systems/pillar_spawner.gd" id="16_2cqfq"]
 [ext_resource type="PackedScene" uid="uid://bsa48djeig0n1" path="res://gem.tscn" id="16_yaehf"]
 [ext_resource type="Script" uid="uid://c3j1vj3ovktda" path="res://systems/box_spawner.gd" id="17_box"]
+[ext_resource type="Script" path="res://systems/enemy_spawner.gd" id="18_spawner"]
+[ext_resource type="Script" path="res://systems/enemy_spawn_entry.gd" id="18_entry"]
+[ext_resource type="PackedScene" uid="uid://dqbd8ih3ynaal" path="res://systems/enemy/basic_enemy.tscn" id="19_enemy"]
+[ext_resource type="PackedScene" path="res://systems/enemy/fireball_enemy.tscn" id="20_fireball"]
+[ext_resource type="PackedScene" path="res://systems/enemy/slam_enemy.tscn" id="21_slam"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.26, 0.28, 0.34, 1)
@@ -89,6 +94,22 @@ shader_parameter/split_balance = 0.5
 [sub_resource type="Gradient" id="Gradient_2cqfq"]
 colors = PackedColorArray(0.23107609, 0.23107636, 0.2310763, 1, 0.6177408, 0.61774087, 0.61774087, 1)
 
+[sub_resource type="Resource" id="Resource_spawn_entry"]
+script = ExtResource("18_entry")
+scene = ExtResource("19_enemy")
+count_min = 1
+count_max = 2
+
+[sub_resource type="Resource" id="Resource_spawn_fireball"]
+script = ExtResource("18_entry")
+scene = ExtResource("20_fireball")
+first_wave = 2
+
+[sub_resource type="Resource" id="Resource_spawn_slam"]
+script = ExtResource("18_entry")
+scene = ExtResource("21_slam")
+first_wave = 3
+
 [node name="Main" type="Node3D" unique_id=1606965912]
 script = ExtResource("12_main")
 
@@ -147,6 +168,11 @@ palette = PackedColorArray(0.72, 0.63, 0.5, 1, 0.55, 0.46, 0.36, 1, 0.62, 0.6, 0
 
 [node name="gem2" parent="." unique_id=2077143984 instance=ExtResource("16_yaehf")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, 14)
+
+[node name="EnemySpawner" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 21)
+script = ExtResource("18_spawner")
+entries = Array[ExtResource("18_entry")]([SubResource("Resource_spawn_entry"), SubResource("Resource_spawn_fireball"), SubResource("Resource_spawn_slam")])
 
 [connection signal="aim_at_enemy_changed" from="Player" to="Hud" method="_on_aim_at_enemy_changed"]
 [connection signal="attack_hit" from="Player" to="Hud" method="_on_attack_hit"]
