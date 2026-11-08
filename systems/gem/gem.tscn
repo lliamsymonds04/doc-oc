@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bsa48djeig0n1"]
 
 [ext_resource type="PackedScene" uid="uid://bse7g5a0i8u7k" path="res://assets/meshes/gem.glb" id="1_tpo6s"]
-[ext_resource type="Script" uid="uid://bqs32h4xmoyvf" path="res://gem.gd" id="2_float"]
+[ext_resource type="Script" uid="uid://bqs32h4xmoyvf" path="res://systems/gem/gem.gd" id="2_float"]
 [ext_resource type="Texture2D" uid="uid://qg5ftlfbhwo1" path="res://assets/textures/star_01_a.png" id="2_git4s"]
 [ext_resource type="Texture2D" uid="uid://c2l3e7japhrgi" path="res://assets/textures/circle_05_a.png" id="3_wv432"]
 [ext_resource type="AudioStream" uid="uid://dpsdul5efajf" path="res://assets/audio/cyrstal_hum.ogg" id="4_hum"]
@@ -117,6 +117,7 @@ material_override = SubResource("StandardMaterial3D_5xpsf")
 cast_shadow = 0
 amount = 28
 lifetime = 2.2
+local_coords = false
 visibility_aabb = AABB(-3, -3, -3, 6, 8, 6)
 process_material = SubResource("ParticleProcessMaterial_xmnvl")
 draw_pass_1 = SubResource("QuadMesh_whi30")
@@ -131,6 +132,7 @@ material_override = SubResource("StandardMaterial3D_mote")
 cast_shadow = 0
 amount = 6
 lifetime = 5.0
+local_coords = false
 visibility_aabb = AABB(-5, -2, -5, 10, 14, 10)
 process_material = SubResource("ParticleProcessMaterial_mote")
 draw_pass_1 = SubResource("QuadMesh_whi30")
@@ -142,3 +144,12 @@ autoplay = true
 
 [node name="Shatter" type="AudioStreamPlayer3D" parent="." index="6"]
 stream = ExtResource("5_shatter")
+
+[node name="Hint" type="Label3D" parent="." index="7"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9, 0)
+modulate = Color(0.29411766, 1, 0.3529412, 1)
+text = "Break to start"
+font_size = 64
+outline_size = 12
+pixel_size = 0.008
+billboard = 1

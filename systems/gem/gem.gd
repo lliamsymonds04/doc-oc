@@ -18,6 +18,8 @@ const SILENT_DB: float = -60.0
 @export var bob_height := 0.25
 @export var bob_duration := 2.5
 @export var break_vfx: PackedScene = preload("res://assets/vfx/gem_break.tscn")
+## Prompt floating over the gem; set per instance from the scene.
+@export var hint_text := "Break to start"
 
 var _base_height := 0.0
 var _elapsed := 0.0
@@ -26,6 +28,7 @@ var _broken := false
 @onready var _hum: AudioStreamPlayer3D = $Hum
 @onready var _shatter_sound: AudioStreamPlayer3D = $Shatter
 @onready var _shape: CollisionShape3D = $Body/CollisionShape3D
+@onready var _hint: Label3D = $Hint
 
 
 ## Returns the gem a physics body belongs to, or null when it is not part of one.
@@ -40,6 +43,7 @@ static func resolve(collider: Object) -> FloatingGem:
 
 func _ready() -> void:
 	_base_height = position.y
+	_hint.text = hint_text
 
 
 func _physics_process(delta: float) -> void:
@@ -79,14 +83,16 @@ func _shatter() -> void:
 	# chained below waits for the longest tweener, so the hum is not cut short
 	tween.tween_property(_hum, "volume_db", SILENT_DB, HUM_FADE_TIME)
 
-	for child in find_children("*", "MeshInstance3D", true, false):
-		var mesh := child as MeshInstance3D
-		var mat := mesh.material_override as BaseMaterial3D
+	for child in find_children("*", "GeometryInstance3D", true, false):
+		var instance := child as GeometryInstance3D
+		var mat := instance.material_override as BaseMaterial3D
 		if mat == null:
 			continue
 		# duplicated so the fade can't leak into other users of the same material
 		var faded := mat.duplicate() as BaseMaterial3D
-		mesh.material_override = faded
-		tween.tween_property(faded, "albedo_color:a", 0.0, SHATTER_TIME)
+		instance.material_override = faded
+		# particles outlive the mesh dissolve, so they fade with the hum instead
+		var fade_time := HUM_FADE_TIME if child is GPUParticles3D else SHATTER_TIME
+		tween.tween_property(faded, "albedo_color:a", 0.0, fade_time)
 
 	tween.chain().tween_callback(queue_free)

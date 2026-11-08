@@ -10,7 +10,7 @@
 [ext_resource type="Script" uid="uid://ctgilxfxha04r" path="res://main.gd" id="12_main"]
 [ext_resource type="Shader" uid="uid://cagkf5o8es3pp" path="res://shaders/pixelate.gdshader" id="13_pixel"]
 [ext_resource type="Script" uid="uid://d57yvfu3wvbb" path="res://systems/pillar_spawner.gd" id="16_2cqfq"]
-[ext_resource type="PackedScene" uid="uid://bsa48djeig0n1" path="res://gem.tscn" id="16_yaehf"]
+[ext_resource type="PackedScene" uid="uid://bsa48djeig0n1" path="res://systems/gem/gem.tscn" id="16_yaehf"]
 [ext_resource type="Script" uid="uid://c3j1vj3ovktda" path="res://systems/box_spawner.gd" id="17_box"]
 [ext_resource type="Script" path="res://systems/enemy_spawner.gd" id="18_spawner"]
 [ext_resource type="Script" path="res://systems/enemy_spawn_entry.gd" id="18_entry"]
