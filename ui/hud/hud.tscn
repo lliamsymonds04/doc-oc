@@ -16,6 +16,7 @@
 [ext_resource type="Shader" uid="uid://bprhv5s8c2j55" path="res://shaders/vignette.gdshader" id="14_5mn0o"]
 [ext_resource type="FontFile" uid="uid://t40g2ovltieu" path="res://assets/Anton-Regular.ttf" id="15_font"]
 [ext_resource type="Script" path="res://ui/hud/run_timer.gd" id="16_runtimer"]
+[ext_resource type="PackedScene" path="res://ui/hud/player_health_bar.tscn" id="17_healthbar"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_speedlines"]
 shader = ExtResource("2_aixkq")
@@ -132,6 +133,8 @@ theme_override_font_sizes/font_size = 40
 text = "00:00"
 horizontal_alignment = 1
 script = ExtResource("16_runtimer")
+
+[node name="PlayerHealthBar" parent="." unique_id=1996548121 instance=ExtResource("17_healthbar")]
 
 [node name="ButtonHoverEffects" type="Node" parent="." unique_id=1443064609 node_paths=PackedStringArray("cursor")]
 script = ExtResource("10_hovergc")

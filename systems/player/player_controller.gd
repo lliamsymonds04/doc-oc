@@ -9,6 +9,8 @@ signal aim_at_enemy_changed(in_range: bool)
 signal grabbing_changed(active: bool)
 ## emitted once when the player's health runs out
 signal died
+## emitted on every health change, carrying the new health fraction (0..1)
+signal health_changed(ratio: float)
 
 enum StateID { GROUNDED, WALL_CLIMB, AIR }
 
@@ -133,6 +135,7 @@ func _ready() -> void:
 	add_child(_damage_audio_player)
 
 	_health_controller.damage_taken.connect(_on_damage_taken)
+	_health_controller.healed.connect(_on_healed)
 	_health_controller.died.connect(_on_death)
 
 	# arm meshes only exist after mount.init(), so collect them here, not in _init
@@ -216,6 +219,11 @@ func _on_damage_taken(dmg: float) -> void:
 	camera_controller.add_trauma(damage_trauma * weight)
 	camera_controller.kick_fov(damage_fov_kick * weight)
 	AudioUtil.play_with_pitch(_damage_audio_player, 0.08)
+	health_changed.emit(_health_controller.get_health_float())
+
+
+func _on_healed(_heal: float) -> void:
+	health_changed.emit(_health_controller.get_health_float())
 
 
 func _on_death() -> void:
