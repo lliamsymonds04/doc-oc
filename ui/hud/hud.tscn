@@ -18,6 +18,8 @@
 [ext_resource type="Script" path="res://ui/hud/run_timer.gd" id="16_runtimer"]
 [ext_resource type="PackedScene" path="res://ui/hud/player_health_bar.tscn" id="17_healthbar"]
 
+[ext_resource type="PackedScene" path="res://ui/hud/death_screen.tscn" id="18_deathscreen"]
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_speedlines"]
 shader = ExtResource("2_aixkq")
 shader_parameter/dash_texture = ExtResource("5_trace")
@@ -139,3 +141,5 @@ script = ExtResource("16_runtimer")
 [node name="ButtonHoverEffects" type="Node" parent="." unique_id=1443064609 node_paths=PackedStringArray("cursor")]
 script = ExtResource("10_hovergc")
 cursor = NodePath("../PauseMenu/MenuCursor")
+
+[node name="DeathScreen" parent="." unique_id=1443064610 instance=ExtResource("18_deathscreen")]

@@ -12,6 +12,8 @@ var _impact_registry: ImpactSensorRegistry
 func _ready() -> void:
 	var tree = get_tree()
 
+	EnemyController.kill_count = 0
+
 	_impact_registry = ImpactSensorRegistry.new(tree)
 	_impact_registry.scan()
 

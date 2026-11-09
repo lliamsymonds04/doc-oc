@@ -71,8 +71,18 @@ func _on_button_pressed(button_name: String) -> void:
 
 func _unhandled_input(event: InputEvent):
 	if event.is_action_pressed("pause"):
+		# the death screen owns the pointer once the player is down
+		if _player_dead():
+			return
 		toggle_pause(not is_paused)
 		get_viewport().set_input_as_handled()
+
+
+func _player_dead() -> bool:
+	var player := (
+		get_tree().get_first_node_in_group(PlayerController.PLAYER_GROUP) as PlayerController
+	)
+	return player != null and player.is_dead()
 
 
 func _blur_tween() -> void:
@@ -101,6 +111,12 @@ func _blur_tween() -> void:
 
 
 func _apply_mouse_mode() -> void:
+	# regaining focus must not capture the pointer back from the death screen
+	if _player_dead():
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		menu_cursor.set_native_hidden(false)
+		return
+
 	if is_paused:
 		# visible pointers keep moving; the native image is blanked so MenuCursor is
 		# the only cursor drawn. CONFINED_HIDDEN freezes the pointer on Wayland.

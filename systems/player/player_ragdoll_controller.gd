@@ -15,7 +15,7 @@ func _init(player: PlayerController) -> void:
 	_player = player
 
 
-# shortcut: bodies and joints are never freed, free them when a respawn or restart exists
+# shortcut: bodies and joints are never freed, free them when a respawn exists
 func activate(launch: Vector3 = Vector3.ZERO) -> void:
 	_root = _player.get_parent()
 	_create_torso()
@@ -102,9 +102,11 @@ func _pin(a: RigidBody3D, b: RigidBody3D, pivot: Vector3) -> void:
 	joint.node_b = joint.get_path_to(b)
 
 
-# reparent keeps the world transform, so the camera stays where the player died
+# reparent keeps the world transform, so the camera stays where the player died;
+# mouse input is off so the visible death-screen pointer can't swing it
 func _detach_camera() -> void:
 	_player.camera_controller.reparent(_root)
+	_player.camera_controller.set_process_input(false)
 
 
 func _stop_player() -> void:

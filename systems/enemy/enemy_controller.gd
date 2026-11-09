@@ -14,6 +14,9 @@ const CLIMB_PROBE_REACH := 0.8
 ## Upward pop after the wall ends, long enough to clear the lip.
 const CLIMB_MOUNT_TIME := 0.15
 
+## Kills this run; main.gd resets it on scene start and the death screen reads it.
+static var kill_count := 0
+
 @export var config: EnemyConfig
 @export var health_bar: HealthBar
 
@@ -215,6 +218,8 @@ func _on_healed(_heal: float) -> void:
 
 
 func _on_death() -> void:
+	kill_count += 1
+
 	if health_bar:
 		health_bar.play_death()
 

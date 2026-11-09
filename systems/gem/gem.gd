@@ -14,6 +14,8 @@ const BREAK_VFX_TIME: float = 1.0
 const HUM_FADE_TIME: float = 1.2
 ## Effectively silent, so the fade ends inaudible rather than at the last dB.
 const SILENT_DB: float = -60.0
+## Shrinks to this instead of zero scale, which would make the child body's basis singular.
+const SHATTER_SHRINK: Vector3 = Vector3.ONE * 0.001
 
 @export var bob_height := 0.25
 @export var bob_duration := 2.5
@@ -75,11 +77,11 @@ func _shatter() -> void:
 	for child in find_children("*", "GPUParticles3D", true, false):
 		(child as GPUParticles3D).emitting = false
 
-	# the body collapses with the scale, so take it out before that degenerates
+	# stops the shrinking gem from taking hits while it dissolves
 	_shape.set_deferred("disabled", true)
 
 	var tween := create_tween().set_parallel(true)
-	tween.tween_property(self, "scale", Vector3.ZERO, SHATTER_TIME)
+	tween.tween_property(self, "scale", SHATTER_SHRINK, SHATTER_TIME)
 	# chained below waits for the longest tweener, so the hum is not cut short
 	tween.tween_property(_hum, "volume_db", SILENT_DB, HUM_FADE_TIME)
 

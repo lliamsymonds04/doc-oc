@@ -5,6 +5,7 @@ extends CanvasLayer
 @onready var crosshair_controller: CrosshairController = $Crosshair
 @onready var run_timer: RunTimer = $RunTimer
 @onready var health_bar: PlayerHealthBar = $PlayerHealthBar
+@onready var death_screen: DeathScreen = $DeathScreen
 
 
 func start_timer() -> void:
@@ -13,6 +14,7 @@ func start_timer() -> void:
 
 func _on_player_died() -> void:
 	run_timer.stop()
+	death_screen.show_result(run_timer.text, EnemyController.kill_count)
 
 
 func _on_player_health_changed(ratio: float) -> void:
