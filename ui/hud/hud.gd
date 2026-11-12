@@ -6,6 +6,7 @@ extends CanvasLayer
 @onready var run_timer: RunTimer = $RunTimer
 @onready var health_bar: PlayerHealthBar = $PlayerHealthBar
 @onready var death_screen: DeathScreen = $DeathScreen
+@onready var damage_indicator: DamageIndicator = $DamageIndicator
 
 
 func start_timer() -> void:
@@ -19,6 +20,11 @@ func _on_player_died() -> void:
 
 func _on_player_health_changed(ratio: float) -> void:
 	health_bar.set_health(ratio)
+	damage_indicator.set_health(ratio)
+
+
+func _on_player_damage_direction(angle: float, weight: float) -> void:
+	damage_indicator.flash(angle, weight)
 
 
 func _on_mode_changed(new_mode: PlayerController.Mode) -> void:

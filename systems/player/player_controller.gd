@@ -11,6 +11,9 @@ signal grabbing_changed(active: bool)
 signal died
 ## emitted on every health change, carrying the new health fraction (0..1)
 signal health_changed(ratio: float)
+## emitted when a hit with a known direction lands, carrying the screen-space angle
+## the hit came from (radians, 0 = right, +y down) and the reaction weight (0.3..1)
+signal damage_direction(angle: float, weight: float)
 
 enum StateID { GROUNDED, WALL_CLIMB, AIR }
 
@@ -219,6 +222,12 @@ func _on_damage_taken(dmg: float) -> void:
 	camera_controller.add_trauma(damage_trauma * weight)
 	camera_controller.kick_fov(damage_fov_kick * weight)
 	AudioUtil.play_with_pitch(_damage_audio_player, 0.08)
+	if _hit_dir != Vector3.ZERO:
+		# hit_dir is the push direction, so flip it to aim at the source. Yaw only,
+		# so the screen angle means: top = in front, bottom = behind.
+		var flat := camera_controller.get_flat_basis()
+		var source := -_hit_dir
+		damage_direction.emit(atan2(-source.dot(-flat.z), source.dot(flat.x)), weight)
 	health_changed.emit(_health_controller.get_health_float())
 
 
