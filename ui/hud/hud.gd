@@ -18,8 +18,9 @@ func _on_player_died() -> void:
 	death_screen.show_result(run_timer.text, EnemyController.kill_count)
 
 
-func _on_player_health_changed(ratio: float) -> void:
-	health_bar.set_health(ratio)
+func _on_player_health_changed(current: float, max_health: float) -> void:
+	var ratio := current / max_health
+	health_bar.set_health(ratio, max_health)
 	damage_indicator.set_health(ratio)
 
 

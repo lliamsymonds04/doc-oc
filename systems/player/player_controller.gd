@@ -9,8 +9,8 @@ signal aim_at_enemy_changed(in_range: bool)
 signal grabbing_changed(active: bool)
 ## emitted once when the player's health runs out
 signal died
-## emitted on every health change, carrying the new health fraction (0..1)
-signal health_changed(ratio: float)
+## emitted on every health change, carrying current health and the maximum
+signal health_changed(current: float, max_health: float)
 ## emitted when a hit with a known direction lands, carrying the screen-space angle
 ## the hit came from (radians, 0 = right, +y down) and the reaction weight (0.3..1)
 signal damage_direction(angle: float, weight: float)
@@ -140,6 +140,8 @@ func _ready() -> void:
 	_health_controller.damage_taken.connect(_on_damage_taken)
 	_health_controller.healed.connect(_on_healed)
 	_health_controller.died.connect(_on_death)
+	# deferred: the HUD's own onready nodes aren't resolved this early
+	_sync_health.call_deferred()
 
 	# arm meshes only exist after mount.init(), so collect them here, not in _init
 	_damage_flash = DamageFlashUtil.new(self, bean, damage_flash_duration)
@@ -228,11 +230,15 @@ func _on_damage_taken(dmg: float) -> void:
 		var flat := camera_controller.get_flat_basis()
 		var source := -_hit_dir
 		damage_direction.emit(atan2(-source.dot(-flat.z), source.dot(flat.x)), weight)
-	health_changed.emit(_health_controller.get_health_float())
+	_sync_health()
 
 
 func _on_healed(_heal: float) -> void:
-	health_changed.emit(_health_controller.get_health_float())
+	_sync_health()
+
+
+func _sync_health() -> void:
+	health_changed.emit(_health_controller.health, _health_controller.max_health)
 
 
 func _on_death() -> void:
