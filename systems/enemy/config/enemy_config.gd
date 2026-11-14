@@ -20,6 +20,10 @@ extends Resource
 @export var hover_height: float = 0.0
 ## Spring rate pulling back to that altitude. Lower = lazier bob.
 @export var hover_stiffness: float = 6.0
+## Peak elevation swing around hover_height; 0 holds a flat altitude.
+@export var hover_bob_height: float = 0.0
+## Bob rate (rad/s); a full up-down cycle is TAU / this.
+@export var hover_bob_speed: float = 2.0
 
 @export_group("Attack")
 @export var attack: EnemyAttackConfig

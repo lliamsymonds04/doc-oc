@@ -37,6 +37,8 @@ var _climbing_prev := false
 var _mount_timer := 0.0
 ## Last floor a hoverer found; kept when the probe misses.
 var _floor_y := 0.0
+## Phase clock for the hover bob, so it starts at the bottom of the swing.
+var _bob_time := 0.0
 
 @onready var health_controller: HealthController = $HealthController
 ## Whatever holds the visual: a plain mesh, or an imported model scene wrapping one.
@@ -204,7 +206,9 @@ func _hover(dt: float) -> void:
 	if not hit.is_empty():
 		_floor_y = (hit["position"] as Vector3).y
 
-	var err := _floor_y + config.hover_height - global_position.y
+	_bob_time += dt
+	var bob := sin(_bob_time * config.hover_bob_speed) * config.hover_bob_height
+	var err := _floor_y + config.hover_height + bob - global_position.y
 	var want := clampf(err * config.hover_stiffness, -HOVER_MAX_SPEED, HOVER_MAX_SPEED)
 	velocity.y = lerpf(velocity.y, want, 1.0 - exp(-config.hover_stiffness * dt))
 

@@ -17,6 +17,8 @@ script = ExtResource("4_enemy_config")
 move_speed = 3.5
 stop_distance = 8.0
 hover_height = 2.5
+hover_bob_height = 0.4
+hover_bob_speed = 2.0
 attack = SubResource("Resource_attack")
 
 [sub_resource type="SphereShape3D" id="Shape_body"]
