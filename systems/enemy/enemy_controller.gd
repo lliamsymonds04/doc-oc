@@ -14,6 +14,12 @@ const CLIMB_PROBE_REACH := 0.8
 ## Upward pop after the wall ends, long enough to clear the lip.
 const CLIMB_MOUNT_TIME := 0.15
 
+## Downward probe a hoverer holds its altitude over; long enough to find the
+## floor from any hover height.
+const HOVER_PROBE_REACH := 50.0
+## Cap on the vertical hover speed, so a spawn below the target can't rocket.
+const HOVER_MAX_SPEED := 10.0
+
 ## Kills this run; main.gd resets it on scene start and the death screen reads it.
 static var kill_count := 0
 
@@ -29,9 +35,12 @@ var _target: PlayerController
 var _climbing := false
 var _climbing_prev := false
 var _mount_timer := 0.0
+## Last floor a hoverer found; kept when the probe misses.
+var _floor_y := 0.0
 
 @onready var health_controller: HealthController = $HealthController
-@onready var mesh: MeshInstance3D = $Mesh
+## Whatever holds the visual: a plain mesh, or an imported model scene wrapping one.
+@onready var mesh: Node3D = $Mesh
 @onready var hitbox: CollisionShape3D = $Hitbox
 
 
@@ -53,7 +62,7 @@ func _ready() -> void:
 
 	_ragdoll = EnemyRagdollController.new(self, config.upright_speed, config.ragdoll_mass)
 	var ragdoll_body: RigidBody3D = _ragdoll.get_body()
-	var ragdoll_mesh: MeshInstance3D = _ragdoll.get_ragdoll_mesh()
+	var ragdoll_mesh: Node3D = _ragdoll.get_ragdoll_mesh()
 	_ragdoll_flash = DamageFlashUtil.new(ragdoll_body, ragdoll_mesh, config.damage_flash_duration)
 	for child: MeshInstance3D in ragdoll_mesh.find_children("*", "MeshInstance3D", true, false):
 		_ragdoll_flash.add_mesh(child)
@@ -132,7 +141,10 @@ func cancel_get_up() -> void:
 func _physics_process(dt: float) -> void:
 	_ragdoll.make_body_upright(dt)
 
-	velocity += get_gravity() * dt
+	if config.hover_height > 0.0:
+		_hover(dt)
+	else:
+		velocity += get_gravity() * dt
 
 	_attack.physics_update(dt)
 
@@ -159,7 +171,8 @@ func _physics_process(dt: float) -> void:
 				velocity_target = forward * config.move_speed
 
 			_climbing = (
-				is_on_wall()
+				config.hover_height <= 0.0
+				and is_on_wall()
 				and absf(get_wall_normal().y) < config.climb_max_normal_y
 				and _wall_ahead_of_feet(forward)
 			)
@@ -180,6 +193,20 @@ func _physics_process(dt: float) -> void:
 	_mount_timer = maxf(_mount_timer - dt, 0.0)
 
 	move_and_slide()
+
+
+## Flies to hover_height over the floor instead of falling. The last floor found
+## is kept when the probe misses, so a pit or the arena edge can't strand it.
+func _hover(dt: float) -> void:
+	var from := global_position + Vector3.UP * 0.5
+	var query := PhysicsRayQueryParameters3D.create(from, from - Vector3.UP * HOVER_PROBE_REACH, 1)
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	if not hit.is_empty():
+		_floor_y = (hit["position"] as Vector3).y
+
+	var err := _floor_y + config.hover_height - global_position.y
+	var want := clampf(err * config.hover_stiffness, -HOVER_MAX_SPEED, HOVER_MAX_SPEED)
+	velocity.y = lerpf(velocity.y, want, 1.0 - exp(-config.hover_stiffness * dt))
 
 
 func _wall_ahead_of_feet(forward: Vector3) -> bool:

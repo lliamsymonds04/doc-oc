@@ -15,8 +15,8 @@
 [ext_resource type="Script" uid="uid://qdgxt6yqgo3q" path="res://systems/enemy_spawn_entry.gd" id="18_entry"]
 [ext_resource type="Script" uid="uid://dk7f4pfsw2611" path="res://systems/enemy_spawner.gd" id="18_spawner"]
 [ext_resource type="PackedScene" uid="uid://dqbd8ih3ynaal" path="res://systems/enemy/basic_enemy.tscn" id="19_enemy"]
-[ext_resource type="PackedScene" path="res://systems/enemy/fireball_enemy.tscn" id="20_fireball"]
 [ext_resource type="PackedScene" path="res://systems/enemy/slam_enemy.tscn" id="21_slam"]
+[ext_resource type="PackedScene" uid="uid://de5a00ggihfhx" path="res://systems/enemy/flying_orb.tscn" id="22_orb"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.26, 0.28, 0.34, 1)
@@ -115,15 +115,15 @@ script = ExtResource("18_entry")
 scene = ExtResource("19_enemy")
 count_max = 2
 
-[sub_resource type="Resource" id="Resource_spawn_fireball"]
-script = ExtResource("18_entry")
-scene = ExtResource("20_fireball")
-first_wave = 2
-
 [sub_resource type="Resource" id="Resource_spawn_slam"]
 script = ExtResource("18_entry")
 scene = ExtResource("21_slam")
 first_wave = 3
+
+[sub_resource type="Resource" id="Resource_spawn_orb"]
+script = ExtResource("18_entry")
+scene = ExtResource("22_orb")
+first_wave = 4
 
 [node name="Main" type="Node3D" unique_id=1606965912]
 script = ExtResource("12_main")
@@ -207,7 +207,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, 14)
 [node name="EnemySpawner" type="Node3D" parent="." unique_id=1874129330]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 21)
 script = ExtResource("18_spawner")
-entries = Array[ExtResource("18_entry")]([SubResource("Resource_spawn_entry"), SubResource("Resource_spawn_fireball"), SubResource("Resource_spawn_slam")])
+entries = Array[ExtResource("18_entry")]([SubResource("Resource_spawn_entry"), SubResource("Resource_spawn_slam"), SubResource("Resource_spawn_orb")])
 
 [connection signal="aim_at_enemy_changed" from="Player" to="Hud" method="_on_aim_at_enemy_changed"]
 [connection signal="attack_hit" from="Player" to="Hud" method="_on_attack_hit"]

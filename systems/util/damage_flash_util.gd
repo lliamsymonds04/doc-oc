@@ -10,13 +10,15 @@ var _shader_mat: ShaderMaterial
 var _tween: Tween
 
 
-func _init(node: Node, mesh: MeshInstance3D, duration: float = 0.2) -> void:
+func _init(node: Node, mesh: Node3D, duration: float = 0.2) -> void:
 	_node = node
 	flash_duration = duration
 
 	_shader_mat = ShaderMaterial.new()
 	_shader_mat.shader = DAMAGE_SHADER
-	mesh.material_overlay = _shader_mat
+	# an imported model scene is a holder, not a mesh: only its children can flash
+	if mesh is MeshInstance3D:
+		mesh.material_overlay = _shader_mat
 
 
 func flash(strength: float = 1.0) -> void:

@@ -9,7 +9,7 @@ const ENEMY_META := "enemy"
 var get_up_delay: float = 1.0
 
 # original enemy nodes
-var _mesh: MeshInstance3D
+var _mesh: Node3D
 var _hitbox: CollisionShape3D
 var _enemy: EnemyController
 var _health_bar: HealthBar
@@ -18,7 +18,7 @@ var _health_bar_local_xform: Transform3D
 # ragdoll nodes
 var _body: RigidBody3D
 var _body_collision: CollisionShape3D
-var _ragdoll_mesh: MeshInstance3D
+var _ragdoll_mesh: Node3D
 
 var _is_ragdoll := false
 var _reallign_body := false
@@ -40,7 +40,7 @@ func get_body() -> RigidBody3D:
 	return _body
 
 
-func get_ragdoll_mesh() -> MeshInstance3D:
+func get_ragdoll_mesh() -> Node3D:
 	return _ragdoll_mesh
 
 
@@ -137,7 +137,7 @@ func _create_body(ragdoll_mass: float) -> void:
 	_body.collision_mask = _enemy.collision_mask
 	_body.set_meta(ENEMY_META, _enemy)
 
-	_ragdoll_mesh = _mesh.duplicate() as MeshInstance3D
+	_ragdoll_mesh = _mesh.duplicate() as Node3D
 	_body.add_child(_ragdoll_mesh)
 
 	var corpse_shape := CollisionShape3D.new()

@@ -15,6 +15,12 @@ extends Resource
 ## Largest |normal.y| still counted as a wall; above it a floor or ceiling.
 @export var climb_max_normal_y: float = 0.3
 
+@export_group("Hover")
+## Altitude held above the floor; 0 keeps the enemy walking.
+@export var hover_height: float = 0.0
+## Spring rate pulling back to that altitude. Lower = lazier bob.
+@export var hover_stiffness: float = 6.0
+
 @export_group("Attack")
 @export var attack: EnemyAttackConfig
 
