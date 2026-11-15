@@ -5,9 +5,13 @@
 [ext_resource type="Script" uid="uid://pygi44sg0dn6" path="res://systems/common/health_controller.gd" id="2_rchf0"]
 [ext_resource type="Script" uid="uid://crbbkvq6t6ms8" path="res://systems/enemy/config/enemy_config.gd" id="3_7x8pa"]
 [ext_resource type="PackedScene" uid="uid://b77qe4lyrbdo8" path="res://systems/enemy/healthbar/health_bar.tscn" id="3_fujp6"]
+[ext_resource type="PackedScene" uid="uid://b5bjdt037a4dg" path="res://assets/meshes/axe-bot.glb" id="4_model"]
 
 [sub_resource type="Resource" id="Resource_olub3"]
 script = ExtResource("2_f7b4w")
+windup = 0.5
+swing = 0.5
+cooldown = 2.0
 metadata/_custom_type_script = "uid://wf701xg2o6eb"
 
 [sub_resource type="Resource" id="Resource_4ache"]
@@ -15,36 +19,22 @@ script = ExtResource("3_7x8pa")
 attack = SubResource("Resource_olub3")
 metadata/_custom_type_script = "uid://crbbkvq6t6ms8"
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pftr6"]
-albedo_color = Color(0.85882354, 0.13725491, 0.13333334, 1)
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_m2c1y"]
-material = SubResource("StandardMaterial3D_pftr6")
-
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m2c1y"]
+radius = 0.7
+height = 2.0
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_f7b4w"]
 viewport_path = NodePath("SubViewport")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e3s00"]
-albedo_color = Color(0.7882353, 1, 1, 1)
-
-[sub_resource type="BoxMesh" id="BoxMesh_m2c1y"]
-size = Vector3(0.8, 0.342, 0.3)
 
 [node name="Enemy" type="CharacterBody3D" unique_id=1318838475 node_paths=PackedStringArray("health_bar")]
 script = ExtResource("1_ojmdn")
 config = SubResource("Resource_4ache")
 health_bar = NodePath("HealthBar")
 
-[node name="Mesh" type="MeshInstance3D" parent="." unique_id=856474733]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-mesh = SubResource("CapsuleMesh_m2c1y")
+[node name="Mesh" type="Node3D" parent="." unique_id=856474733]
 
-[node name="Visor" type="MeshInstance3D" parent="Mesh" unique_id=1511249954]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5175495, -0.36745787)
-material_override = SubResource("StandardMaterial3D_e3s00")
-mesh = SubResource("BoxMesh_m2c1y")
+[node name="Model" parent="Mesh" instance=ExtResource("4_model")]
+transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0, 0.669, 0)
 
 [node name="Hitbox" type="CollisionShape3D" parent="." unique_id=402825113]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
@@ -55,5 +45,5 @@ script = ExtResource("2_rchf0")
 metadata/_custom_type_script = "uid://pygi44sg0dn6"
 
 [node name="HealthBar" parent="." unique_id=284543108 instance=ExtResource("3_fujp6")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5018837, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4, 0)
 texture = SubResource("ViewportTexture_f7b4w")

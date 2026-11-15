@@ -4,21 +4,19 @@ extends EnemyAttack
 ## IDLE -> WINDUP -> SWING -> RECOVERY -> IDLE.
 enum Phase { IDLE, WINDUP, SWING, RECOVERY }
 
-## Anticipation and release shapes for the windup telegraph.
-const SQUASH := Vector3(1.25, 0.75, 1.25)
-const STRETCH := Vector3(0.85, 1.25, 0.85)
-
 var _config: MeleeAttackConfig
 var _phase: Phase = Phase.IDLE
 var _phase_timer: float = 0.0
-var _mesh_rest_position: Vector3
-var _squash_tween: Tween
+## The visual's clips; a scene without one still plants its feet and swings.
+var _anim: AnimationPlayer
+var _impact_timer: float = 0.0
+var _impact_pending := false
 
 
 func _init(e: EnemyController, config: MeleeAttackConfig) -> void:
 	super(e)
 	_config = config
-	_mesh_rest_position = e.mesh.position
+	_anim = e.mesh.find_child("AnimationPlayer", true, false) as AnimationPlayer
 
 
 func can_start(dist: float) -> bool:
@@ -28,12 +26,17 @@ func can_start(dist: float) -> bool:
 func start() -> void:
 	_phase = Phase.WINDUP
 	_phase_timer = _config.windup
-	_play_squash()
+	_play("Windup")
 
 
 func physics_update(dt: float) -> void:
 	if _phase == Phase.IDLE:
 		return
+
+	if _phase == Phase.SWING and _impact_pending:
+		_impact_timer -= dt
+		if _impact_timer <= 0.0:
+			_strike()
 
 	_phase_timer -= dt
 	if _phase_timer <= 0.0:
@@ -43,7 +46,8 @@ func physics_update(dt: float) -> void:
 func cancel() -> void:
 	_phase = Phase.IDLE
 	_phase_timer = 0.0
-	_stop_squash()
+	_impact_pending = false
+	_play("Reset")
 
 
 func is_committed() -> bool:
@@ -55,17 +59,22 @@ func _advance_phase() -> void:
 		Phase.WINDUP:
 			_phase = Phase.SWING
 			_phase_timer = _config.swing
-			_strike()
+			_play("Attack")
+			_impact_timer = _config.swing * 0.5
+			_impact_pending = true
 		Phase.SWING:
 			_phase = Phase.RECOVERY
 			_phase_timer = _config.cooldown
+			_play("Recover")
 		Phase.RECOVERY:
 			_phase = Phase.IDLE
 			_phase_timer = 0.0
+			_play("Reset")
 
 
 ## Range is re-checked here so a target that left during the windup is not hit.
 func _strike() -> void:
+	_impact_pending = false
 	var target := enemy.get_target()
 	if target == null:
 		return
@@ -76,30 +85,8 @@ func _strike() -> void:
 		target.take_damage(_config.damage, to.normalized())
 
 
-## Anticipate through the windup, release into the swing, snap back on recovery.
-## Durations mirror the phase timers so the shape peaks on the frame damage lands.
-func _play_squash() -> void:
-	_stop_squash()
-	var tw := enemy.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	tw.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
-	_tween_scale(tw, SQUASH, _config.windup)
-	_tween_scale(tw, STRETCH, _config.swing)
-	_tween_scale(tw, Vector3.ONE, _config.swing)
-	_squash_tween = tw
-
-
-func _stop_squash() -> void:
-	if _squash_tween:
-		_squash_tween.kill()
-		_squash_tween = null
-	enemy.mesh.scale = Vector3.ONE
-	enemy.mesh.position = _mesh_rest_position
-
-
-## CapsuleMesh's origin is its centre, so a vertical scale has to lift the node
-## as well or the base floats off the ground.
-func _tween_scale(tw: Tween, target: Vector3, duration: float) -> void:
-	tw.tween_property(enemy.mesh, "scale", target, duration)
-	tw.parallel().tween_property(
-		enemy.mesh, "position:y", _mesh_rest_position.y * target.y, duration
-	)
+## Plays a clip when the visual has an animator; scenes without one just plant
+## their feet and swing on the phase timers.
+func _play(clip: StringName) -> void:
+	if _anim:
+		_anim.play(clip)
