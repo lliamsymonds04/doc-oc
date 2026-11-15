@@ -104,3 +104,4 @@ common/physics_interpolation=true
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+environment/defaults/default_environment="res://assets/env/default_env.tres"
