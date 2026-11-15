@@ -107,11 +107,12 @@ func _test_hop_launches() -> void:
 			break
 
 	enemy.velocity = Vector3.ZERO
-	var carry := enemy._hop_toward(5.0, Vector3.FORWARD, 1.0 / 60.0)
+	var hop := enemy.get_movement() as HopMovement
+	var carry := hop.desired_velocity(1.0 / 60.0, 5.0, Vector3.FORWARD)
 	_check(enemy.is_on_floor(), "hop test enemy is grounded")
 	_check(enemy.velocity.y > 2.0, "a hop launches the body upward")
 	_check(is_equal_approx(carry.length(), config.move_speed), "a hop carries walk speed")
-	_check(enemy._hop_rest > 0.0, "a hop starts the ground rest")
+	_check(hop._rest > 0.0, "a hop starts the ground rest")
 
 	enemy.queue_free()
 	ground.queue_free()
