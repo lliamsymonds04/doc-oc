@@ -16,6 +16,7 @@ func _ready() -> void:
 	_test_scene_default_uses_melee()
 	_test_slam_lead_shrinks_on_short_dive()
 	_test_can_start_respects_range()
+	await _test_hop_launches()
 
 	if _failures == 0:
 		print("All enemy config checks passed.")
@@ -79,6 +80,41 @@ func _test_can_start_respects_range() -> void:
 	_check(enemy._attack.can_start(1.0), "attack starts inside detection range")
 	_check(not enemy._attack.can_start(2.5), "attack does not start out of range")
 	enemy.queue_free()
+
+
+## A hop has to leave the floor upward and carry the walk speed forward; the
+## rest timer is what spaces the arcs out.
+func _test_hop_launches() -> void:
+	var ground := StaticBody3D.new()
+	var ground_shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(20.0, 1.0, 20.0)
+	ground_shape.shape = box
+	ground_shape.position = Vector3(0.0, -0.5, 0.0)
+	ground.add_child(ground_shape)
+	add_child(ground)
+
+	var config := EnemyConfig.new()
+	config.attack = MeleeAttackConfig.new()
+	config.hop_height = 1.2
+	config.move_speed = 4.0
+	config.hop_rest = 0.2
+	var enemy := _spawn(config)
+	enemy.global_position = Vector3(0.0, 0.1, 0.0)
+	for i in 30:
+		await get_tree().physics_frame
+		if enemy.is_on_floor():
+			break
+
+	enemy.velocity = Vector3.ZERO
+	var carry := enemy._hop_toward(5.0, Vector3.FORWARD, 1.0 / 60.0)
+	_check(enemy.is_on_floor(), "hop test enemy is grounded")
+	_check(enemy.velocity.y > 2.0, "a hop launches the body upward")
+	_check(is_equal_approx(carry.length(), config.move_speed), "a hop carries walk speed")
+	_check(enemy._hop_rest > 0.0, "a hop starts the ground rest")
+
+	enemy.queue_free()
+	ground.queue_free()
 
 
 ## `config` is assigned after the scene's `_init()` and before `_ready()`, which

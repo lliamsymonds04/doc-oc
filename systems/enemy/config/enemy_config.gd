@@ -25,6 +25,12 @@ extends Resource
 ## Bob rate (rad/s); a full up-down cycle is TAU / this.
 @export var hover_bob_speed: float = 2.0
 
+@export_group("Hop")
+## Apex height of each locomotion hop; 0 keeps the enemy walking.
+@export var hop_height: float = 0.0
+## Seconds spent on the ground between hops.
+@export var hop_rest: float = 0.2
+
 @export_group("Attack")
 @export var attack: EnemyAttackConfig
 

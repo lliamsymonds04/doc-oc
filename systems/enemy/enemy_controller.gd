@@ -19,6 +19,13 @@ const CLIMB_MOUNT_TIME := 0.15
 const HOVER_PROBE_REACH := 50.0
 ## Cap on the vertical hover speed, so a spawn below the target can't rocket.
 const HOVER_MAX_SPEED := 10.0
+const HOP_LANDING_VFX := preload("res://assets/vfx/smoke_puff.tscn")
+const HOP_LANDING_SOUND := preload("res://assets/audio/enemy/robot-hop.ogg")
+## Anticipation and release shapes, shared with the melee telegraph.
+const HOP_SQUASH := Vector3(1.25, 0.75, 1.25)
+const HOP_STRETCH := Vector3(0.85, 1.25, 0.85)
+## Exponential rate (1/s) the hop shape eases at; high enough to pop.
+const HOP_DEFORM_RATE := 25.0
 
 ## Kills this run; main.gd resets it on scene start and the death screen reads it.
 static var kill_count := 0
@@ -39,6 +46,16 @@ var _mount_timer := 0.0
 var _floor_y := 0.0
 ## Phase clock for the hover bob, so it starts at the bottom of the swing.
 var _bob_time := 0.0
+## Heading locked in at the last hop launch.
+var _hop_dir := Vector3.FORWARD
+## Ground time left before the next hop.
+var _hop_rest := 0.0
+## Whether the body was airborne on the previous hop frame.
+var _hop_airborne := false
+## Hopper only: landing burst, parked world-space under the enemy.
+var _landing_vfx: ImpactVFX
+## Hopper only: thud at the feet on each touchdown.
+var _hop_audio: AudioStreamPlayer3D
 
 @onready var health_controller: HealthController = $HealthController
 ## Whatever holds the visual: a plain mesh, or an imported model scene wrapping one.
@@ -77,6 +94,15 @@ func _ready() -> void:
 		self, ragdoll_body, config.impact_min_dv, config.impact_damage_per_dv
 	)
 	EnemyUtil.attach_impact_damage(ragdoll_body, config.impact_min_dv)
+
+	if config.hop_height > 0.0:
+		_landing_vfx = HOP_LANDING_VFX.instantiate() as ImpactVFX
+		_landing_vfx.top_level = true
+		add_child(_landing_vfx)
+
+		_hop_audio = AudioStreamPlayer3D.new()
+		_hop_audio.stream = HOP_LANDING_SOUND
+		add_child(_hop_audio)
 
 
 ## Maps the injected attack config to its strategy.
@@ -169,18 +195,22 @@ func _physics_process(dt: float) -> void:
 			var forward := -global_transform.basis.z
 			forward.y = 0.0
 			forward = forward.normalized()
-			if dist > config.stop_distance or _climbing or _mount_timer > 0.0:
+			# starting the attack preempts locomotion, so a hop and a windup
+			# never begin on the same frame
+			if _attack.can_start(dist):
+				_attack.start()
+			elif config.hop_height > 0.0:
+				velocity_target = _hop_toward(dist, forward, dt)
+			elif dist > config.stop_distance or _climbing or _mount_timer > 0.0:
 				velocity_target = forward * config.move_speed
 
 			_climbing = (
-				config.hover_height <= 0.0
+				config.hop_height <= 0.0
+				and config.hover_height <= 0.0
 				and is_on_wall()
 				and absf(get_wall_normal().y) < config.climb_max_normal_y
 				and _wall_ahead_of_feet(forward)
 			)
-
-			if _attack.can_start(dist):
-				_attack.start()
 
 	var k := 1.0 - exp(-config.accel * dt)
 	velocity.x = lerpf(velocity.x, velocity_target.x, k)
@@ -195,6 +225,10 @@ func _physics_process(dt: float) -> void:
 	_mount_timer = maxf(_mount_timer - dt, 0.0)
 
 	move_and_slide()
+
+	if config.hop_height > 0.0:
+		_touchdown()
+		_squash(dt)
 
 
 ## Flies to hover_height over the floor instead of falling. The last floor found
@@ -211,6 +245,55 @@ func _hover(dt: float) -> void:
 	var err := _floor_y + config.hover_height + bob - global_position.y
 	var want := clampf(err * config.hover_stiffness, -HOVER_MAX_SPEED, HOVER_MAX_SPEED)
 	velocity.y = lerpf(velocity.y, want, 1.0 - exp(-config.hover_stiffness * dt))
+
+
+## Hops instead of walking: crouch on the floor, then one ballistic arc toward
+## the target. Heading is locked at the launch, so the arc is not steerable.
+## Returns the horizontal velocity the body should hold this frame.
+func _hop_toward(dist: float, forward: Vector3, dt: float) -> Vector3:
+	if not is_on_floor():
+		return _hop_dir * config.move_speed
+
+	# landing: drop the carried speed so the rest reads as a stop, not a slide
+	velocity.x = 0.0
+	velocity.z = 0.0
+
+	_hop_rest = maxf(_hop_rest - dt, 0.0)
+	if _hop_rest > 0.0 or dist <= config.stop_distance:
+		return Vector3.ZERO
+
+	_hop_dir = forward
+	velocity.x = _hop_dir.x * config.move_speed
+	velocity.z = _hop_dir.z * config.move_speed
+	velocity.y = sqrt(2.0 * get_gravity().length() * config.hop_height)
+	_hop_rest = config.hop_rest
+	return _hop_dir * config.move_speed
+
+
+## Touchdown is detected outside the attack branch: starting the slam preempts
+## the hop on the very frame the bot lands, which used to swallow that thud.
+func _touchdown() -> void:
+	if not is_on_floor():
+		_hop_airborne = true
+		return
+
+	if _hop_airborne:
+		_hop_airborne = false
+		_landing_vfx.play(global_position, get_floor_normal())
+		AudioUtil.play_with_pitch(_hop_audio)
+
+
+## Squash while loading the next hop, stretch on the way up, upright in between.
+## Scales about the feet, so scenes with hop_height keep their mesh pivot on the
+## floor (slam_enemy.tscn wraps the model in an empty Mesh node for this).
+func _squash(dt: float) -> void:
+	var target := Vector3.ONE
+	if velocity.y > 0.0:
+		target = HOP_STRETCH
+	elif is_on_floor() and _hop_rest > 0.0:
+		target = HOP_SQUASH
+
+	mesh.scale = mesh.scale.lerp(target, 1.0 - exp(-HOP_DEFORM_RATE * dt))
 
 
 func _wall_ahead_of_feet(forward: Vector3) -> bool:
