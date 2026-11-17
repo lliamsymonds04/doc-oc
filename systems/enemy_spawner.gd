@@ -17,8 +17,13 @@ const MAX_TRIES := 12  # placement attempts before one enemy is given up on
 @export_group("When")
 ## Seconds after begin() before the first wave; covers the 3 s pillar rise.
 @export var start_delay := 3.0
-@export var wave_interval := 10.0
-## A single wave when false.
+## Gap before the second wave; every wave after that arrives interval_step sooner.
+@export var wave_interval := 30.0
+## Seconds shaved off the gap per wave.
+@export_range(0.0, 60.0, 0.5) var interval_step := 2.0
+## Shortest the gap ever gets, however long the run lasts.
+@export_range(0.0, 60.0, 0.5) var min_wave_interval := 3.0
+## A single wave when false; entries with first_wave > 1 are then never used.
 @export var endless := true
 
 @export_group("Where")
@@ -55,11 +60,6 @@ func begin() -> void:
 	_run()
 
 
-## Stops the wave loop; enemies already spawned are left alone.
-func cancel() -> void:
-	_running = false
-
-
 ## Living enemies this spawner owns; corpses waiting on their cleanup timer are excluded.
 func alive_count() -> int:
 	var alive := 0
@@ -86,7 +86,12 @@ func _run() -> void:
 		if not endless:
 			_running = false
 			return
-		await _wait(wave_interval)
+		await _wait(_interval())
+
+
+## Gap before the next wave: shrinks each wave, floored at min_wave_interval.
+func _interval() -> float:
+	return maxf(min_wave_interval, wave_interval - (_wave - 1) * interval_step)
 
 
 ## Pausable, so the pause menu stops the waves too.
