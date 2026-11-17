@@ -4,7 +4,7 @@ extends Node
 ##   godot --headless --path . res://tests/test_enemy_config.tscn
 ## Exits non-zero when any check fails.
 
-const ENEMY_SCENE := preload("res://systems/enemy/basic_enemy.tscn")
+const ENEMY_SCENE := preload("res://systems/enemy/axe_bot.tscn")
 
 var _failures := 0
 
@@ -52,7 +52,7 @@ func _test_slam_config_maps_to_slam() -> void:
 func _test_scene_default_uses_melee() -> void:
 	var enemy := ENEMY_SCENE.instantiate() as EnemyController
 	add_child(enemy)
-	_check(enemy._attack is EnemyMeleeAttack, "basic_enemy.tscn defaults to melee")
+	_check(enemy._attack is EnemyMeleeAttack, "axe_bot.tscn defaults to melee")
 	enemy.queue_free()
 
 

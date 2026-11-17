@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://b5bjdt037a4dg" path="res://assets/meshes/axe-bot.glb" id="4_model"]
 [ext_resource type="Script" uid="uid://bmgw71xn241r2" path="res://systems/enemy/motor_sound.gd" id="5_motor"]
 [ext_resource type="AudioStream" uid="uid://sjl1w4gkn01" path="res://assets/audio/motor.ogg" id="6_motor_stream"]
+[ext_resource type="Script" uid="uid://7plb16ik0mmx" path="res://systems/enemy/axe_trail.gd" id="7_axe_trail"]
 
 [sub_resource type="Resource" id="Resource_olub3"]
 script = ExtResource("2_f7b4w")
@@ -38,9 +39,15 @@ health_bar = NodePath("HealthBar")
 [node name="Model" parent="Mesh" instance=ExtResource("4_model")]
 transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0, 0.669, 0)
 
+[node name="AxeTip" type="Marker3D" parent="Mesh" unique_id=1140902867]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3, -0.15)
+
 [node name="Motor" type="AudioStreamPlayer3D" parent="." unique_id=1764830211]
 stream = ExtResource("6_motor_stream")
 script = ExtResource("5_motor")
+
+[node name="AxeTrail" type="Node3D" parent="." unique_id=2091471352]
+script = ExtResource("7_axe_trail")
 
 [node name="Hitbox" type="CollisionShape3D" parent="." unique_id=402825113]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
