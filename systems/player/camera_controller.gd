@@ -38,6 +38,13 @@ const CAMERA_GROUP := &"camera_controller"
 @export var aim_forward_offset: float = 2.0
 @export var aim_up_offset: float = 1.5
 
+@export_category("Rear View")
+## Camera yaw relative to the body at which the body stops turning with the camera,
+## so an orbiting camera looking back sees the character's front. 180 = directly ahead.
+@export var rear_view_deg: float = 150.0
+## Camera yaw at which camera-driven body lean starts fading out toward that limit.
+@export var rear_view_blend_deg: float = 120.0
+
 @export_category("Hit")
 @export var cast_sphere_radius: float = 0.1
 
@@ -126,6 +133,15 @@ func update_motion(dt: float, velocity: Vector3) -> void:
 
 func get_flat_basis() -> Basis:
 	return Basis(Vector3.UP, global_rotation.y)
+
+
+func is_rear_view() -> bool:
+	return absf(rotation.y) >= deg_to_rad(rear_view_deg)
+
+
+## 0 below rear_view_blend_deg, 1 at rear_view_deg, smooth in between.
+func rear_view_blend() -> float:
+	return smoothstep(deg_to_rad(rear_view_blend_deg), deg_to_rad(rear_view_deg), absf(rotation.y))
 
 
 func get_camera_center_hit(dist: float = 1000.0, offset: Vector3 = Vector3.ZERO) -> Dictionary:

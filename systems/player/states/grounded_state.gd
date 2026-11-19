@@ -179,6 +179,11 @@ func frame_update(dt: float) -> void:
 func _update_camera_alignment(dt: float, is_moving: bool) -> void:
 	var p := player
 
+	if p.camera_controller.is_rear_view():
+		is_camera_aligned = false
+		force_align = false
+		return
+
 	if is_moving or force_align:
 		if is_camera_aligned:
 			p.rotation.y = p.camera_controller.global_rotation.y
@@ -235,7 +240,11 @@ func _update_tilt(dt: float) -> void:
 
 	# camera influence
 	var camera_pitch = p.camera_controller.get_pitch() * p.grounded.cam_pitch_tilt_mult
-	var camera_yaw = p.camera_controller.rotation.y * p.grounded.cam_yaw_tilt_mult
+	var camera_yaw: float = (
+		p.camera_controller.rotation.y
+		* p.grounded.cam_yaw_tilt_mult
+		* (1.0 - p.camera_controller.rear_view_blend())
+	)
 
 	# targets
 	var target_tilt_x: float = dir.y * walk_tilt_x

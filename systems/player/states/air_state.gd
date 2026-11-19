@@ -126,6 +126,10 @@ func physics_update(dt: float) -> void:
 
 func _update_camera_alignment(dt: float) -> void:
 	var p := player
+
+	if p.camera_controller.is_rear_view():
+		return
+
 	var target_yaw := p.camera_controller.global_rotation.y
 	var new_yaw := lerp_angle(p.rotation.y, target_yaw, p.air.air_turn_speed * dt)
 	var delta := angle_difference(p.rotation.y, new_yaw)
