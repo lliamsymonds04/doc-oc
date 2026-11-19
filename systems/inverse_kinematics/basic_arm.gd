@@ -7,6 +7,9 @@ signal step_started(pos: Vector3, normal: Vector3)
 signal hit_detected(pos: Vector3, normal: Vector3, collider: Object)
 
 const GROUNDED_DISTANCE_CHECK: float = 0.2
+# sharp-end.glb points along local +Y; the rest of the fit is read from the mesh
+const SHARP_END_SCENE := preload("res://assets/meshes/sharp-end.glb")
+const SHARP_END_RING_Y: float = -0.110395
 
 @export_category("Limbs")
 @export var num_limbs: int = 3
@@ -30,7 +33,7 @@ const GROUNDED_DISTANCE_CHECK: float = 0.2
 
 @export_category("Trail")
 @export var trail_lifetime: float = 0.2
-@export var trail_color: Color = Color(0.81176471, 0.82745098, 0.85098039, 1.0)
+@export var trail_color: Color = Color(0.65882355, 1.0, 0.24313726, 1.0)
 
 var target: Vector3 = Vector3.ZERO
 var target_world: Vector3 = Vector3.ZERO
@@ -277,11 +280,9 @@ func _build_visualizer() -> void:
 	joint_mat.albedo_color = Color(0.65882355, 1.0, 0.24313726)
 	joint_mat.metallic = 0.6
 	joint_mat.roughness = 0.3
-
-	var end_effector_mat := StandardMaterial3D.new()
-	end_effector_mat.albedo_color = Color(0.81176471, 0.82745098, 0.85098039)
-	end_effector_mat.metallic = 0.95
-	end_effector_mat.roughness = 0.28
+	joint_mat.emission_enabled = true
+	joint_mat.emission = Color(0.65882355, 1.0, 0.24313726)
+	joint_mat.emission_energy_multiplier = 1.2
 
 	var cylinder := CylinderMesh.new()
 	cylinder.top_radius = limb_radius
@@ -301,10 +302,28 @@ func _build_visualizer() -> void:
 
 	for i in range(num_limbs + 1):
 		var joint := MeshInstance3D.new()
-		joint.mesh = sphere
-		joint.material_override = end_effector_mat if i == num_limbs else joint_mat
+		if i == num_limbs:
+			_build_sharp_end(joint, joint_mat)
+		else:
+			joint.mesh = sphere
+			joint.material_override = joint_mat
 		add_child(joint)
 		joint_meshes.append(joint)
+
+
+## The tip's rounded base replaces the end joint's sphere; _update_visualizer
+## keeps the point aimed along the last limb.
+func _build_sharp_end(joint: MeshInstance3D, mat: StandardMaterial3D) -> void:
+	var tip := SHARP_END_SCENE.instantiate() as Node3D
+	var meshes := tip.find_children("*", "MeshInstance3D", true, false)
+	var widest: MeshInstance3D = meshes[0]
+	var fit := joint_radius / (widest.get_aabb().size.x * 0.5)
+	tip.scale = Vector3.ONE * fit
+	tip.position = Vector3(0.0, -SHARP_END_RING_Y * fit, 0.0)
+	joint.add_child(tip)
+
+	for node in meshes:
+		(node as MeshInstance3D).material_override = mat
 
 
 func _update_visualizer(joints: PackedVector3Array) -> void:
@@ -322,6 +341,10 @@ func _update_visualizer(joints: PackedVector3Array) -> void:
 	for i in range(joint_meshes.size()):
 		var joint := joint_meshes[i]
 		joint.position = joints[i]
+
+	var last := joints[num_limbs] - joints[num_limbs - 1]
+	if last.length_squared() > 0.000001:
+		joint_meshes[num_limbs].basis = _basis_aligned_to(last.normalized())
 
 
 func _create_end_effector_trail(end_effector_joint: MeshInstance3D) -> void:
