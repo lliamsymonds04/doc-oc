@@ -76,6 +76,9 @@ var _cast_sphere: SphereShape3D
 
 func _ready() -> void:
 	add_to_group(CAMERA_GROUP)
+	# Yaw must land before the player's alignment step in the same tick, or the body
+	# runs a tick behind the camera and its limbs jitter against the view.
+	process_physics_priority = -1
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	cam.fov = base_fov
 	_speed_fov = base_fov

@@ -100,22 +100,19 @@ func update_idle_target(dt: float, lerp_speed := 0.0, world_offset := Vector3.ZE
 	if arm == null or arm.is_moving:
 		return
 
+	# rendered against the interpolated pose, so convert against the same one
+	var arm_xform := arm.get_global_transform_interpolated()
+
 	var desired := compute_idle_target()
 	if world_offset != Vector3.ZERO:
-		desired += global_transform.basis.inverse() * world_offset
+		desired += arm_xform.basis.inverse() * world_offset
 
 	if lerp_speed > 0.0:
 		arm.target = arm.target.lerp(desired, lerp_speed * dt)
 	else:
 		arm.target = desired
 
-	arm.target_world = arm.to_global(arm.target)
-
-
-func update_planted_target() -> void:
-	if arm == null or arm.is_moving:
-		return
-	arm.target = arm.to_local(arm.target_world)
+	arm.target_world = arm_xform * arm.target
 
 
 func compute_idle_target() -> Vector3:
@@ -262,8 +259,6 @@ func update_wall_climb(velocity: Vector3) -> Variant:
 	elif not arm.is_moving:
 		# not touching anything and not mid-step: not a valid grip
 		wall_surface_normal = Vector3.ZERO
-	# the grip is world-static, so re-project it into the moving mount's local space
-	update_planted_target()
 	return hit
 
 
@@ -277,7 +272,6 @@ func get_surface_hit(from: Vector3, direction: Vector3, distance: float) -> Vari
 func set_target(world_pos: Vector3) -> void:
 	if arm:
 		arm.target_world = world_pos
-		arm.target = arm.to_local(world_pos)
 
 
 func set_apply_floor(should_apply: bool) -> void:

@@ -168,12 +168,10 @@ func _handle_input() -> void:
 
 func frame_update(dt: float) -> void:
 	for mount in player.all_mounts():
-		if player.grab_controller.is_mount_grabbing(mount):
+		# planted legs are re-projected against the drawn pose by BasicArm itself
+		if mount.is_leg or player.grab_controller.is_mount_grabbing(mount):
 			continue
-		if mount.is_leg:
-			mount.update_planted_target()
-		else:
-			mount.update_idle_target(dt, player.grounded.arm_idle_lerp_speed)
+		mount.update_idle_target(dt, player.grounded.arm_idle_lerp_speed)
 
 
 func _update_camera_alignment(dt: float, is_moving: bool) -> void:

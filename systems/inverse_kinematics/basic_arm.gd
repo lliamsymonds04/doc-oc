@@ -138,7 +138,6 @@ func advance_move(dt: float) -> void:
 
 	_move_progress += dt / _profile.duration * _profile.speed_multiplier
 	if _move_progress < 0.0:
-		target = to_local(_move_start)
 		target_world = _move_start
 		return  # waiting out the stagger delay; foot holds its start position
 
@@ -148,7 +147,6 @@ func advance_move(dt: float) -> void:
 	var height := _profile.arc_height * sin(_move_progress * PI)
 	var pos := base + _profile.arc_axis * height
 	target_world = pos
-	target = to_local(pos)
 
 	if _profile.detect_hits:
 		if not _hit_this_move:
@@ -249,6 +247,9 @@ func query_end_effector(to: Vector3) -> Variant:
 func _process(_delta: float) -> void:
 	if solver == null or pole == null:
 		return
+	# the limb mesh is drawn from the interpolated pose, so the local goal has to
+	# be rebuilt against that same pose every render frame: target is derived here
+	target = get_global_transform_interpolated().affine_inverse() * target_world
 	var state_floor := solver.should_apply_floor
 	if is_moving and _profile != null and not _profile.apply_floor:
 		solver.should_apply_floor = false
@@ -291,6 +292,8 @@ func _build_visualizer() -> void:
 
 	for i in range(num_limbs):
 		var seg := MeshInstance3D.new()
+		# written every render frame, so let the parent carry the interpolation
+		seg.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 		seg.mesh = cylinder
 		seg.material_override = limb_mat
 		add_child(seg)
@@ -302,6 +305,7 @@ func _build_visualizer() -> void:
 
 	for i in range(num_limbs + 1):
 		var joint := MeshInstance3D.new()
+		joint.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 		if i == num_limbs:
 			_build_sharp_end(joint, joint_mat)
 		else:

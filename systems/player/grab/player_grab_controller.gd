@@ -286,11 +286,7 @@ func is_mount_grabbing(mount: ArmMount) -> bool:
 func frame_update() -> void:
 	for hold_value in grabs.values():
 		var hold := hold_value as GrabHold
-		var arm: BasicArm = hold.mount.arm
-		arm.target = (
-			arm.get_global_transform_interpolated().affine_inverse()
-			* hold.grip_world_interpolated()
-		)
+		hold.mount.arm.target_world = hold.grip_world_interpolated()
 
 
 func _grip_count(body: Object) -> int:
