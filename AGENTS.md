@@ -42,6 +42,16 @@ default.
 
 - dont create test scripts unless i ask you to.
 
+## Commits
+
+Commit messages are always one line, never a body:
+
+```
+type: what changed
+```
+
+Types follow the existing history: `feat`, `fix`, `refactor`, `docs`.
+
 ## GDScript Linting
 
 Always run gdformat first, then gdlint:
