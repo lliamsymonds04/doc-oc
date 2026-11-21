@@ -13,11 +13,11 @@ var _material := ShaderMaterial.new()
 var _tween: Tween
 
 
-func _init() -> void:
+func _init(tint: Color = COLOR) -> void:
 	mesh = _halo_mesh()
 	_material.shader = load(SHADER_PATH) as Shader
 	_material.set_shader_parameter("CURVE", _alpha_curve())
-	_material.set_shader_parameter("RING_COLOR", COLOR)
+	_material.set_shader_parameter("RING_COLOR", tint)
 	_material.set_shader_parameter("MESH_HEIGHT", HALO_HEIGHT)
 	material_override = _material
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -35,6 +35,18 @@ func show_at(pos: Vector3, radius: float, grow_time: float = GROW_TIME) -> void:
 	var grow := _tween.tween_property(self, "scale", Vector3(radius, 1.0, radius), grow_time)
 	grow.set_trans(Tween.TRANS_CUBIC)
 	grow.set_ease(Tween.EASE_OUT)
+
+
+func play_once(pos: Vector3, radius: float, duration: float) -> void:
+	show_at(pos, radius, duration)
+	(
+		_tween
+		. parallel()
+		. tween_method(_set_brightness, 1.0, 0.0, duration)
+		. set_ease(Tween.EASE_IN)
+		. set_trans(Tween.TRANS_QUAD)
+	)
+	_tween.tween_callback(queue_free)
 
 
 func fade_out() -> void:

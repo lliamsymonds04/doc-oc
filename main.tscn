@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" uid="uid://dqbd8ih3ynaal" path="res://systems/enemy/axe_bot.tscn" id="19_enemy"]
 [ext_resource type="PackedScene" path="res://systems/enemy/slam_enemy.tscn" id="21_slam"]
 [ext_resource type="PackedScene" uid="uid://de5a00ggihfhx" path="res://systems/enemy/flying_orb.tscn" id="22_orb"]
+[ext_resource type="Script" path="res://systems/gem/healing_gem_spawner.gd" id="23_healgem"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.26, 0.28, 0.34, 1)
@@ -202,6 +203,10 @@ palette = PackedColorArray(0.72, 0.63, 0.5, 1, 0.55, 0.46, 0.36, 1, 0.62, 0.6, 0
 
 [node name="gem2" parent="." unique_id=2077143984 instance=ExtResource("16_yaehf")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, 14)
+
+[node name="HealingGem" type="Node3D" parent="." unique_id=2077143985 node_paths=PackedStringArray("pillars")]
+script = ExtResource("23_healgem")
+pillars = NodePath("../PillarHandler")
 
 [node name="EnemySpawner" type="Node3D" parent="." unique_id=1874129330]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 21)

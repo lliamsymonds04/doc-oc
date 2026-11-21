@@ -5,6 +5,7 @@ var _impact_registry: ImpactSensorRegistry
 @onready var _pillars: PillarHandler = $PillarHandler
 @onready var _boxes: BoxHandler = $BoxHandler
 @onready var _gem: FloatingGem = $gem2
+@onready var _healing: HealingGemSpawner = $HealingGem
 @onready var _hud: Hud = $Hud
 @onready var _enemies: EnemySpawner = $EnemySpawner
 
@@ -22,6 +23,7 @@ func _ready() -> void:
 
 	tree.node_added.connect(on_node_added)
 	_gem.hit_landed.connect(on_gem_hit)
+	_healing.heal_player.connect(on_heal_player)
 
 	_build_level()
 
@@ -40,6 +42,15 @@ func on_gem_hit(_position: Vector3, _normal: Vector3) -> void:
 	_pillars.rise_pillars()
 	_enemies.begin()
 	_hud.start_timer()
+	_healing.begin()
+
+
+func on_heal_player(amount: float) -> void:
+	var player := (
+		get_tree().get_first_node_in_group(PlayerController.PLAYER_GROUP) as PlayerController
+	)
+	if player:
+		player.heal(amount)
 
 
 func _build_level() -> void:

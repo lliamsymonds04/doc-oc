@@ -73,12 +73,16 @@ var _hit_vfx: ImpactVFX
 var _damage_flash: DamageFlashUtil
 var _ragdoll: PlayerRagdollController
 var _hit_dir := Vector3.ZERO
+var _heal_glow_tween: Tween
 
 @onready var tilt_pivot: Node3D = $TiltPivot
 @onready var hitbox: CollisionShape3D = $Hitbox
 @onready var bean: MeshInstance3D = $TiltPivot/Bean
 @onready var camera_controller: CameraController = $CameraController
 @onready var _health_controller: HealthController = $HealthController
+@onready var _heal_aura: GPUParticles3D = $HealAura
+@onready var _heal_glow: OmniLight3D = $HealAura/Glow
+@onready var _heal_chime: AudioStreamPlayer = $HealAura/HealChime
 
 
 ## Mask for casts originating on the player: everything except the player's own layer,
@@ -216,6 +220,10 @@ func is_dead() -> bool:
 	return _health_controller.is_dead()
 
 
+func heal(amount: float) -> void:
+	_health_controller.apply_heal(amount)
+
+
 func _on_damage_taken(dmg: float) -> void:
 	# floor keeps a light hit audible and visible
 	var reference := _health_controller.max_health * damage_full_reaction_percent
@@ -235,6 +243,15 @@ func _on_damage_taken(dmg: float) -> void:
 
 func _on_healed(_heal: float) -> void:
 	_sync_health()
+	_heal_chime.play()
+	_heal_aura.reset_physics_interpolation()
+	_heal_aura.restart()
+
+	if _heal_glow_tween:
+		_heal_glow_tween.kill()
+	_heal_glow.light_energy = 2.0
+	_heal_glow_tween = create_tween()
+	_heal_glow_tween.tween_property(_heal_glow, "light_energy", 0.0, 0.9)
 
 
 func _sync_health() -> void:

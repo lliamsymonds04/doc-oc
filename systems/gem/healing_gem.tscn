@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bsa48djeig0n1" path="res://systems/gem/gem.tscn" id="1_gem"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/heal_icon.svg" id="2_icon"]
+[ext_resource type="AudioStream" path="res://assets/audio/heal_gem_spawn.ogg" id="3_spawn"]
+
+[node name="healing_gem" instance=ExtResource("1_gem")]
+hint_text = "Break to heal"
+
+[node name="HealIcon" type="Sprite3D" parent="." index="8"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.75, 0)
+pixel_size = 0.03
+texture = ExtResource("2_icon")
+billboard = 1
+no_depth_test = true
+
+[node name="SpawnChime" type="AudioStreamPlayer3D" parent="." index="9"]
+stream = ExtResource("3_spawn")
+volume_db = -5.0
+unit_size = 30.0
+autoplay = true
