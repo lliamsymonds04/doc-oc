@@ -152,15 +152,13 @@ func move_slam(dt: float) -> void:
 
 	cancel_slam()
 	if impact != null and impact.get_normal().dot(Vector3.UP) >= cos(p.floor_max_angle):
-		_slam_impact(impact.get_position(), impact.get_normal())
-		_land(p.mount_prober.get_leg_probe_hits(), impact)
 		var barrel := impact.get_collider() as ExplosiveBarrel
-		if barrel != null:
-			barrel.detonate(impact.get_position(), impact.get_normal())
+		_slam_impact(impact.get_position(), impact.get_normal(), barrel)
+		_land(p.mount_prober.get_leg_probe_hits(), impact)
 	p.velocity = Vector3.ZERO
 
 
-func _slam_impact(point: Vector3, normal: Vector3) -> void:
+func _slam_impact(point: Vector3, normal: Vector3, direct_barrel: ExplosiveBarrel) -> void:
 	var p := player
 	var parent := p.get_tree().current_scene
 	var shockwave := RingEffect.new()
@@ -178,12 +176,25 @@ func _slam_impact(point: Vector3, normal: Vector3) -> void:
 	var overlap := PhysicsShapeQueryParameters3D.new()
 	overlap.shape = sphere
 	overlap.transform = Transform3D(Basis.IDENTITY, point)
-	overlap.collision_mask = EnemyController.ENEMY_LAYER
+	overlap.collision_mask = EnemyController.ENEMY_LAYER | 1
 
 	var space := p.get_world_3d().direct_space_state
 	var damaged := {}
 	for hit in space.intersect_shape(overlap):
 		var body := hit.collider as Node3D
+		var barrel := body as ExplosiveBarrel
+		if barrel != null:
+			if barrel != direct_barrel:
+				var cover := PhysicsRayQueryParameters3D.create(
+					point + normal * 0.05,
+					barrel.global_position,
+					p.collision_mask,
+					[barrel.get_rid()]
+				)
+				if space.intersect_ray(cover).is_empty():
+					barrel.detonate.call_deferred(barrel.global_position)
+			continue
+
 		var enemy := EnemyUtil.resolve_enemy(body)
 		if enemy == null or enemy.is_dead() or damaged.has(enemy):
 			continue
@@ -196,6 +207,9 @@ func _slam_impact(point: Vector3, normal: Vector3) -> void:
 
 		damaged[enemy] = true
 		enemy.take_damage(p.air.slam_damage)
+
+	if direct_barrel != null:
+		direct_barrel.detonate.call_deferred(direct_barrel.global_position)
 
 
 func physics_update(dt: float) -> void:

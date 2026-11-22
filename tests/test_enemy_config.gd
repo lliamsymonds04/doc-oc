@@ -193,6 +193,15 @@ func _test_player_slam_damage() -> void:
 	far.position = impact_point + Vector3.RIGHT * 8.0
 	for enemy in [near, behind_wall, far]:
 		enemy.set_physics_process(false)
+
+	var barrel := BARREL_SCENE.instantiate() as ExplosiveBarrel
+	barrel.freeze = true
+	barrel.position = impact_point + Vector3(0, 0.5, 3)
+	add_child(barrel)
+	var covered_barrel := BARREL_SCENE.instantiate() as ExplosiveBarrel
+	covered_barrel.freeze = true
+	covered_barrel.position = impact_point + Vector3(-3, 0.5, 1)
+	add_child(covered_barrel)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
@@ -255,6 +264,15 @@ func _test_player_slam_damage() -> void:
 		far.health_controller.health == far.health_controller.max_health,
 		"slam misses enemies out of range"
 	)
+	await get_tree().process_frame
+	_check(
+		not is_instance_valid(barrel), "ground slam detonates a nearby barrel without touching it"
+	)
+	_check(is_instance_valid(covered_barrel), "cover protects barrels from the ground slam")
+	if is_instance_valid(barrel):
+		barrel.queue_free()
+	if is_instance_valid(covered_barrel):
+		covered_barrel.queue_free()
 	for enemy in [near, behind_wall, far]:
 		_despawn(enemy)
 	player.queue_free()
@@ -298,6 +316,13 @@ func _test_barrel_blast() -> void:
 	for i in 2:
 		player.attack_controller.arm_hit_detected(Vector3.BACK * 0.5, Vector3.BACK, barrel)
 	_check(barrel.is_queued_for_deletion(), "a punch detonates an unarmed barrel")
+	var burst := get_children().back() as BarrelExplosionVFX
+	var upright := false
+	if burst != null:
+		for child in burst.get_children():
+			if child is RingEffect:
+				upright = child.global_basis.y.is_equal_approx(Vector3.UP)
+	_check(upright, "punch shockwave stays upright on a side hit")
 	_check(player._health_controller.health == player_health - damage, "blast damages player once")
 	_check(near.is_ragdolled(), "blast ragdolls a surviving enemy")
 	var near_health := near.health_controller

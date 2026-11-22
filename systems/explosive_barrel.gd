@@ -37,7 +37,7 @@ func _on_impact(point: Vector3, normal: Vector3) -> void:
 		detonate(point, normal)
 
 
-func detonate(point: Vector3, normal: Vector3) -> void:
+func detonate(point: Vector3, normal := Vector3.UP) -> void:
 	if is_queued_for_deletion():
 		return
 	queue_free()

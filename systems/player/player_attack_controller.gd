@@ -137,8 +137,9 @@ func arm_hit_detected(hit: Vector3, normal: Vector3, collider: Object) -> void:
 	if player.is_in_grab_mode():
 		return
 
-	if collider is ExplosiveBarrel:
-		(collider as ExplosiveBarrel).detonate(hit, normal)
+	var barrel := collider as ExplosiveBarrel
+	if barrel != null:
+		barrel.detonate(barrel.global_position)
 		return
 
 	var enemy := EnemyUtil.resolve_enemy(collider)
