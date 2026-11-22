@@ -213,7 +213,7 @@ func _handle_jump(direction: Vector3, dt: float) -> void:
 	if Input.is_action_just_pressed("jump"):
 		p.jump_controller.begin_hold()
 
-	if Input.is_action_just_released("jump"):
+	if Input.is_action_just_released("jump") and p.jump_controller.is_holding_jump:
 		var launch := p.jump_controller.create_launch(direction)
 		# keep_sprint must be set before set_state(): set_state runs exit(), which reads it
 		keep_sprint = true

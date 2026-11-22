@@ -21,6 +21,7 @@ func _ready() -> void:
 	_test_ballistic_direction()
 	_test_ballistic_degenerate()
 	_test_aim_point_from_hit()
+	_test_slam_target_limits()
 
 	if _failures == 0:
 		print("All math checks passed.")
@@ -303,6 +304,16 @@ func _test_aim_point_from_hit() -> void:
 		Vector3(5, 0.05, 0),
 		"surface hit is nudged off the face"
 	)
+
+
+func _test_slam_target_limits() -> void:
+	var config := AirConfig.new()
+	config.slam_max_distance = 10.0
+	config.slam_min_depression_deg = 30.0
+	_check(AirState.is_slam_offset_valid(Vector3(6, -8, 0), config), "slam accepts max range")
+	_check(not AirState.is_slam_offset_valid(Vector3(0, -11, 0), config), "slam rejects far target")
+	_check(not AirState.is_slam_offset_valid(Vector3(8, -2, 0), config), "slam rejects shallow aim")
+	_check(not AirState.is_slam_offset_valid(Vector3.UP, config), "slam rejects upward aim")
 
 
 func _three_bone_solver() -> LimbSolver:

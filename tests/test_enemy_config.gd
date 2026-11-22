@@ -6,6 +6,7 @@ extends Node3D
 
 const ENEMY_SCENE := preload("res://systems/enemy/axe_bot.tscn")
 const ARENA_SCENE := preload("res://main.tscn")
+const PLAYER_SCENE := preload("res://systems/player/player.tscn")
 
 var _failures := 0
 
@@ -18,6 +19,7 @@ func _ready() -> void:
 	_test_slam_lead_shrinks_on_short_dive()
 	_test_can_start_respects_range()
 	await _test_hop_launches()
+	await _test_player_slam_damage()
 	await get_tree().process_frame
 	await _test_enemy_pursuit()
 
@@ -119,6 +121,82 @@ func _test_hop_launches() -> void:
 
 	_despawn(enemy)
 	ground.queue_free()
+
+
+func _test_player_slam_damage() -> void:
+	var impact_point := Vector3(20.0, 0.0, 0.0)
+	var terrain := StaticBody3D.new()
+	terrain.position = impact_point
+	var floor_shape := CollisionShape3D.new()
+	var floor_box := BoxShape3D.new()
+	floor_box.size = Vector3(24, 1, 24)
+	floor_shape.shape = floor_box
+	floor_shape.position.y = -0.5
+	terrain.add_child(floor_shape)
+
+	var wall_shape := CollisionShape3D.new()
+	var wall_box := BoxShape3D.new()
+	wall_box.size = Vector3(0.5, 5, 4)
+	wall_shape.shape = wall_box
+	wall_shape.position = Vector3(-1.5, 2.5, 0)
+	terrain.add_child(wall_shape)
+	add_child(terrain)
+
+	var player := PLAYER_SCENE.instantiate() as PlayerController
+	add_child(player)
+	player.position = impact_point + Vector3.UP * 5.0
+	player.set_physics_process(false)
+	player.set_state(PlayerController.StateID.AIR)
+
+	var near := _spawn(EnemyConfig.new())
+	var behind_wall := _spawn(EnemyConfig.new())
+	var far := _spawn(EnemyConfig.new())
+	near.position = impact_point + Vector3.RIGHT * 2.0
+	behind_wall.position = impact_point + Vector3.LEFT * 3.0
+	far.position = impact_point + Vector3.RIGHT * 8.0
+	for enemy in [near, behind_wall, far]:
+		enemy.set_physics_process(false)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+
+	var slam := player.air_state()
+	var camera := player.camera_controller
+	slam._air_time = player.air.slam_min_air_time
+	camera.cam.global_basis = Basis(Vector3.RIGHT, -PI / 2.0)
+	camera.cam.global_position = impact_point + Vector3.UP * 8.0 + Vector3.LEFT * 3.0
+	_check(slam.get_slam_offset() == Vector3.ZERO, "a wall blocks the dive even with clear aim")
+	camera.cam.global_position = impact_point + Vector3.UP * 8.0
+	var offset := slam.get_slam_offset()
+	_check(offset.is_equal_approx(Vector3.DOWN * 5.0), "clear ground is a valid slam target")
+
+	slam._slam_distance_left = offset.length()
+	slam._play_slam_wind()
+	player.velocity = offset.normalized() * player.air.slam_speed
+	slam.move_slam(0.25)
+
+	_check(not player.is_airborne(), "player slam lands on the floor")
+	_check(slam._audio_player.playing, "slam triggers the landing sound")
+	_check(
+		slam._audio_player.global_position.distance_to(impact_point) < 0.5,
+		"slam landing sound plays at the impact point"
+	)
+	var health := near.health_controller
+	_check(
+		is_equal_approx(health.max_health - health.health, player.air.slam_damage),
+		"slam damages nearby enemy once"
+	)
+	_check(
+		behind_wall.health_controller.health == behind_wall.health_controller.max_health,
+		"cover blocks slam damage"
+	)
+	_check(
+		far.health_controller.health == far.health_controller.max_health,
+		"slam misses enemies out of range"
+	)
+	for enemy in [near, behind_wall, far]:
+		_despawn(enemy)
+	player.queue_free()
+	terrain.queue_free()
 
 
 func _test_enemy_pursuit() -> void:

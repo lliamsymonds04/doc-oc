@@ -71,7 +71,7 @@ func physics_update(dt: float) -> void:
 
 func _scan_contact(dt: float) -> void:
 	var p := player
-	if not p.is_airborne():
+	if not p.is_airborne() or p.air_state().is_slamming():
 		return
 
 	var hvel := Vector3(p.velocity.x, 0.0, p.velocity.z)

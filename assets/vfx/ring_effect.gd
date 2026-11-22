@@ -24,8 +24,11 @@ func _init(tint: Color = COLOR) -> void:
 	visible = false
 
 
-func show_at(pos: Vector3, radius: float, grow_time: float = GROW_TIME) -> void:
-	global_position = pos + Vector3.UP * HALO_HEIGHT * 0.5
+func show_at(
+	pos: Vector3, radius: float, grow_time: float = GROW_TIME, normal := Vector3.UP
+) -> void:
+	var orientation := Basis(Quaternion(Vector3.UP, normal))
+	global_transform = Transform3D(orientation, pos + normal * HALO_HEIGHT * 0.5)
 	visible = true
 	_set_brightness(1.0)
 
@@ -37,8 +40,8 @@ func show_at(pos: Vector3, radius: float, grow_time: float = GROW_TIME) -> void:
 	grow.set_ease(Tween.EASE_OUT)
 
 
-func play_once(pos: Vector3, radius: float, duration: float) -> void:
-	show_at(pos, radius, duration)
+func play_once(pos: Vector3, radius: float, duration: float, normal := Vector3.UP) -> void:
+	show_at(pos, radius, duration, normal)
 	(
 		_tween
 		. parallel()

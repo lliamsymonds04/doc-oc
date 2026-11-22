@@ -5,6 +5,7 @@ signal mode_changed(mode: Mode)
 signal attack_hit(hit_point: Vector3, normal: Vector3, collider: Object)
 ## emitted when the crosshair aim target gains/loses a living enemy in attack range
 signal aim_at_enemy_changed(in_range: bool)
+signal slam_target_changed(active: bool)
 ## emitted on the 0 <-> any grab transition, so it stays true while any arm holds
 signal grabbing_changed(active: bool)
 ## emitted once when the player's health runs out
@@ -74,6 +75,7 @@ var _damage_flash: DamageFlashUtil
 var _ragdoll: PlayerRagdollController
 var _hit_dir := Vector3.ZERO
 var _heal_glow_tween: Tween
+var _slam_target_active := false
 
 @onready var tilt_pivot: Node3D = $TiltPivot
 @onready var hitbox: CollisionShape3D = $Hitbox
@@ -262,6 +264,8 @@ func _sync_health() -> void:
 
 func _on_death() -> void:
 	print("dead")
+	air_state().cancel_slam()
+	_set_slam_target_active(false)
 	grab_controller.release_all()
 	tackle_controller.cancel()
 	_ragdoll.activate(_hit_dir.normalized() * death_knockback)
@@ -299,8 +303,25 @@ func _physics_process(dt: float) -> void:
 		camera_controller.mouse_delta_physics, camera_controller.wheel_delta_physics
 	)
 
-	move_and_slide()
+	if is_airborne() and air_state().is_slamming():
+		air_state().move_slam(dt)
+	else:
+		move_and_slide()
 	camera_controller.update_motion(dt, velocity)
+
+	var air_movement := _current as AirState
+	var slam_target_active := (
+		air_movement != null
+		and (air_movement.is_slamming() or air_movement.get_slam_offset() != Vector3.ZERO)
+	)
+	_set_slam_target_active(slam_target_active)
+
+
+func _set_slam_target_active(active: bool) -> void:
+	if active == _slam_target_active:
+		return
+	_slam_target_active = active
+	slam_target_changed.emit(active)
 
 
 func _process(dt: float) -> void:

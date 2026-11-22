@@ -220,3 +220,4 @@ entries = Array[ExtResource("18_entry")]([SubResource("Resource_spawn_entry"), S
 [connection signal="grabbing_changed" from="Player" to="Hud" method="_on_grabbing_changed"]
 [connection signal="health_changed" from="Player" to="Hud" method="_on_player_health_changed"]
 [connection signal="mode_changed" from="Player" to="Hud" method="_on_mode_changed"]
+[connection signal="slam_target_changed" from="Player" to="Hud" method="_on_slam_target_changed"]

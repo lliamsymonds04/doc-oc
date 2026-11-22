@@ -10,6 +10,15 @@ extends Resource
 @export var min_turn_authority: float = 0.15
 @export var air_drag: float = 5.0
 
+@export_group("Ground Slam")
+@export_range(0.0, 2.0, 0.01, "or_greater", "suffix:s") var slam_min_air_time: float = 0.25
+@export_range(1.0, 100.0, 0.5, "or_greater", "suffix:m") var slam_max_distance: float = 24.0
+## Angle below horizontal from the player to the ground target, not the camera's pitch.
+@export_range(1.0, 90.0, 1.0, "degrees") var slam_min_depression_deg: float = 30.0
+@export_range(1.0, 100.0, 1.0, "or_greater", "suffix:m/s") var slam_speed: float = 40.0
+@export_range(0.0, 100.0, 1.0, "or_greater") var slam_damage: float = 45.0
+@export_range(0.5, 20.0, 0.5, "or_greater", "suffix:m") var slam_radius: float = 5.0
+
 @export_group("Arms")
 @export var arm_target_speed: float = 8.0
 @export var hand_velocity_offset_scale: float = 0.05

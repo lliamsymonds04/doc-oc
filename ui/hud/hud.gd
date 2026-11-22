@@ -47,3 +47,7 @@ func _on_grabbing_changed(active: bool) -> void:
 
 func _on_aim_at_enemy_changed(in_range: bool) -> void:
 	crosshair_controller.set_enemy_in_range(in_range)
+
+
+func _on_slam_target_changed(active: bool) -> void:
+	crosshair_controller.set_slam_target(active)
