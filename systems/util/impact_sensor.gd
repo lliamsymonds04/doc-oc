@@ -59,7 +59,8 @@ func _init(body: RigidBody3D, min_vel_change: float) -> void:
 
 
 func _physics_process(_dt: float) -> void:
-	if _body.freeze:
+	# Jolt can keep reporting the last contact impulse while the body sleeps.
+	if _body.freeze or _body.sleeping:
 		return
 
 	var frame := Engine.get_physics_frames()
