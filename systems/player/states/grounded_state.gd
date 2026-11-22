@@ -177,7 +177,7 @@ func frame_update(dt: float) -> void:
 func _update_camera_alignment(dt: float, is_moving: bool) -> void:
 	var p := player
 
-	if p.camera_controller.is_rear_view():
+	if not is_moving and p.camera_controller.is_rear_view():
 		is_camera_aligned = false
 		force_align = false
 		return
