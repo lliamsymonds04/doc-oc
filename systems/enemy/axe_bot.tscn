@@ -19,6 +19,8 @@ metadata/_custom_type_script = "uid://wf701xg2o6eb"
 
 [sub_resource type="Resource" id="Resource_4ache"]
 script = ExtResource("3_7x8pa")
+stop_distance = 1.0
+horizontal_stop_distance = true
 attack = SubResource("Resource_olub3")
 metadata/_custom_type_script = "uid://crbbkvq6t6ms8"
 

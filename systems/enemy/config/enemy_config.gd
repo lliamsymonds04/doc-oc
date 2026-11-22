@@ -10,6 +10,8 @@ extends Resource
 @export var turn_speed: float = 4.0
 ## Distance the enemy stops closing in at, instead of walking into the target.
 @export var stop_distance: float = 1.5
+## Measure the chase gap along the floor, including when the player is airborne.
+@export var horizontal_stop_distance := false
 ## Upward speed while the climb holds, and the speed of the mount pop.
 @export var climb_speed: float = 3.0
 ## Largest |normal.y| still counted as a wall; above it a floor or ceiling.

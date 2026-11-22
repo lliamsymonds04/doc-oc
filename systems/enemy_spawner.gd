@@ -170,6 +170,10 @@ func _spawn(entry: EnemySpawnEntry, ground: Vector3) -> void:
 		enemy.config = entry.config.duplicate()
 
 	var spot := to_local(ground)
+	if enemy.config.hover_height > 0.0:
+		var hitbox: CollisionShape3D = enemy.get_node("Hitbox")
+		var clearance := -hitbox.position.y - hitbox.shape.get_debug_mesh().get_aabb().position.y
+		spot.y += maxf(enemy.config.hover_height, clearance + 0.05)
 	enemy.position = spot - Vector3.UP * SPAWN_DEPTH
 	add_child(enemy)
 

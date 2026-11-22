@@ -1,5 +1,5 @@
 class_name HopMovement
-extends EnemyMovement
+extends WalkMovement
 
 const LANDING_VFX := preload("res://assets/vfx/smoke_puff.tscn")
 const LANDING_SOUND := preload("res://assets/audio/enemy/robot-hop.ogg")
@@ -9,8 +9,6 @@ const STRETCH := Vector3(0.85, 1.25, 0.85)
 ## Exponential rate (1/s) the shape eases at; high enough to pop.
 const DEFORM_RATE := 25.0
 
-## Heading locked in at the last launch, so the arc is not steerable.
-var _dir := Vector3.FORWARD
 ## Ground time left before the next hop.
 var _rest := 0.0
 ## Whether the body was airborne on the previous frame.
@@ -38,7 +36,7 @@ func _init(e: EnemyController) -> void:
 ## controller's lerp toward it is a no-op on that frame.
 func desired_velocity(dt: float, dist: float, forward: Vector3) -> Vector3:
 	if not enemy.is_on_floor():
-		return _dir * enemy.config.move_speed
+		return super(dt, dist, forward)
 
 	# landing: drop the carried speed so the rest reads as a stop, not a slide
 	enemy.velocity.x = 0.0
@@ -48,12 +46,11 @@ func desired_velocity(dt: float, dist: float, forward: Vector3) -> Vector3:
 	if _rest > 0.0 or dist <= enemy.config.stop_distance:
 		return Vector3.ZERO
 
-	_dir = forward
-	enemy.velocity.x = _dir.x * enemy.config.move_speed
-	enemy.velocity.z = _dir.z * enemy.config.move_speed
+	enemy.velocity.x = forward.x * enemy.config.move_speed
+	enemy.velocity.z = forward.z * enemy.config.move_speed
 	enemy.velocity.y = sqrt(2.0 * enemy.get_gravity().length() * enemy.config.hop_height)
 	_rest = enemy.config.hop_rest
-	return _dir * enemy.config.move_speed
+	return forward * enemy.config.move_speed
 
 
 func after_slide(dt: float) -> void:

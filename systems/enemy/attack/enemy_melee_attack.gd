@@ -95,8 +95,8 @@ func _strike() -> void:
 		return
 
 	var to := target.global_position - enemy.global_position
-	to.y = 0.0
-	if to.length() < _config.detection_range:
+	if to.length() < _config.detection_range and enemy.has_clear_target(target):
+		to.y = 0.0
 		target.take_damage(_config.damage, to.normalized())
 
 

@@ -2,8 +2,7 @@ class_name EnemyMovement
 extends RefCounted
 
 ## One locomotion mode for an enemy, driven by the controller's physics step.
-## Subclasses own their vertical rule and any per-mode state; the controller only
-## asks for a horizontal target and posts the frame's hooks around move_and_slide.
+## Subclasses own their vertical rule, horizontal target, and landing response.
 
 var enemy: EnemyController
 
@@ -22,11 +21,6 @@ func desired_velocity(_dt: float, dist: float, forward: Vector3) -> Vector3:
 	if dist > enemy.config.stop_distance:
 		return forward * enemy.config.move_speed
 	return Vector3.ZERO
-
-
-## After the horizontal lerp, before `move_and_slide()`.
-func before_slide(_dt: float) -> void:
-	pass
 
 
 ## After `move_and_slide()`; landing responses live here.

@@ -239,7 +239,7 @@ func _floor_under(point: Vector3) -> Dictionary:
 ## Mask comes from the target, so no world or enemy layers are queried.
 func _damage_in_radius() -> void:
 	var target := enemy.get_target()
-	if target == null:
+	if target == null or not enemy.has_clear_target(target):
 		return
 
 	_shape_cast.collision_mask = target.collision_layer
