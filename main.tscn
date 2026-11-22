@@ -18,6 +18,7 @@
 [ext_resource type="PackedScene" path="res://systems/enemy/slam_enemy.tscn" id="21_slam"]
 [ext_resource type="PackedScene" uid="uid://de5a00ggihfhx" path="res://systems/enemy/flying_orb.tscn" id="22_orb"]
 [ext_resource type="Script" path="res://systems/gem/healing_gem_spawner.gd" id="23_healgem"]
+[ext_resource type="AudioStream" path="res://assets/audio/ambient/playlist.tres" id="24_ambient"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.26, 0.28, 0.34, 1)
@@ -170,6 +171,11 @@ step_vfx = ExtResource("3_lquwl")
 step_sound = ExtResource("4_7mycd")
 servo_sound = ExtResource("5_3rvo")
 
+[node name="AmbientMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("24_ambient")
+volume_db = -10.0
+autoplay = true
+
 [node name="CSGCombiner3D" type="CSGCombiner3D" parent="." unique_id=428718861]
 use_collision = true
 
@@ -217,6 +223,7 @@ entries = Array[ExtResource("18_entry")]([SubResource("Resource_spawn_entry"), S
 [connection signal="attack_hit" from="Player" to="Hud" method="_on_attack_hit"]
 [connection signal="damage_direction" from="Player" to="Hud" method="_on_player_damage_direction"]
 [connection signal="died" from="Player" to="Hud" method="_on_player_died"]
+[connection signal="died" from="Player" to="." method="_on_player_died"]
 [connection signal="grabbing_changed" from="Player" to="Hud" method="_on_grabbing_changed"]
 [connection signal="health_changed" from="Player" to="Hud" method="_on_player_health_changed"]
 [connection signal="mode_changed" from="Player" to="Hud" method="_on_mode_changed"]

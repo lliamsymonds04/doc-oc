@@ -31,6 +31,10 @@ func _ready() -> void:
 	_build_level()
 
 
+func _on_player_died() -> void:
+	create_tween().tween_property($AmbientMusic, "volume_linear", 0.0, 0.6)
+
+
 func _exit_tree() -> void:
 	if _impact_registry != null:
 		_impact_registry.detach()
