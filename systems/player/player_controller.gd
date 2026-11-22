@@ -48,7 +48,7 @@ const PLAYER_GROUP := &"player"
 ## Fraction of max health at which the hurt reaction (flash, shake, FOV kick) is full.
 @export var damage_full_reaction_percent: float = 0.3
 @export var damage_trauma: float = 1.5
-@export var damage_fov_kick: float = -3.0
+@export var damage_fov_kick: float = -5.0
 ## Speed the corpse is thrown at when the killing hit came with a direction (m/s).
 @export var death_knockback: float = 6.0
 
@@ -235,6 +235,7 @@ func _on_damage_taken(dmg: float) -> void:
 	_damage_flash.flash(damage_flash_intensity * weight)
 	camera_controller.add_trauma(damage_trauma * weight)
 	camera_controller.kick_fov(damage_fov_kick * weight)
+	camera_controller.kick_damage_roll(_hit_dir, weight)
 	AudioUtil.play_with_pitch(_damage_audio_player, 0.08)
 	if _hit_dir != Vector3.ZERO:
 		# hit_dir is the push direction, so flip it to aim at the source. Yaw only,

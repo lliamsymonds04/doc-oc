@@ -343,6 +343,7 @@ func _play_landed_effect(impact: KinematicCollision3D = null) -> void:
 	if impact != null:
 		_audio_player.stream = hard_landing_sound
 		AudioUtil.play_with_pitch(_audio_player)
+		p.camera_controller.play_slam_impact()
 		return
 
 	var trauma := p.air.landing_trauma

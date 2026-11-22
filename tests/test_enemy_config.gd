@@ -19,6 +19,7 @@ func _ready() -> void:
 	_test_slam_lead_shrinks_on_short_dive()
 	_test_can_start_respects_range()
 	await _test_hop_launches()
+	_test_damage_camera()
 	await _test_player_slam_damage()
 	await get_tree().process_frame
 	await _test_enemy_pursuit()
@@ -123,6 +124,37 @@ func _test_hop_launches() -> void:
 	ground.queue_free()
 
 
+func _test_damage_camera() -> void:
+	var player := PLAYER_SCENE.instantiate() as PlayerController
+	add_child(player)
+	var camera := player.camera_controller
+	player.take_damage(10.0, Vector3.RIGHT)
+
+	camera._process(1.0 / 60.0)
+	var first_fov := camera.cam.fov
+	var shake_position := camera.cam.position
+	var shake_roll := camera.cam.rotation.z
+	camera._process(0.0)
+	_check(
+		(
+			camera.cam.position.is_equal_approx(shake_position)
+			and is_equal_approx(camera.cam.rotation.z, shake_roll)
+		),
+		"trauma samples don't change without elapsed time"
+	)
+	var peak_offset := shake_position.length()
+	for i in 5:
+		camera._process(1.0 / 60.0)
+		peak_offset = maxf(peak_offset, camera.cam.position.length())
+	_check(peak_offset >= 0.03, "a light hit shakes the camera by at least 3 cm")
+	_check(camera.cam.fov < first_fov, "hurt FOV eases in over multiple frames")
+	for i in 15:
+		camera._process(1.0 / 60.0)
+	_check(camera.cam.position.is_zero_approx(), "trauma offset settles back to zero")
+	_check(camera.cam.fov < camera.base_fov - 0.5, "hurt FOV remains visible after 350 ms")
+	player.queue_free()
+
+
 func _test_player_slam_damage() -> void:
 	var impact_point := Vector3(20.0, 0.0, 0.0)
 	var terrain := StaticBody3D.new()
@@ -172,7 +204,23 @@ func _test_player_slam_damage() -> void:
 	slam._slam_distance_left = offset.length()
 	slam._play_slam_wind()
 	player.velocity = offset.normalized() * player.air.slam_speed
+	camera._update_fov(0.1)
+	var dive_fov := camera.cam.fov
+	_check(dive_fov > camera.base_fov, "a vertical slam widens on descent")
+	camera._aim_weight = 1.0
+	camera._update_fov(0.1)
+	var aimed_dive_fov := camera.cam.fov
+	_check(aimed_dive_fov < dive_fov, "aiming zooms in during a slam")
+	camera._aim_weight = 0.0
+	camera._update_fov(0.1)
+	dive_fov = camera.cam.fov
+	_check(dive_fov > aimed_dive_fov, "releasing aim widens FOV during a slam")
 	slam.move_slam(0.25)
+	camera._update_fov(1.0 / 60.0)
+	_check(
+		camera.cam.fov < dive_fov and camera.cam.fov > camera.base_fov,
+		"slam impact eases from the dive FOV instead of snapping"
+	)
 
 	_check(not player.is_airborne(), "player slam lands on the floor")
 	_check(slam._audio_player.playing, "slam triggers the landing sound")
@@ -180,6 +228,15 @@ func _test_player_slam_damage() -> void:
 		slam._audio_player.global_position.distance_to(impact_point) < 0.5,
 		"slam landing sound plays at the impact point"
 	)
+	camera._update_fov(0.1)
+	var impact_fov := camera.cam.fov
+	_check(impact_fov < camera.base_fov, "slam zooms in on impact")
+	camera._update_fov(0.1)
+	_check(camera.cam.fov > impact_fov, "slam FOV widens back toward baseline")
+	var slam_trauma := player.camera_controller._trauma
+	player.camera_controller.add_trauma(0.1)
+	_check(slam_trauma > 1.0, "slam shake exceeds a normal hit")
+	_check(player.camera_controller._trauma >= slam_trauma, "regular shake cannot cut slam shake")
 	var health := near.health_controller
 	_check(
 		is_equal_approx(health.max_health - health.health, player.air.slam_damage),
