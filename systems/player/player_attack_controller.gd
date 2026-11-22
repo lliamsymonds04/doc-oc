@@ -39,10 +39,12 @@ func _init(p: PlayerController, attack_config: PlayerAttackConfig) -> void:
 	_debounce = config.attack_debounce
 
 	_attack_audio_player = AudioStreamPlayer3D.new()
+	_attack_audio_player.bus = AudioUtil.SFX_BUS
 	_attack_audio_player.stream = config.attack_sound
 	p.add_child(_attack_audio_player)
 
 	_hit_audio_player = AudioStreamPlayer3D.new()
+	_hit_audio_player.bus = AudioUtil.SFX_BUS
 	p.add_child(_hit_audio_player)
 
 	if config.hit_vfx_scene != null:

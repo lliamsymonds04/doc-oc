@@ -1,0 +1,208 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/hud/pause_settings_panel.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://t40g2ovltieu" path="res://assets/Anton-Regular.ttf" id="2_font"]
+[ext_resource type="PackedScene" uid="uid://cnd56v71x1mrb" path="res://ui/hud/pause_menu_button.tscn" id="3_button"]
+[ext_resource type="AudioStream" uid="uid://b30s56s8vff0f" path="res://assets/audio/ui/click1.ogg" id="4_click"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.06, 0.07, 0.1, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.9)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_bg"]
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.16, 0.18, 0.24, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.35)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_fill"]
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.5882353, 1, 1, 0.85)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_fill_hi"]
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.8, 1, 1, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[node name="SettingsPanel" type="PanelContainer"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+script = ExtResource("1_script")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 44
+theme_override_constants/margin_top = 34
+theme_override_constants/margin_right = 44
+theme_override_constants/margin_bottom = 34
+
+[node name="Content" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="Title" type="Label" parent="Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 44
+text = "SETTINGS"
+horizontal_alignment = 1
+
+[node name="Sliders" type="GridContainer" parent="Margin/Content"]
+layout_mode = 2
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 20
+columns = 3
+
+[node name="MasterLabel" type="Label" parent="Margin/Content/Sliders"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.85, 0.92, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "MASTER VOLUME"
+
+[node name="MasterSlider" type="HSlider" parent="Margin/Content/Sliders"]
+custom_minimum_size = Vector2(300, 28)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/slider = SubResource("StyleBoxFlat_slider_bg")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_slider_fill")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_fill_hi")
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="MasterValue" type="Label" parent="Margin/Content/Sliders"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "100%"
+horizontal_alignment = 2
+
+[node name="MusicLabel" type="Label" parent="Margin/Content/Sliders"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.85, 0.92, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "MUSIC VOLUME"
+
+[node name="MusicSlider" type="HSlider" parent="Margin/Content/Sliders"]
+custom_minimum_size = Vector2(300, 28)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/slider = SubResource("StyleBoxFlat_slider_bg")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_slider_fill")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_fill_hi")
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="MusicValue" type="Label" parent="Margin/Content/Sliders"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "100%"
+horizontal_alignment = 2
+
+[node name="SfxLabel" type="Label" parent="Margin/Content/Sliders"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.85, 0.92, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "SFX VOLUME"
+
+[node name="SfxSlider" type="HSlider" parent="Margin/Content/Sliders"]
+custom_minimum_size = Vector2(300, 28)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/slider = SubResource("StyleBoxFlat_slider_bg")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_slider_fill")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_fill_hi")
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="SfxValue" type="Label" parent="Margin/Content/Sliders"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "100%"
+horizontal_alignment = 2
+
+[node name="SensitivityLabel" type="Label" parent="Margin/Content/Sliders"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.85, 0.92, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "SENSITIVITY"
+
+[node name="SensitivitySlider" type="HSlider" parent="Margin/Content/Sliders"]
+custom_minimum_size = Vector2(300, 28)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/slider = SubResource("StyleBoxFlat_slider_bg")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_slider_fill")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_fill_hi")
+min_value = 0.1
+max_value = 3.0
+step = 0.05
+value = 1.0
+
+[node name="SensitivityValue" type="Label" parent="Margin/Content/Sliders"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "1.00x"
+horizontal_alignment = 2
+
+[node name="BackButton" parent="Margin/Content" instance=ExtResource("3_button")]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Back"
+
+[node name="SfxPreview" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("4_click")
+bus = &"SFX"

@@ -314,6 +314,7 @@ func _on_death() -> void:
 	kill_count += 1
 
 	var death_audio := AudioStreamPlayer3D.new()
+	death_audio.bus = AudioUtil.SFX_BUS
 	death_audio.stream = DEATH_SOUND
 	var audio_parent: Node3D = _ragdoll.get_body() if is_ragdolled() else self
 	audio_parent.add_child(death_audio)

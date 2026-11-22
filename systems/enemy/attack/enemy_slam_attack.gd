@@ -32,6 +32,7 @@ func _init(e: EnemyController, config: SlamAttackConfig) -> void:
 	_config = config
 
 	_audio = AudioStreamPlayer3D.new()
+	_audio.bus = AudioUtil.SFX_BUS
 	_audio.stream = SLAM_SOUND
 	e.add_child(_audio)
 

@@ -50,6 +50,7 @@ func _init(body: RigidBody3D, min_vel_change: float) -> void:
 	body.max_contacts_reported = 8
 
 	_audio_player = AudioStreamPlayer3D.new()
+	_audio_player.bus = AudioUtil.SFX_BUS
 	_audio_player.stream = audio_stream
 	_audio_player.volume_db = DEFAULT_VOL
 	add_child(_audio_player)

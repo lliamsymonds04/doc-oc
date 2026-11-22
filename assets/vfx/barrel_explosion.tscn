@@ -288,3 +288,4 @@ stream = ExtResource("6_sound")
 volume_db = -3.0
 unit_size = 11.0
 max_distance = 64.0
+bus = &"SFX"

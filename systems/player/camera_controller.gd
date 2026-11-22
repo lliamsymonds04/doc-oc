@@ -75,6 +75,7 @@ var _sprint_weight: float = 0.0
 var _aim_weight: float = 0.0
 
 var _cast_sphere: SphereShape3D
+var _base_sensitivity: float
 
 # CameraOffset exists so the SpringArm can own its transform
 # CameraShakePivot below it is free for effects
@@ -85,6 +86,9 @@ var _cast_sphere: SphereShape3D
 
 func _ready() -> void:
 	add_to_group(CAMERA_GROUP)
+	_base_sensitivity = sensitivity
+	GameSettings.apply_audio()
+	apply_sensitivity_scale(GameSettings.get_sensitivity_scale())
 	# Yaw must land before the player's alignment step in the same tick, or the body
 	# runs a tick behind the camera and its limbs jitter against the view.
 	process_physics_priority = -1
@@ -96,6 +100,10 @@ func _ready() -> void:
 
 	_cast_sphere = SphereShape3D.new()
 	_cast_sphere.radius = cast_sphere_radius
+
+
+func apply_sensitivity_scale(scale: float) -> void:
+	sensitivity = _base_sensitivity * scale
 
 
 func add_trauma(amount: float, peak: float = 1.0) -> void:

@@ -26,6 +26,7 @@ func _init(e: EnemyController, config: MeleeAttackConfig) -> void:
 	_trail = e.find_child("AxeTrail", true, false) as AxeTrail
 
 	_audio = AudioStreamPlayer3D.new()
+	_audio.bus = AudioUtil.SFX_BUS
 	_audio.stream = SWING_SOUND
 	e.add_child(_audio)
 

@@ -61,3 +61,4 @@ omni_range = 4.0
 [node name="HealChime" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("2_heal")
 volume_db = -6.0
+bus = &"SFX"

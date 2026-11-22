@@ -21,14 +21,17 @@ func _init(p: PlayerController, grab_config: PlayerGrabConfig) -> void:
 	_throw_homing = GrabThrowHoming.new(player, config)
 
 	_grab_attempt_player = AudioStreamPlayer3D.new()
+	_grab_attempt_player.bus = AudioUtil.SFX_BUS
 	_grab_attempt_player.stream = config.grab_attempted_sound
 	p.add_child(_grab_attempt_player)
 
 	_grab_success_player = AudioStreamPlayer3D.new()
+	_grab_success_player.bus = AudioUtil.SFX_BUS
 	_grab_success_player.stream = config.grab_sound
 	p.add_child(_grab_success_player)
 
 	_release_player = AudioStreamPlayer3D.new()
+	_release_player.bus = AudioUtil.SFX_BUS
 	p.add_child(_release_player)
 
 	for mount in p.all_mounts():

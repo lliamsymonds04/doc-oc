@@ -1,0 +1,68 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/hud/pause_controls_panel.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://t40g2ovltieu" path="res://assets/Anton-Regular.ttf" id="2_font"]
+[ext_resource type="PackedScene" uid="uid://cnd56v71x1mrb" path="res://ui/hud/pause_menu_button.tscn" id="3_button"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.06, 0.07, 0.1, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.9)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="ControlsPanel" type="PanelContainer"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+script = ExtResource("1_script")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 44
+theme_override_constants/margin_top = 34
+theme_override_constants/margin_right = 44
+theme_override_constants/margin_bottom = 34
+
+[node name="Content" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="Title" type="Label" parent="Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 44
+text = "CONTROLS"
+horizontal_alignment = 1
+
+[node name="Columns" type="HBoxContainer" parent="Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 48
+
+[node name="LeftColumn" type="VBoxContainer" parent="Margin/Content/Columns"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="RightColumn" type="VBoxContainer" parent="Margin/Content/Columns"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="BackButton" parent="Margin/Content" instance=ExtResource("3_button")]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Back"

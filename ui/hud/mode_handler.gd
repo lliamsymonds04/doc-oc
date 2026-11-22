@@ -38,6 +38,7 @@ func _ready() -> void:
 
 	# screen-space UI, so 2D audio player
 	switch_sound_player = AudioStreamPlayer2D.new()
+	switch_sound_player.bus = AudioUtil.SFX_BUS
 	add_child(switch_sound_player)
 
 

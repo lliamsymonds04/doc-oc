@@ -27,8 +27,9 @@ func _ready() -> void:
 	self.mouse_exited.connect(_mouse_exited)
 	self.button_down.connect(_on_button_down)
 	self.button_up.connect(_on_button_up)
+	self.resized.connect(_update_pivot)
 
-	pivot_offset = size / 2.0  # scale tweens grow from the centre, not the corner
+	_update_pivot()
 
 	# only texture styleboxes can be tinted per-state; plain theme buttons keep their own look
 	var normal := get_theme_stylebox("normal") as StyleBoxTexture
@@ -43,6 +44,10 @@ func _ready() -> void:
 		var sb: StyleBoxTexture = normal.duplicate()
 		sb.modulate_color = variants[state]
 		add_theme_stylebox_override(state, sb)
+
+
+func _update_pivot() -> void:
+	pivot_offset = size / 2.0  # scale tweens grow from the centre, not the corner
 
 
 func _animate_scale(t: float) -> void:
@@ -60,6 +65,8 @@ func _play_sound(sound: AudioStreamOggVorbis, volume: float) -> void:
 
 
 func _mouse_entered() -> void:
+	if disabled:
+		return
 	_animate_scale(hover_size_factor)
 	hovered = true
 	_play_sound(hover_sound, hover_volume)
@@ -71,9 +78,11 @@ func _mouse_exited() -> void:
 
 
 func _on_button_down() -> void:
+	if disabled:
+		return
 	_animate_scale(pressed_size_factor)
 	_play_sound(pressed_sound, pressed_volume)
 
 
 func _on_button_up() -> void:
-	_animate_scale(hover_size_factor if is_hovered else 1.0)
+	_animate_scale(hover_size_factor if is_hovered() else 1.0)

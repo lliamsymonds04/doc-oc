@@ -78,6 +78,7 @@ func init(p: PlayerController) -> BasicArm:
 
 	if p.step_sound != null:
 		_audio_player = AudioStreamPlayer3D.new()
+		_audio_player.bus = AudioUtil.SFX_BUS
 		_audio_player.stream = p.step_sound
 		_audio_player.top_level = true
 		add_child(_audio_player)
@@ -87,6 +88,7 @@ func init(p: PlayerController) -> BasicArm:
 
 	if p.servo_sound != null:
 		_servo_player = AudioStreamPlayer3D.new()
+		_servo_player.bus = AudioUtil.SFX_BUS
 		_servo_player.stream = p.servo_sound
 		add_child(_servo_player)
 		arm.step_started.connect(_play_servo)

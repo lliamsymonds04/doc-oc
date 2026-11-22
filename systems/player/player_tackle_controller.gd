@@ -26,6 +26,7 @@ func _init(p: PlayerController, tackle_config: PlayerTackleConfig) -> void:
 	_sphere.radius = config.detect_radius
 
 	_impact_player = AudioStreamPlayer3D.new()
+	_impact_player.bus = AudioUtil.SFX_BUS
 	_impact_player.stream = config.impact_sound
 	p.add_child(_impact_player)
 

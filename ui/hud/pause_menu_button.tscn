@@ -48,3 +48,4 @@ hover_sound = ExtResource("5_s26ir")
 pressed_sound = ExtResource("6_s26ir")
 
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=309600754]
+bus = &"SFX"

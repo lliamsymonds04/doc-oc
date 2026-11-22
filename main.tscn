@@ -173,9 +173,11 @@ step_sound = ExtResource("4_7mycd")
 servo_sound = ExtResource("5_3rvo")
 
 [node name="AmbientMusic" type="AudioStreamPlayer" parent="."]
+process_mode = 3
 stream = ExtResource("24_ambient")
 volume_db = -10.0
 autoplay = true
+bus = &"Music"
 
 [node name="CSGCombiner3D" type="CSGCombiner3D" parent="." unique_id=428718861]
 use_collision = true

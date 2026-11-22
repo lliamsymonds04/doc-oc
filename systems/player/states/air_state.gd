@@ -26,10 +26,12 @@ func _init(p: PlayerController) -> void:
 
 	# create sound player
 	_audio_player = AudioStreamPlayer3D.new()
+	_audio_player.bus = AudioUtil.SFX_BUS
 	_audio_player.top_level = true
 	p.add_child(_audio_player)
 
 	_slam_wind = AudioStreamPlayer.new()
+	_slam_wind.bus = AudioUtil.SFX_BUS
 	_slam_wind.stream = preload("res://assets/audio/ground_slam_wind.ogg")
 	p.add_child(_slam_wind)
 

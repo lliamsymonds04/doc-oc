@@ -31,6 +31,7 @@ var _rumble: AudioStreamPlayer3D
 
 func _ready() -> void:
 	_rumble = AudioStreamPlayer3D.new()
+	_rumble.bus = AudioUtil.SFX_BUS
 	_rumble.stream = rise_rumble
 	add_child(_rumble)
 

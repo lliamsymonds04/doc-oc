@@ -27,6 +27,7 @@ func _init(e: EnemyController) -> void:
 	enemy.add_child(_landing_vfx)
 
 	_audio = AudioStreamPlayer3D.new()
+	_audio.bus = AudioUtil.SFX_BUS
 	_audio.stream = LANDING_SOUND
 	enemy.add_child(_audio)
 

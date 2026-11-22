@@ -19,3 +19,4 @@ stream = ExtResource("3_spawn")
 volume_db = -5.0
 unit_size = 30.0
 autoplay = true
+bus = &"SFX"

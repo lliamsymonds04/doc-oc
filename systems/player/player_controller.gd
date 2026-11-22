@@ -137,10 +137,12 @@ func _ready() -> void:
 	_current.enter()
 
 	_jump_audio_player = AudioStreamPlayer3D.new()
+	_jump_audio_player.bus = AudioUtil.SFX_BUS
 	_jump_audio_player.stream = preload("res://assets/audio/robot_jump.ogg")
 	add_child(_jump_audio_player)
 
 	_damage_audio_player = AudioStreamPlayer3D.new()
+	_damage_audio_player.bus = AudioUtil.SFX_BUS
 	_damage_audio_player.stream = damage_sound
 	add_child(_damage_audio_player)
 
