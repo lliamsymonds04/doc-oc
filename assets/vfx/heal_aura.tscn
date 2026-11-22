@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Texture2D" path="res://assets/textures/circle_05_a.png" id="1_glow"]
-[ext_resource type="AudioStream" path="res://assets/audio/heal_gem_heal.ogg" id="2_heal"]
+[ext_resource type="AudioStream" path="res://assets/audio/heal_gem_heal.wav" id="2_heal"]
 
 [sub_resource type="StandardMaterial3D" id="Material_glow"]
 transparency = 1

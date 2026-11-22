@@ -8,6 +8,7 @@ const ENEMY_GROUP := &"enemy"
 ## world (layer 1) and enemy-vs-enemy contacts.
 const ENEMY_LAYER := 8
 const ENEMY_MASK := 1 | ENEMY_LAYER
+const DEATH_SOUND := preload("res://assets/audio/enemy/enemy_death.wav")
 
 ## Kills this run; main.gd resets it on scene start and the death screen reads it.
 static var kill_count := 0
@@ -311,6 +312,12 @@ func _on_healed(_heal: float) -> void:
 
 func _on_death() -> void:
 	kill_count += 1
+
+	var death_audio := AudioStreamPlayer3D.new()
+	death_audio.stream = DEATH_SOUND
+	var audio_parent: Node3D = _ragdoll.get_body() if is_ragdolled() else self
+	audio_parent.add_child(death_audio)
+	death_audio.play()
 
 	if health_bar:
 		health_bar.play_death()

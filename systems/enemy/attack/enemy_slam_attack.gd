@@ -10,6 +10,7 @@ const FLOOR_PROBE: float = 50.0
 const WORLD_MASK: int = 1
 const MAX_TILT_DEG: float = 60.0
 const JUMP_MARGIN: float = 1.05
+const SLAM_SOUND := preload("res://assets/audio/enemy/slam_dive.wav")
 
 var _config: SlamAttackConfig
 var _phase: Phase = Phase.IDLE
@@ -23,11 +24,16 @@ var _landing_normal: Vector3 = Vector3.UP
 var _slam_drift_velocity: Vector3
 var _shape_cast: ShapeCast3D
 var _telegraph: RingEffect
+var _audio: AudioStreamPlayer3D
 
 
 func _init(e: EnemyController, config: SlamAttackConfig) -> void:
 	super(e)
 	_config = config
+
+	_audio = AudioStreamPlayer3D.new()
+	_audio.stream = SLAM_SOUND
+	e.add_child(_audio)
 
 	var cylinder := CylinderShape3D.new()
 	cylinder.radius = config.slam_radius
@@ -179,6 +185,7 @@ func _begin_slam() -> void:
 	_phase_timer = SLAM_TIMEOUT
 	enemy.velocity.y = -_config.slam_speed
 	_slam_drift_velocity = Vector3.ZERO
+	AudioUtil.play_with_pitch(_audio)
 
 
 func _impact() -> void:
