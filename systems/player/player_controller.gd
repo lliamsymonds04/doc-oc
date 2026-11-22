@@ -77,7 +77,7 @@ var _heal_glow_tween: Tween
 
 @onready var tilt_pivot: Node3D = $TiltPivot
 @onready var hitbox: CollisionShape3D = $Hitbox
-@onready var bean: MeshInstance3D = $TiltPivot/Bean
+@onready var bean: Node3D = $TiltPivot/Bean
 @onready var camera_controller: CameraController = $CameraController
 @onready var _health_controller: HealthController = $HealthController
 @onready var _heal_aura: GPUParticles3D = $HealAura
@@ -149,6 +149,8 @@ func _ready() -> void:
 
 	# arm meshes only exist after mount.init(), so collect them here, not in _init
 	_damage_flash = DamageFlashUtil.new(self, bean, damage_flash_duration)
+	for body_mesh: MeshInstance3D in bean.find_children("*", "MeshInstance3D", true, false):
+		_damage_flash.add_mesh(body_mesh)
 	for mount in all_mounts():
 		for limb_mesh: MeshInstance3D in mount.find_children("*", "MeshInstance3D", true, false):
 			_damage_flash.add_mesh(limb_mesh)

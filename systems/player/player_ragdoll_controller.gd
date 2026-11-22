@@ -88,8 +88,8 @@ func _new_body(mass: float) -> RigidBody3D:
 	return body
 
 
-func _attach_mesh(body: RigidBody3D, mesh: MeshInstance3D) -> void:
-	var copy := mesh.duplicate() as MeshInstance3D
+func _attach_mesh(body: RigidBody3D, mesh: Node3D) -> void:
+	var copy := mesh.duplicate() as Node3D
 	copy.transform = body.global_transform.inverse() * mesh.global_transform
 	body.add_child(copy)
 

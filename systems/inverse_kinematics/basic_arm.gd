@@ -7,6 +7,8 @@ signal step_started(pos: Vector3, normal: Vector3)
 signal hit_detected(pos: Vector3, normal: Vector3, collider: Object)
 
 const GROUNDED_DISTANCE_CHECK: float = 0.2
+const LIMB_LINK_SCENE := preload("res://assets/meshes/player-limb.glb")
+const LIMB_LINK_SIZE := Vector3(0.3, 2.0, 0.3)
 # sharp-end.glb points along local +Y; the rest of the fit is read from the mesh
 const SHARP_END_SCENE := preload("res://assets/meshes/sharp-end.glb")
 const SHARP_END_RING_Y: float = -0.110395
@@ -272,11 +274,6 @@ func _to_local_dir(world_dir: Vector3) -> Vector3:
 
 
 func _build_visualizer() -> void:
-	var limb_mat := StandardMaterial3D.new()
-	limb_mat.albedo_color = Color(0.47843137, 0.50588235, 0.54901961)
-	limb_mat.metallic = 0.5
-	limb_mat.roughness = 0.45
-
 	var joint_mat := StandardMaterial3D.new()
 	joint_mat.albedo_color = Color(0.65882355, 1.0, 0.24313726)
 	joint_mat.metallic = 0.6
@@ -285,17 +282,14 @@ func _build_visualizer() -> void:
 	joint_mat.emission = Color(0.65882355, 1.0, 0.24313726)
 	joint_mat.emission_energy_multiplier = 1.2
 
-	var cylinder := CylinderMesh.new()
-	cylinder.top_radius = limb_radius
-	cylinder.bottom_radius = limb_radius
-	cylinder.height = limb_length
-
+	var link_scale := Vector3(limb_radius * 2.0, limb_length, limb_radius * 2.0) / LIMB_LINK_SIZE
 	for i in range(num_limbs):
 		var seg := MeshInstance3D.new()
 		# written every render frame, so let the parent carry the interpolation
 		seg.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
-		seg.mesh = cylinder
-		seg.material_override = limb_mat
+		var link := LIMB_LINK_SCENE.instantiate() as Node3D
+		link.scale = link_scale
+		seg.add_child(link)
 		add_child(seg)
 		limb_meshes.append(seg)
 

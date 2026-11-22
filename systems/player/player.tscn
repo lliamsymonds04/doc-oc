@@ -14,6 +14,7 @@
 [ext_resource type="Script" uid="uid://pygi44sg0dn6" path="res://systems/common/health_controller.gd" id="12_xdcb8"]
 [ext_resource type="Shader" uid="uid://dmxgm435i8t7g" path="res://shaders/outline.gdshader" id="13_outline"]
 [ext_resource type="PackedScene" path="res://assets/vfx/heal_aura.tscn" id="14_heal_aura"]
+[ext_resource type="PackedScene" path="res://assets/meshes/player-capsule.glb" id="15_capsule"]
 
 [sub_resource type="Resource" id="Resource_movement"]
 script = ExtResource("4_mv")
@@ -50,13 +51,6 @@ shader_parameter/strength = 0.5999999865888
 
 [sub_resource type="QuadMesh" id="QuadMesh_outline"]
 size = Vector2(2, 2)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ktl23"]
-albedo_color = Color(0.8235294, 0.8392157, 0.8666667, 1)
-metallic = 0.35
-roughness = 0.5
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_m2c1y"]
 
 [node name="Player" type="CharacterBody3D" unique_id=1831706131 node_paths=PackedStringArray("arm_mounts", "leg_mounts")]
 collision_layer = 2
@@ -98,10 +92,8 @@ mesh = SubResource("QuadMesh_outline")
 
 [node name="TiltPivot" type="Node3D" parent="." unique_id=566898379]
 
-[node name="Bean" type="MeshInstance3D" parent="TiltPivot" unique_id=1008928997]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0040846, 0)
-material_override = SubResource("StandardMaterial3D_ktl23")
-mesh = SubResource("CapsuleMesh_m2c1y")
+[node name="Bean" parent="TiltPivot" unique_id=1008928997 instance=ExtResource("15_capsule")]
+transform = Transform3D(0.90005365, 0, 0, 0, 1, 0, 0, 0, 0.98630199, 0, 1.0040846, 0.003014)
 
 [node name="ArmTopLeft" type="Node3D" parent="TiltPivot" unique_id=1899558695 node_paths=PackedStringArray("vertical_mount", "horizontal_mount")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.353, 1.5151873, 0.377)
