@@ -230,6 +230,9 @@ func _aimed_held_body(max_dist: float) -> Dictionary:
 
 
 func _register_grab(mount: ArmMount, body: RigidBody3D, hit_pos: Vector3) -> void:
+	if body is ExplosiveBarrel:
+		(body as ExplosiveBarrel).armed = false
+
 	var was_empty := grabs.is_empty()
 	grabs[mount] = GrabHold.new(mount, body, body.to_local(hit_pos), config)
 	# enemy corpse cleanup queue_frees the body without notifying us; drop the grab

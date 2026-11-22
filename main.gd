@@ -7,6 +7,7 @@ var _impact_registry: ImpactSensorRegistry
 
 @onready var _pillars: PillarHandler = $PillarHandler
 @onready var _boxes: BoxHandler = $BoxHandler
+@onready var _barrels: BoxHandler = $BarrelHandler
 @onready var _gem: FloatingGem = $gem2
 @onready var _healing: HealingGemSpawner = $HealingGem
 @onready var _hud: Hud = $Hud
@@ -70,6 +71,8 @@ func _build_level() -> void:
 	await get_tree().physics_frame
 
 	_boxes.spawn()
+	await get_tree().physics_frame
+	_barrels.spawn()
 	add_child(_navigation)
 	_update_navigation()
 
@@ -88,14 +91,14 @@ func _update_navigation() -> void:
 	var floor_y := floor_node.global_position.y + floor_node.size.y * 0.5
 	var layout := {}
 	var obstacles: Array[CollisionShape3D] = []
-	for child in _boxes.get_children():
-		var box := child as RigidBody3D
-		if box == null or (box.collision_layer & 1) == 0:
+	for child in _boxes.get_children() + _barrels.get_children():
+		var prop := child as RigidBody3D
+		if prop == null or (prop.collision_layer & 1) == 0:
 			continue
-		var collider: CollisionShape3D = box.get_node("CollisionShape3D")
+		var collider: CollisionShape3D = prop.get_node("CollisionShape3D")
 		if collider.global_position.y > floor_y + 2.0:
 			continue
-		layout[box.get_instance_id()] = [
+		layout[prop.get_instance_id()] = [
 			collider.global_position.snapped(Vector3.ONE * 0.5),
 			collider.global_rotation.snapped(Vector3.ONE * 0.25),
 		]
@@ -131,9 +134,14 @@ func _update_navigation() -> void:
 func _add_navigation_obstacle(
 	source: NavigationMeshSourceGeometryData3D, collider: CollisionShape3D, floor_y: float
 ) -> void:
-	var bounds := (collider.shape as BoxShape3D).size * 0.5
+	var bounds: Vector3
+	if collider.shape is CylinderShape3D:
+		var cylinder := collider.shape as CylinderShape3D
+		bounds = Vector3(cylinder.radius, cylinder.height * 0.5, cylinder.radius)
+	else:
+		bounds = (collider.shape as BoxShape3D).size * 0.5
 	var center := collider.global_position
-	# Project the box's world-space bounds onto the floor. Pillars rise straight up.
+	# Project the world-space bounds onto the floor. Pillars rise straight up.
 	var span := (
 		collider.global_basis.x.abs() * bounds.x
 		+ collider.global_basis.y.abs() * bounds.y

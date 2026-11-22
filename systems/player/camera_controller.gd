@@ -110,10 +110,11 @@ func kick_damage_roll(hit_dir: Vector3, weight: float) -> void:
 	_damage_roll = -hit_dir.normalized().dot(get_flat_basis().x) * 2.4 * weight
 
 
-func play_slam_impact() -> void:
-	add_trauma(1.35, 1.35)
-	_slam_fov = -12.0
-	_slam_jolt = -0.18
+func play_heavy_impact(strength := 1.0) -> void:
+	var trauma := 1.35 * strength
+	add_trauma(trauma, trauma)
+	_slam_fov = minf(_slam_fov, -12.0 * strength)
+	_slam_jolt = minf(_slam_jolt, -0.18 * strength)
 
 
 func set_current_speed(value: float) -> void:

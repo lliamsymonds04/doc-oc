@@ -47,7 +47,7 @@ func spawn() -> void:
 		spawned += 1
 
 	if spawned == 0:
-		push_warning("BoxHandler spawned nothing; check the floor's collision and center_radius")
+		push_warning("%s spawned nothing; check the floor's collision and center_radius" % name)
 
 
 ## Candidate positions in this node's space, shuffled so a small target count
@@ -85,8 +85,8 @@ func _try_place(cell: Vector2, size: float) -> Variant:
 	if hit.is_empty() or hit["position"].y > FLOOR_SNAP:
 		return null
 
-	var ground: float = hit["position"].y
-	var center := to_global(Vector3(cell.x, ground + size * 0.5 + GROUND_CLEARANCE, cell.y))
+	var center := from
+	center.y = hit["position"].y + size * 0.5 + GROUND_CLEARANCE
 	if not _is_clear(center, size):
 		return null
 	return center
@@ -104,16 +104,21 @@ func _is_clear(center: Vector3, size: float) -> bool:
 
 func _spawn(spot: Vector3, size: float, rng: RandomNumberGenerator) -> void:
 	var box := box_template.instantiate() as RigidBody3D
-	box.position = spot
+	box.position = to_local(spot)
 	box.mass = size * size * size * mass_per_volume
+	_size_prop(box, size)
 
+	if not palette.is_empty():
+		var mesh: MeshInstance3D = box.get_node("MeshInstance3D")
+		var mat := mesh.material_override as StandardMaterial3D
+		mat.albedo_color = palette[rng.randi_range(0, palette.size() - 1)]
+
+	add_child(box)
+
+
+func _size_prop(box: RigidBody3D, size: float) -> void:
 	var mesh: MeshInstance3D = box.get_node("MeshInstance3D")
 	(mesh.mesh as BoxMesh).size = Vector3.ONE * size
-	var mat := mesh.material_override as StandardMaterial3D
-	if palette.size() > 0:
-		mat.albedo_color = palette[rng.randi_range(0, palette.size() - 1)]
 
 	var col: CollisionShape3D = box.get_node("CollisionShape3D")
 	(col.shape as BoxShape3D).size = Vector3.ONE * size
-
-	add_child(box)

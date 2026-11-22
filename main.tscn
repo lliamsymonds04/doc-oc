@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://d57yvfu3wvbb" path="res://systems/pillar_spawner.gd" id="16_2cqfq"]
 [ext_resource type="PackedScene" uid="uid://bsa48djeig0n1" path="res://systems/gem/gem.tscn" id="16_yaehf"]
 [ext_resource type="Script" uid="uid://c3j1vj3ovktda" path="res://systems/box_spawner.gd" id="17_box"]
+[ext_resource type="Script" path="res://systems/barrel_spawner.gd" id="17_barrel"]
 [ext_resource type="Script" uid="uid://qdgxt6yqgo3q" path="res://systems/enemy_spawn_entry.gd" id="18_entry"]
 [ext_resource type="Script" uid="uid://dk7f4pfsw2611" path="res://systems/enemy_spawner.gd" id="18_spawner"]
 [ext_resource type="PackedScene" uid="uid://dqbd8ih3ynaal" path="res://systems/enemy/axe_bot.tscn" id="19_enemy"]
@@ -206,6 +207,12 @@ metadata/_custom_type_script = "uid://d57yvfu3wvbb"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 21)
 script = ExtResource("17_box")
 palette = PackedColorArray(0.72, 0.63, 0.5, 1, 0.55, 0.46, 0.36, 1, 0.62, 0.6, 0.57, 1, 0.45, 0.42, 0.38, 1)
+
+[node name="BarrelHandler" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 21)
+script = ExtResource("17_barrel")
+extent = 48.0
+target_boxes = 8
 
 [node name="gem2" parent="." unique_id=2077143984 instance=ExtResource("16_yaehf")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, 14)

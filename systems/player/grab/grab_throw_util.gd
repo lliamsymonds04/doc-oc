@@ -14,6 +14,8 @@ static func apply_throw(
 		config.throw_release_velocity_y_min
 	)
 	apply_spin(body, config)
+	if body is ExplosiveBarrel:
+		(body as ExplosiveBarrel).armed = true
 
 
 static func apply_spin(body: RigidBody3D, config: PlayerGrabConfig) -> void:

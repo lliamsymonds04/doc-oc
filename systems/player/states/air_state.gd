@@ -154,6 +154,9 @@ func move_slam(dt: float) -> void:
 	if impact != null and impact.get_normal().dot(Vector3.UP) >= cos(p.floor_max_angle):
 		_slam_impact(impact.get_position(), impact.get_normal())
 		_land(p.mount_prober.get_leg_probe_hits(), impact)
+		var barrel := impact.get_collider() as ExplosiveBarrel
+		if barrel != null:
+			barrel.detonate(impact.get_position(), impact.get_normal())
 	p.velocity = Vector3.ZERO
 
 
@@ -343,7 +346,7 @@ func _play_landed_effect(impact: KinematicCollision3D = null) -> void:
 	if impact != null:
 		_audio_player.stream = hard_landing_sound
 		AudioUtil.play_with_pitch(_audio_player)
-		p.camera_controller.play_slam_impact()
+		p.camera_controller.play_heavy_impact()
 		return
 
 	var trauma := p.air.landing_trauma

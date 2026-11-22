@@ -20,6 +20,7 @@ enum StateID { GROUNDED, WALL_CLIMB, AIR }
 
 enum Mode { ATTACK, GRAB }
 
+const PLAYER_LAYER := 2
 ## Layer bodies are moved to while held; excluded from player casts via cast_mask.
 const HELD_LAYER := 4
 ## Layer the arena border sits on; excluded from player casts so it cannot be climbed.
@@ -217,7 +218,6 @@ func is_wall_climbing() -> bool:
 func take_damage(dmg: float, hit_dir: Vector3 = Vector3.ZERO) -> void:
 	_hit_dir = hit_dir
 	_health_controller.apply_damage(dmg)
-	print("damage taken: " + str(dmg) + "")
 
 
 func is_dead() -> bool:
@@ -264,7 +264,6 @@ func _sync_health() -> void:
 
 
 func _on_death() -> void:
-	print("dead")
 	air_state().cancel_slam()
 	_set_slam_target_active(false)
 	grab_controller.release_all()

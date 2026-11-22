@@ -7,6 +7,7 @@ extends Node3D
 const ENEMY_SCENE := preload("res://systems/enemy/axe_bot.tscn")
 const ARENA_SCENE := preload("res://main.tscn")
 const PLAYER_SCENE := preload("res://systems/player/player.tscn")
+const BARREL_SCENE := preload("res://assets/barrel_template.tscn")
 
 var _failures := 0
 
@@ -21,6 +22,10 @@ func _ready() -> void:
 	await _test_hop_launches()
 	_test_damage_camera()
 	await _test_player_slam_damage()
+	await get_tree().process_frame
+	await _test_barrel_blast()
+	await get_tree().process_frame
+	await _test_barrel_impact_after_throw()
 	await get_tree().process_frame
 	await _test_enemy_pursuit()
 
@@ -254,6 +259,102 @@ func _test_player_slam_damage() -> void:
 		_despawn(enemy)
 	player.queue_free()
 	terrain.queue_free()
+
+
+func _test_barrel_blast() -> void:
+	var barrel := BARREL_SCENE.instantiate() as ExplosiveBarrel
+	barrel.freeze = true
+	add_child(barrel)
+	var player := PLAYER_SCENE.instantiate() as PlayerController
+	player.position = Vector3(0, 0, 2)
+	add_child(player)
+	player.set_physics_process(false)
+
+	var near := _spawn(EnemyConfig.new())
+	var covered := _spawn(EnemyConfig.new())
+	near.position = Vector3(3, 0, 0)
+	covered.position = Vector3(-3, 0, 0)
+	near.set_physics_process(false)
+	covered.set_physics_process(false)
+
+	var held := _spawn(EnemyConfig.new())
+	held.position = Vector3(0, 0, -3)
+	held.initiate_ragdoll(false)
+	held.get_ragdoll().collision_layer = PlayerController.HELD_LAYER
+
+	var wall := StaticBody3D.new()
+	wall.position = Vector3(-1.5, 0, 0)
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(0.25, 5, 5)
+	var collider := CollisionShape3D.new()
+	collider.shape = shape
+	wall.add_child(collider)
+	add_child(wall)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+
+	var damage := barrel.blast_damage
+	var player_health := player._health_controller.health
+	for i in 2:
+		player.attack_controller.arm_hit_detected(Vector3.BACK * 0.5, Vector3.BACK, barrel)
+	_check(barrel.is_queued_for_deletion(), "a punch detonates an unarmed barrel")
+	_check(player._health_controller.health == player_health - damage, "blast damages player once")
+	_check(near.is_ragdolled(), "blast ragdolls a surviving enemy")
+	var near_health := near.health_controller
+	_check(near_health.health == near_health.max_health - damage, "blast damages enemy once")
+	var held_health := held.health_controller
+	_check(held_health.health == held_health.max_health - damage, "blast damages a held enemy")
+	var covered_health := covered.health_controller
+	_check(covered_health.health == covered_health.max_health, "cover blocks the barrel blast")
+	await get_tree().physics_frame
+	var velocity := near.get_ragdoll().linear_velocity
+	_check(velocity.x > 0.0 and velocity.y > 0.0, "blast launches the ragdoll outward and up")
+
+	_despawn(near)
+	_despawn(covered)
+	_despawn(held)
+	player.queue_free()
+	wall.queue_free()
+
+
+func _test_barrel_impact_after_throw() -> void:
+	var fixture := Node3D.new()
+	add_child(fixture)
+	for x in [-1.7, 1.7]:
+		var wall := StaticBody3D.new()
+		wall.position.x = x
+		var shape := BoxShape3D.new()
+		shape.size = Vector3(0.25, 5, 5)
+		var collider := CollisionShape3D.new()
+		collider.shape = shape
+		wall.add_child(collider)
+		fixture.add_child(wall)
+
+	var barrel := BARREL_SCENE.instantiate() as ExplosiveBarrel
+	barrel.position.x = 0.8
+	barrel.gravity_scale = 0.0
+	fixture.add_child(barrel)
+	var impacts: Array[float] = []
+	ImpactSensor.attach(barrel, barrel.min_impact_dv).impacted.connect(
+		func(dv: float, _point: Vector3, _normal: Vector3, _collider: Object) -> void:
+			impacts.append(dv)
+	)
+	barrel.linear_velocity = Vector3.RIGHT * 48.0
+	for i in 8:
+		await get_tree().physics_frame
+		if not impacts.is_empty():
+			break
+	_check(not impacts.is_empty(), "unarmed barrel reports a hard impact")
+	if not impacts.is_empty():
+		GrabThrowUtil.apply_throw(
+			barrel, 48.0, Basis.looking_at(Vector3.LEFT), PlayerGrabConfig.new()
+		)
+		for i in 8:
+			await get_tree().physics_frame
+			if not is_instance_valid(barrel):
+				break
+		_check(not is_instance_valid(barrel), "thrown barrel explodes during the impact cooldown")
+	fixture.queue_free()
 
 
 func _test_enemy_pursuit() -> void:

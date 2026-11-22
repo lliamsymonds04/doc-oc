@@ -1,10 +1,10 @@
 class_name ImpactSensor
 extends Node
 
-## Detects hard impacts on a RigidBody3D by polling contact impulses and emits
-## `impacted`. Optionally plays impact audio, shakes the camera and spawns crack
-## decals.
+## Detects hard impacts on a RigidBody3D by polling contact impulses. The
+## cooldown applies to `impacted` and its effects, not to `hard_contact`.
 
+signal hard_contact(point: Vector3, normal: Vector3)
 signal impacted(dv: float, local_position: Vector3, local_normal: Vector3, collider: Object)
 
 const SENSOR_META := &"impact_sensor"
@@ -70,6 +70,12 @@ func _physics_process(_dt: float) -> void:
 		if dv < min_dv:
 			continue
 
+		var point := state.get_contact_local_position(i)
+		var normal := state.get_contact_local_normal(i)
+		hard_contact.emit(point, normal)
+		if _body.is_queued_for_deletion():
+			return
+
 		if (
 			frame - _last_impact_physics_frame
 			<= EFFECT_COOLDOWN * Engine.get_physics_ticks_per_second()
@@ -77,18 +83,9 @@ func _physics_process(_dt: float) -> void:
 			return
 		_last_impact_physics_frame = frame
 
-		(
-			impacted
-			. emit(
-				dv,
-				state.get_contact_local_position(i),
-				state.get_contact_local_normal(i),
-				state.get_contact_collider_object(i),
-			)
-		)
-
+		impacted.emit(dv, point, normal, state.get_contact_collider_object(i))
 		_play_audio(dv)
-		_shake_camera(dv, state.get_contact_local_normal(i))
+		_shake_camera(dv, normal)
 		_spawn_crack_decal(dv, state, i)
 
 		break
