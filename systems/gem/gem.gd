@@ -19,14 +19,20 @@ const SHATTER_SHRINK: Vector3 = Vector3.ONE * 0.001
 
 @export var bob_height := 0.25
 @export var bob_duration := 2.5
+@export var spin_speed := 0.55
+@export var core_spin_speed := -1.25
 @export var break_vfx: PackedScene = preload("res://assets/vfx/gem_break.tscn")
 ## Prompt floating over the gem; set per instance from the scene.
 @export var hint_text := "Break to start"
 
 var _base_height := 0.0
+var _base_light_energy := 0.0
 var _elapsed := 0.0
 var _broken := false
 
+@onready var _shell: Node3D = $Cube
+@onready var _core: Node3D = $Cube/Core
+@onready var _light: OmniLight3D = $Cube/Light
 @onready var _hum: AudioStreamPlayer3D = $Hum
 @onready var _shatter_sound: AudioStreamPlayer3D = $Shatter
 @onready var _shape: CollisionShape3D = $Body/CollisionShape3D
@@ -45,12 +51,18 @@ static func resolve(collider: Object) -> FloatingGem:
 
 func _ready() -> void:
 	_base_height = position.y
+	_base_light_energy = _light.light_energy
 	_hint.text = hint_text
 
 
 func _physics_process(delta: float) -> void:
 	_elapsed += delta
-	position.y = _base_height + sin(_elapsed * TAU / maxf(bob_duration, 0.01)) * bob_height
+	var wave := sin(_elapsed * TAU / maxf(bob_duration, 0.01))
+	position.y = _base_height + wave * bob_height
+	_shell.rotate_y(spin_speed * delta)
+	_core.rotate_y(core_spin_speed * delta)
+	if not _broken:
+		_light.light_energy = _base_light_energy * (1.0 + wave * 0.15)
 
 
 ## Called when a punch connects; the gem's reaction hangs off [signal hit_landed].
@@ -82,6 +94,9 @@ func _shatter() -> void:
 
 	var tween := create_tween().set_parallel(true)
 	tween.tween_property(self, "scale", SHATTER_SHRINK, SHATTER_TIME)
+	tween.tween_property(_light, "light_energy", 0.0, SHATTER_TIME)
+	tween.tween_property(_hint, "modulate:a", 0.0, SHATTER_TIME)
+	tween.tween_property(_hint, "outline_modulate:a", 0.0, SHATTER_TIME)
 	# chained below waits for the longest tweener, so the hum is not cut short
 	tween.tween_property(_hum, "volume_db", SILENT_DB, HUM_FADE_TIME)
 
@@ -96,5 +111,7 @@ func _shatter() -> void:
 		# particles outlive the mesh dissolve, so they fade with the hum instead
 		var fade_time := HUM_FADE_TIME if child is GPUParticles3D else SHATTER_TIME
 		tween.tween_property(faded, "albedo_color:a", 0.0, fade_time)
+		if faded.emission_enabled:
+			tween.tween_property(faded, "emission_energy_multiplier", 0.0, fade_time)
 
 	tween.chain().tween_callback(queue_free)

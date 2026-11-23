@@ -166,7 +166,7 @@ sides = 192
 material = SubResource("BorderMat")
 
 [node name="Player" parent="." unique_id=1831706131 instance=ExtResource("1_ig7tw")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.682001, 0.08204651, 21.104301)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.089, 0)
 hover = SubResource("Resource_b5y0m")
 step_vfx = ExtResource("3_lquwl")
 step_sound = ExtResource("4_7mycd")
@@ -200,31 +200,27 @@ mouse_filter = 2
 [node name="Hud" parent="." unique_id=1447860461 instance=ExtResource("8_5vw27")]
 
 [node name="PillarHandler" type="Node3D" parent="." unique_id=532953420]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 21)
 script = ExtResource("16_2cqfq")
 pillar_gradient_colour = SubResource("Gradient_2cqfq")
 metadata/_custom_type_script = "uid://d57yvfu3wvbb"
 
 [node name="BoxHandler" type="Node3D" parent="." unique_id=532953421]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 21)
 script = ExtResource("17_box")
 palette = PackedColorArray(0.72, 0.63, 0.5, 1, 0.55, 0.46, 0.36, 1, 0.62, 0.6, 0.57, 1, 0.45, 0.42, 0.38, 1)
 
 [node name="BarrelHandler" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 21)
 script = ExtResource("17_barrel")
 extent = 48.0
 target_boxes = 8
 
-[node name="gem2" parent="." unique_id=2077143984 instance=ExtResource("16_yaehf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, 14)
+[node name="Gem" parent="." unique_id=2077143984 instance=ExtResource("16_yaehf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -15)
 
 [node name="HealingGem" type="Node3D" parent="." unique_id=2077143985 node_paths=PackedStringArray("pillars")]
 script = ExtResource("23_healgem")
 pillars = NodePath("../PillarHandler")
 
 [node name="EnemySpawner" type="Node3D" parent="." unique_id=1874129330]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 21)
 script = ExtResource("18_spawner")
 entries = Array[ExtResource("18_entry")]([SubResource("Resource_spawn_entry"), SubResource("Resource_spawn_slam"), SubResource("Resource_spawn_orb")])
 

@@ -8,7 +8,7 @@ var _impact_registry: ImpactSensorRegistry
 @onready var _pillars: PillarHandler = $PillarHandler
 @onready var _boxes: BoxHandler = $BoxHandler
 @onready var _barrels: BoxHandler = $BarrelHandler
-@onready var _gem: FloatingGem = $gem2
+@onready var _gem: FloatingGem = $Gem
 @onready var _healing: HealingGemSpawner = $HealingGem
 @onready var _hud: Hud = $Hud
 @onready var _enemies: EnemySpawner = $EnemySpawner
