@@ -67,13 +67,13 @@ func _physics_process(_dt: float) -> void:
 	var frame := Engine.get_physics_frames()
 	var state := PhysicsServer3D.body_get_direct_state(_body.get_rid())
 	for i in state.get_contact_count():
-		# impulse / mass = equivalent velocity change -> mass-independent tuning
-		var dv := state.get_contact_impulse(i).length() / _body.mass
+		var normal := state.get_contact_local_normal(i)
+		# normal impulse / mass = equivalent normal velocity change -> ignores rolling/sliding friction
+		var dv := absf(state.get_contact_impulse(i).dot(normal)) / _body.mass
 		if dv < min_dv:
 			continue
 
 		var point := state.get_contact_local_position(i)
-		var normal := state.get_contact_local_normal(i)
 		hard_contact.emit(point, normal)
 		if _body.is_queued_for_deletion():
 			return

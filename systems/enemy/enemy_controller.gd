@@ -325,6 +325,20 @@ func _on_death() -> void:
 
 	_death_timer = config.dead_body_cleanup_time
 
+	var sensor := _ragdoll.get_body().get_meta(ImpactSensor.SENSOR_META, null) as ImpactSensor
+	if sensor != null and not sensor.impacted.is_connected(_on_corpse_impacted):
+		sensor.impacted.connect(_on_corpse_impacted)
+
+
+func _on_corpse_impacted(_dv: float, _pos: Vector3, normal: Vector3, _collider: Object) -> void:
+	if absf(normal.y) <= ImpactSensor.WALL_NORMAL_DOT_UP:
+		return
+	var sensor := _ragdoll.get_body().get_meta(ImpactSensor.SENSOR_META, null) as ImpactSensor
+	if sensor != null:
+		sensor.set_physics_process(false)
+		if sensor.impacted.is_connected(_on_corpse_impacted):
+			sensor.impacted.disconnect(_on_corpse_impacted)
+
 
 func initiate_ragdoll(should_get_up: bool = true) -> void:
 	if _ragdoll.is_ragdoll():
