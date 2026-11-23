@@ -30,6 +30,8 @@ var buttons: Array[Control] = []
 var _view: View = View.MAIN
 var _button_tweens: Array[Tween] = []
 var _view_tween: Tween
+var _game_started := false
+var _music_tween: Tween
 var _music_duck: float = 1.0
 
 @onready var blur_rect = $BlurRect
@@ -44,6 +46,7 @@ func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
 	GameSettings.apply_audio()
+	_set_music_duck(pause_music_scale)
 	get_window().focus_entered.connect(_apply_mouse_mode)
 
 	settings_panel.visible = false
@@ -57,6 +60,11 @@ func _ready():
 
 func _exit_tree() -> void:
 	GameSettings.set_music_duck(1.0)
+
+
+func on_game_started() -> void:
+	_game_started = true
+	_update_music_volume()
 
 
 func toggle_pause(new: bool) -> void:
@@ -142,7 +150,6 @@ func _player_dead() -> bool:
 func _blur_tween() -> void:
 	var blur_target = blur_strength if is_paused else 0.0
 	var color_mix_target = color_mix if is_paused else 0.0
-	var music_target := pause_music_scale if is_paused else 1.0
 
 	if blur_tween:
 		blur_tween.kill()
@@ -154,7 +161,7 @@ func _blur_tween() -> void:
 	blur_tween.tween_property(
 		blur_rect, "material:shader_parameter/mix_amount", color_mix_target, blur_tween_duration
 	)
-	blur_tween.tween_method(_set_music_duck, _music_duck, music_target, blur_tween_duration)
+	_update_music_volume()
 
 	_apply_mouse_mode()
 
@@ -295,6 +302,14 @@ func _fade_active_submenu_out() -> void:
 	var active: Control = settings_panel if _view == View.SETTINGS else controls_panel
 	_view_tween = create_tween()
 	_view_tween.tween_property(active, "modulate:a", 0.0, SUBMENU_FADE_DURATION)
+
+
+func _update_music_volume() -> void:
+	if _music_tween:
+		_music_tween.kill()
+	var target := 1.0 if _game_started and not is_paused else pause_music_scale
+	_music_tween = create_tween()
+	_music_tween.tween_method(_set_music_duck, _music_duck, target, blur_tween_duration)
 
 
 func _set_music_duck(scale: float) -> void:

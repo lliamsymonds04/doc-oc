@@ -51,6 +51,7 @@ func on_gem_hit(_position: Vector3, _normal: Vector3) -> void:
 	_update_navigation()
 	_enemies.begin()
 	_hud.start_timer()
+	($Hud/PauseMenu as PauseMenu).on_game_started()
 	_healing.begin()
 
 

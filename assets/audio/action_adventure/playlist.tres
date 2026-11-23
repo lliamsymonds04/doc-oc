@@ -1,0 +1,29 @@
+[gd_resource type="AudioStreamPlaylist" format=3]
+
+[ext_resource type="AudioStream" path="res://assets/audio/action_adventure/nesquence.ogg" id="1"]
+[ext_resource type="AudioStream" path="res://assets/audio/action_adventure/neverendingrace.ogg" id="2"]
+[ext_resource type="AudioStream" path="res://assets/audio/action_adventure/space_rider.ogg" id="3"]
+[ext_resource type="AudioStream" path="res://assets/audio/action_adventure/warped_caves.ogg" id="4"]
+[ext_resource type="AudioStream" path="res://assets/audio/action_adventure/moonlight.ogg" id="5"]
+[ext_resource type="AudioStream" path="res://assets/audio/action_adventure/outrunner.ogg" id="6"]
+[ext_resource type="AudioStream" path="res://assets/audio/action_adventure/space-marine-theme.ogg" id="7"]
+[ext_resource type="AudioStream" path="res://assets/audio/action_adventure/space-ray.ogg" id="8"]
+[ext_resource type="AudioStream" path="res://assets/audio/action_adventure/spaceship_shooter.ogg" id="9"]
+[ext_resource type="AudioStream" path="res://assets/audio/action_adventure/warped_vehicles.ogg" id="10"]
+[ext_resource type="AudioStream" path="res://assets/audio/action_adventure/warped-shooting-fx.ogg" id="11"]
+
+[resource]
+stream_count = 11
+shuffle = true
+loop = true
+stream_0 = ExtResource("1")
+stream_1 = ExtResource("2")
+stream_2 = ExtResource("3")
+stream_3 = ExtResource("4")
+stream_4 = ExtResource("5")
+stream_5 = ExtResource("6")
+stream_6 = ExtResource("7")
+stream_7 = ExtResource("8")
+stream_8 = ExtResource("9")
+stream_9 = ExtResource("10")
+stream_10 = ExtResource("11")
