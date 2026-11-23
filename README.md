@@ -17,12 +17,20 @@ Follow the development of the project across the two YouTube devlogs:
 
 ## Gameplay Showcase
 
-### Wall Climbing & Ground Slam
+### Wall Climbing
 
-Run into any pillar to climb vertically with all four limbs, wall-jump off into open air, and aim downward to trigger a ground slam.
+Run into any pillar to climb vertically with all four procedural limbs and wall-jump off into open air.
 
 <p align="center">
-  <img src="docs/media/climbing.gif" alt="Wall climbing and ground slam" width="640" />
+  <img src="docs/media/climbing.gif" alt="Vertical wall climbing and wall jump" width="720" />
+</p>
+
+### Ground Slam
+
+While airborne, aim downward and press `Space` to dive-slam into enemies with an area-of-effect shockwave.
+
+<p align="center">
+  <img src="docs/media/ground_slam.gif" alt="Mid-air ground slam into enemies" width="720" />
 </p>
 
 ### Grab, Throw & Explosive Barrels
