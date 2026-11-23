@@ -2,6 +2,8 @@
 
 A 3D wave-survival arena game inspired by Doctor Octopus, built in **Godot 4.7** with procedural four-limb inverse kinematics, vertical wall climbing, melee combat, and physics-based grabbing and throwing.
 
+Pre-built binaries for Linux and Windows are available on the [Releases page](https://github.com/lliamsymonds04/doc-oc/releases/latest).
+
 <p align="center">
   <img src="docs/media/combat.gif" alt="Combat and four-limb locomotion" width="720" />
 </p>
@@ -88,7 +90,14 @@ Switch to Grab mode (`R`) to snatch crates, explosive barrels, or ragdolled enem
 | Grab | `Scroll Wheel` | Push / pull held object |
 | Grab | `Flick Up` + Release | Throw (homes toward crosshair) |
 
-## Running Locally
+## Download & Play
+
+Grab the latest pre-built release from the [GitHub Releases page](https://github.com/lliamsymonds04/doc-oc/releases/latest) (latest: [v0.1](https://github.com/lliamsymonds04/doc-oc/releases/tag/v0.1)):
+
+- **Linux (`x86_64`)** — Download `doc-oc-v0.1-linux-x86_64.zip`, extract, and run `./doc-oc.x86_64`.
+- **Windows (`x86_64`)** — Download `doc-oc-v0.1-windows-x86_64.zip`, extract, and run `doc-oc.exe`.
+
+## Running from Source
 
 ### Requirements
 
